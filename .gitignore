@@ -1,0 +1,47 @@
+# Maven/Gradle 构建产物
+target/
+build/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE 配置文件
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# 编译生成的文件
+*.log
+*.tmp
+*.temp
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 临时文件和备份
+*.bak
+*~
+*.swp
+*.swo
+
+# 测试报告
+surefire-reports/
+test-results/
+
+# 依赖目录（如果是 Maven/Gradle 管理则不需要）
+# node_modules/
+
+# 日志文件
+*.log
+logs/
+
+# 特定于项目的非必要文件
+# 如果是个人配置，可以选择性忽略
+.trae/skill-config.json
