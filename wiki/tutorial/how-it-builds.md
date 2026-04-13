@@ -52,7 +52,7 @@
 ### 文件组织
 
 ```
-Java-Compound-Learning/
+JavaLearning/
 ├── .agent/                          # 配置层
 │   ├── config.md                   # 路径配置（AI 读取）
 │   └── profile.md                  # 学习者画像（核心数据）

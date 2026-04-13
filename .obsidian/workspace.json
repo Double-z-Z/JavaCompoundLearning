@@ -11,24 +11,10 @@
             "id": "44db51656d644b41",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Java-Compound-Learning/wiki/tutorial/how-it-builds.md",
-                "mode": "source",
-                "source": false,
-                "backlinks": true,
-                "backlinkOpts": {
-                  "collapseAll": false,
-                  "extraContext": false,
-                  "sortOrder": "alphabetical",
-                  "showSearch": false,
-                  "searchQuery": "",
-                  "backlinkCollapsed": false,
-                  "unlinkedCollapsed": true
-                }
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "how-it-builds"
+              "title": "新标签页"
             }
           }
         ]
@@ -104,7 +90,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Java-Compound-Learning/wiki/tutorial/how-it-builds.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -114,7 +99,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "how-it-builds 的反向链接列表"
+              "title": "反向链接"
             }
           },
           {
@@ -123,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Java-Compound-Learning/03-Maps-of-Content/MOC-并发编程.md",
+                "file": "04-Maps/MOC-并发编程.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -166,7 +151,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Java-Compound-Learning/03-Maps-of-Content/MOC-并发编程.md",
+                "file": "04-Maps/MOC-并发编程.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -196,42 +181,42 @@
   },
   "active": "44db51656d644b41",
   "lastOpenFiles": [
-    "Java-Compound-Learning/wiki/tutorial/how-it-works.md",
-    "Java-Compound-Learning/wiki/tutorial/how-it-builds.md",
-    "Java-Compound-Learning/wiki/tutorial/why-this-project.md",
-    "Java-Compound-Learning/wiki/reference/skill-system.md",
-    "Java-Compound-Learning/wiki/reference/moc.md",
-    "Java-Compound-Learning/wiki/reference/mistake-archive.md",
-    "Java-Compound-Learning/wiki/reference/mastery-system.md",
-    "Java-Compound-Learning/wiki/reference/compound-learning.md",
-    "Java-Compound-Learning/wiki/reference/atomic-notes.md",
-    "Java-Compound-Learning/README.md",
-    "Java-Compound-Learning/TODOLIST.md",
-    "first-session.md",
-    "Java-Compound-Learning/04-Maps/MOC-并发编程.md",
-    "Java-Compound-Learning/05-Templates/MOC模板.md",
-    "Java-Compound-Learning/wiki/reference",
-    "Java-Compound-Learning/wiki/tutorial",
-    "Java-Compound-Learning/wiki/best-practices.md",
-    "Java-Compound-Learning/wiki/core-concepts.md",
-    "Java-Compound-Learning/wiki/data-model.md",
-    "Java-Compound-Learning/wiki/skill-development.md",
-    "Java-Compound-Learning/agent-prompt.md",
-    "Java-Compound-Learning/02-Knowledge/concurrency/deep-dives",
-    "Java-Compound-Learning/02-Knowledge/nio/deep-dives",
-    "Java-Compound-Learning/wiki/faq.md",
-    "Java-Compound-Learning/wiki/workflow.md",
-    "Java-Compound-Learning/wiki",
-    "Java-Compound-Learning/02-Knowledge/concurrency/concepts/线程阻塞.md",
-    "Java-Compound-Learning/05-Templates/Dashboard模板.md",
-    "Java-Compound-Learning/05-Templates/反思记录模板.md",
-    "Java-Compound-Learning/05-Templates/练习记录模板.md",
-    "Java-Compound-Learning/05-Templates/错误档案模板.md",
-    "Java-Compound-Learning/05-Templates",
-    "Java-Compound-Learning/03-Practice/mistakes",
-    "Java-Compound-Learning/03-Practice/reflections",
-    "Java-Compound-Learning/03-Practice/drills",
-    "Java-Compound-Learning/03-Practice",
+    "wiki/tutorial/how-it-builds.md",
+    "TODOLIST.md",
+    "README.md",
+    "LEARNING-ROADMAP.md",
+    "wiki/tutorial/why-this-project.md",
+    "wiki/tutorial/how-it-works.md",
+    "wiki/tutorial/how-it-builds.md",
+    "wiki/reference/skill-system.md",
+    "wiki/reference/moc.md",
+    "wiki/reference/mistake-archive.md",
+    "wiki/reference/mastery-system.md",
+    "wiki/reference/compound-learning.md",
+    "wiki/reference/atomic-notes.md",
+    "wiki/tutorial",
+    "wiki/reference",
+    "wiki",
+    "05-Templates/项目笔记模板.md",
+    "05-Templates/错误档案模板.md",
+    "05-Templates/练习记录模板.md",
+    "05-Templates/反思记录模板.md",
+    "05-Templates/原子笔记模板.md",
+    "05-Templates/MOC模板.md",
+    "05-Templates/Dashboard模板.md",
+    "05-Templates",
+    "04-Maps/auto-generated/knowledge-map.md",
+    "04-Maps/MOC-并发编程.md",
+    "04-Maps/auto-generated",
+    "04-Maps",
+    "03-Practice/mistakes/MISTAKE-001-volatile误解.md",
+    "03-Practice/reflections/2026-04-11-futex-dialogue.md",
+    "03-Practice/drills/2026-04-11-concurrent-counters.md",
+    "03-Practice/mistakes",
+    "03-Practice/reflections",
+    "03-Practice/drills",
+    "03-Practice",
+    "02-Knowledge/concurrency/concepts/缓存行伪共享.md",
     "未命名.canvas"
   ]
 }

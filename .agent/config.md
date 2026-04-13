@@ -1,15 +1,14 @@
 # Agent Configuration
 
-> 本文件定义Agent查询项目所需的所有路径配置
-> 路径均相对于项目根目录 `Java-Compound-Learning/`
+> 本文件定义 Agent 查询项目所需的所有路径配置
+> 路径均相对于项目根目录（当前目录）
 
 ---
 
 ## 项目结构
 
 ```
-Java-Compound-Learning/
-├── .agent/                 # Agent配置（本文件所在目录）
+├── .agent/                 # Agent 配置（本文件所在目录）
 │   ├── config.md          # 路径配置
 │   └── profile.md         # 学习者画像
 ├── 01-Projects/           # 项目实战
@@ -65,7 +64,6 @@ Java-Compound-Learning/
 
 ### 路径解析规则
 - 所有路径均为相对于项目根目录的相对路径
-- 项目根目录为 `Java-Compound-Learning/`
 - 读取文件时，将上述路径拼接至项目根目录
 
 ---
