@@ -3,3 +3,4 @@
 2. 学习计划和进度，目前是输出到profile.md，仍未验证
 3. dataview数据显示不出来，插件未安装
 4. 思考思维导图和现在的obsidian的力导向图，对于知识库的意义。
+5. 处理 `.trae/rules/` 中的苏格拉底式学习规则，使其深度兼容 Kimi CLI（当前暂缓，核心规则已通过 AGENTS.md 和 Skill 定义覆盖）

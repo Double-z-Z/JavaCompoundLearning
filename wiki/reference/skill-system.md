@@ -16,7 +16,10 @@ Skill = 定义AI在特定场景下行为的指令集
 ## 文件结构
 
 ```
-.trae/skills/<skill-name>/
+.trae/skills/<skill-name>/          # Trae IDE
+└── SKILL.md
+
+.agents/skills/<skill-name>/        # Kimi CLI
 └── SKILL.md
 ```
 
