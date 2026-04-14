@@ -4,17 +4,31 @@
     "type": "split",
     "children": [
       {
-        "id": "7e3ec58dadfc5cc5",
+        "id": "a3391657d792c8a5",
         "type": "tabs",
         "children": [
           {
-            "id": "44db51656d644b41",
+            "id": "86c08649c6e08c15",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "05-Templates/里程碑复盘模板.md",
+                "mode": "preview",
+                "source": false,
+                "backlinks": true,
+                "backlinkOpts": {
+                  "collapseAll": false,
+                  "extraContext": false,
+                  "sortOrder": "alphabetical",
+                  "showSearch": false,
+                  "searchQuery": "",
+                  "backlinkCollapsed": false,
+                  "unlinkedCollapsed": true
+                }
+              },
               "icon": "lucide-file",
-              "title": "新标签页"
+              "title": "里程碑复盘模板"
             }
           }
         ]
@@ -90,6 +104,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "05-Templates/里程碑复盘模板.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +114,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "反向链接"
+              "title": "里程碑复盘模板 的反向链接列表"
             }
           },
           {
@@ -108,12 +123,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "04-Maps/MOC-并发编程.md",
+                "file": "05-Templates/里程碑复盘模板.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "MOC-并发编程 的出链列表"
+              "title": "里程碑复盘模板 的出链列表"
             }
           },
           {
@@ -160,7 +175,8 @@
               "title": "MOC-并发编程 的大纲"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -179,44 +195,44 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "44db51656d644b41",
+  "active": "86c08649c6e08c15",
   "lastOpenFiles": [
-    "wiki/tutorial/how-it-builds.md",
-    "TODOLIST.md",
-    "README.md",
-    "LEARNING-ROADMAP.md",
-    "wiki/tutorial/why-this-project.md",
-    "wiki/tutorial/how-it-works.md",
-    "wiki/tutorial/how-it-builds.md",
-    "wiki/reference/skill-system.md",
-    "wiki/reference/moc.md",
-    "wiki/reference/mistake-archive.md",
-    "wiki/reference/mastery-system.md",
-    "wiki/reference/compound-learning.md",
-    "wiki/reference/atomic-notes.md",
+    "04-Maps/MOC-能力雷达图.md",
+    "04-Maps/MOC-并发编程.md",
+    "04-Maps/radar-dataviewjs.md",
+    "04-Maps/能力雷达图.radar.md",
+    "04-Maps/auto-generated/knowledge-map.md",
+    "04-Maps/能力雷达图.radar.json",
+    "05-Templates/里程碑复盘模板.md",
+    "99-Archive/高级Java后端开发人员能力评价体系（Architect）设计报告.ini",
+    "99-Archive/README.md",
+    "99-Archive",
+    "resouces/高级Java后端开发人员能力评价体系（Architect）设计报告.ini",
+    "04-Maps/高级Java后端开发人员能力评价体系（Architect）设计报告.ini",
+    "resouces",
+    "EVALUAION_SYSTEM.md",
+    "EVALUAION_SYS.md",
+    "VALUEATION.md",
+    "BUILD-VALUEATION-PLAN.md",
+    "VALUEATION-PLAN.md",
+    "高级Java后端开发人员能力评价体系（Architect）设计报告.md",
+    "05-Templates/季度能力复盘模板.md",
+    "05-Templates/故障复盘模板.md",
+    "05-Templates/架构评审模板.md",
+    "05-Templates/项目评估卡片模板.md",
+    "EXECUTION-PLAN.md",
+    "EXECUTION-PLAN-Architect.md",
+    "高级Java后端开发人员能力评价体系（Architect）设计报告.ini",
+    "install.ps1",
+    "COMPATIBILITY.md",
+    "AGENTS.md",
+    "04-Maps/auto-generated/高级Java后端开发人员能力评价体系（Architect）设计报告.md",
+    "02-Knowledge/concurrency/concepts/线程池.md",
+    "02-Knowledge/concurrency/concepts/futex.md",
+    "02-Knowledge/concurrency/concepts/线程阻塞.md",
+    "线程状态.md",
     "wiki/tutorial",
     "wiki/reference",
-    "wiki",
-    "05-Templates/项目笔记模板.md",
-    "05-Templates/错误档案模板.md",
-    "05-Templates/练习记录模板.md",
-    "05-Templates/反思记录模板.md",
-    "05-Templates/原子笔记模板.md",
-    "05-Templates/MOC模板.md",
-    "05-Templates/Dashboard模板.md",
-    "05-Templates",
-    "04-Maps/auto-generated/knowledge-map.md",
-    "04-Maps/MOC-并发编程.md",
-    "04-Maps/auto-generated",
-    "04-Maps",
-    "03-Practice/mistakes/MISTAKE-001-volatile误解.md",
-    "03-Practice/reflections/2026-04-11-futex-dialogue.md",
-    "03-Practice/drills/2026-04-11-concurrent-counters.md",
-    "03-Practice/mistakes",
-    "03-Practice/reflections",
-    "03-Practice/drills",
-    "03-Practice",
-    "02-Knowledge/concurrency/concepts/缓存行伪共享.md",
     "未命名.canvas"
   ]
 }

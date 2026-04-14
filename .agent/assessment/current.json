@@ -1,0 +1,358 @@
+{
+  "$schema": "./schema.json",
+  "profile": {
+    "id": "learner-001",
+    "name": "Java学习者",
+    "currentLevel": "L2",
+    "targetLevel": "L3",
+    "assessmentDate": "2026-04-14",
+    "nextReviewDate": "2026-07-14"
+  },
+  "version": "1.0.0",
+  "assessmentDate": "2026-04-14T00:00:00Z",
+  "maturity": {
+    "overallLevel": "L2",
+    "overallScore": 52,
+    "dimensions": [
+      {
+        "id": "core-tech",
+        "name": "核心技术知识深度",
+        "level": "L2",
+        "score": 65,
+        "weight": 0.25,
+        "indicators": [
+          {
+            "id": "concurrency",
+            "name": "并发编程",
+            "score": 80,
+            "level": "L3",
+            "confidence": "high",
+            "evidence": [
+              {
+                "type": "note",
+                "path": "02-Knowledge/concurrency/concepts/futex.md",
+                "description": "futex底层机制理解"
+              },
+              {
+                "type": "note",
+                "path": "02-Knowledge/concurrency/concepts/LongAdder.md",
+                "description": "分段累加计数器设计"
+              },
+              {
+                "type": "note",
+                "path": "02-Knowledge/concurrency/concepts/线程池.md",
+                "description": "线程复用与管理"
+              },
+              {
+                "type": "note",
+                "path": "02-Knowledge/concurrency/concepts/分段锁思想.md",
+                "description": "分而治之设计模式"
+              },
+              {
+                "type": "reflection",
+                "path": "03-Practice/reflections/2026-04-11-futex-dialogue.md",
+                "description": "futex深度对话，展现底层理解"
+              }
+            ],
+            "gaps": []
+          },
+          {
+            "id": "jvm",
+            "name": "JVM原理",
+            "score": 40,
+            "level": "L1",
+            "confidence": "low",
+            "evidence": [],
+            "gaps": [
+              "内存模型细节",
+              "GC算法与调优",
+              "类加载机制"
+            ]
+          },
+          {
+            "id": "nio",
+            "name": "NIO/网络编程",
+            "score": 50,
+            "level": "L1",
+            "confidence": "low",
+            "evidence": [],
+            "gaps": [
+              "Buffer/Channel/Selector",
+              "零拷贝机制",
+              "Reactor模式"
+            ]
+          },
+          {
+            "id": "distributed",
+            "name": "分布式系统",
+            "score": 30,
+            "level": "L1",
+            "confidence": "low",
+            "evidence": [],
+            "gaps": [
+              "CAP定理",
+              "分布式事务",
+              "一致性协议"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "problem-solving",
+        "name": "问题分析与解决能力",
+        "level": "L2",
+        "score": 55,
+        "weight": 0.25,
+        "indicators": [
+          {
+            "id": "troubleshooting",
+            "name": "故障排查",
+            "score": 55,
+            "level": "L2",
+            "confidence": "medium",
+            "evidence": [
+              {
+                "type": "reflection",
+                "path": "03-Practice/reflections/2026-04-11-futex-dialogue.md",
+                "description": "展现根因追溯能力"
+              }
+            ],
+            "gaps": [
+              "真实线上故障经验",
+              "监控日志分析"
+            ]
+          },
+          {
+            "id": "systematic-thinking",
+            "name": "系统性思维",
+            "score": 60,
+            "level": "L2",
+            "confidence": "medium",
+            "evidence": [
+              {
+                "type": "note",
+                "path": "02-Knowledge/concurrency/concepts/分段锁思想.md",
+                "description": "分而治之思维应用"
+              }
+            ],
+            "gaps": [
+              "5 Whys应用",
+              "故障树分析"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "architecture",
+        "name": "架构设计与权衡能力",
+        "level": "L1",
+        "score": 45,
+        "weight": 0.2,
+        "indicators": [
+          {
+            "id": "high-concurrency-design",
+            "name": "高并发设计",
+            "score": 50,
+            "level": "L2",
+            "confidence": "medium",
+            "evidence": [
+              {
+                "type": "project",
+                "path": "01-Projects/project-concurrency-test/",
+                "description": "并发测试项目"
+              }
+            ],
+            "gaps": [
+              "完整架构设计文档",
+              "容量规划"
+            ]
+          },
+          {
+            "id": "cap-tradeoff",
+            "name": "CAP权衡",
+            "score": 30,
+            "level": "L1",
+            "confidence": "low",
+            "evidence": [],
+            "gaps": [
+              "CAP理论应用",
+              "一致性模型选择"
+            ]
+          },
+          {
+            "id": "tech-selection",
+            "name": "技术选型",
+            "score": 40,
+            "level": "L1",
+            "confidence": "low",
+            "evidence": [],
+            "gaps": [
+              "选型决策框架",
+              "成本效益分析"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "engineering",
+        "name": "工程素养与实践能力",
+        "level": "L1",
+        "score": 35,
+        "weight": 0.2,
+        "indicators": [
+          {
+            "id": "containerization",
+            "name": "容器化",
+            "score": 30,
+            "level": "L1",
+            "confidence": "low",
+            "evidence": [],
+            "gaps": [
+              "Docker基础",
+              "镜像优化"
+            ]
+          },
+          {
+            "id": "k8s",
+            "name": "Kubernetes",
+            "score": 25,
+            "level": "L1",
+            "confidence": "low",
+            "evidence": [],
+            "gaps": [
+              "K8s基础概念",
+              "部署实践"
+            ]
+          },
+          {
+            "id": "cicd",
+            "name": "CI/CD",
+            "score": 35,
+            "level": "L1",
+            "confidence": "low",
+            "evidence": [],
+            "gaps": [
+              "流水线设计",
+              "质量门禁"
+            ]
+          },
+          {
+            "id": "observability",
+            "name": "可观测性",
+            "score": 30,
+            "level": "L1",
+            "confidence": "low",
+            "evidence": [],
+            "gaps": [
+              "日志规范",
+              "监控指标",
+              "链路追踪"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "learning",
+        "name": "持续学习与能力提升",
+        "level": "L2",
+        "score": 60,
+        "weight": 0.1,
+        "indicators": [
+          {
+            "id": "knowledge-internalization",
+            "name": "知识内化",
+            "score": 65,
+            "level": "L2",
+            "confidence": "high",
+            "evidence": [
+              {
+                "type": "note",
+                "path": "02-Knowledge/concurrency/concepts/",
+                "description": "10+原子笔记"
+              },
+              {
+                "type": "note",
+                "path": "04-Maps/MOC-并发编程.md",
+                "description": "知识图谱构建"
+              }
+            ],
+            "gaps": []
+          },
+          {
+            "id": "methodology",
+            "name": "方法论沉淀",
+            "score": 55,
+            "level": "L2",
+            "confidence": "medium",
+            "evidence": [
+              {
+                "type": "note",
+                "path": "02-Knowledge/concurrency/concepts/分段锁思想.md",
+                "description": "分段思想提炼"
+              }
+            ],
+            "gaps": [
+              "定量成长追踪",
+              "系统化复盘"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "evolution": {
+    "previousAssessment": null,
+    "history": [
+      {
+        "date": "2026-04-14",
+        "level": "L2",
+        "score": 52,
+        "file": "baseline-2026-04.json"
+      }
+    ],
+    "trends": {
+      "core-tech": "improving",
+      "problem-solving": "stable",
+      "architecture": "improving",
+      "engineering": "stable",
+      "learning": "improving"
+    }
+  },
+  "recommendations": {
+    "priority": "high",
+    "nextFocus": [
+      {
+        "dimension": "core-tech",
+        "topic": "NIO专题",
+        "rationale": "并发已掌握，NIO是网络编程基础，与已有知识关联度高"
+      },
+      {
+        "dimension": "engineering",
+        "topic": "Docker容器化",
+        "rationale": "补齐DevOps短板，为后续K8s打基础"
+      }
+    ],
+    "actions": [
+      {
+        "type": "learning",
+        "description": "完成NIO专题学习（Buffer/Channel/Selector）",
+        "targetLevel": "L2"
+      },
+      {
+        "type": "project",
+        "description": "完成NIO聊天室项目",
+        "targetLevel": "L2"
+      },
+      {
+        "type": "practice",
+        "description": "容器化一个现有项目",
+        "targetLevel": "L2"
+      }
+    ]
+  },
+  "metadata": {
+    "assessor": "AI",
+    "method": "基于现有知识库证据分析",
+    "notes": "当前评估档案，动态更新"
+  }
+}

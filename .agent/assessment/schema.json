@@ -1,0 +1,302 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "java-learning-assessment-schema",
+  "title": "JavaLearning 能力评估档案 Schema",
+  "description": "基于高级Java后端开发人员能力评价体系（JEMS）的评估数据格式定义",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["profile", "maturity", "assessmentDate", "version"],
+  "properties": {
+    "profile": {
+      "type": "object",
+      "description": "学习者基本信息",
+      "required": ["id", "name", "currentLevel"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "学习者唯一标识"
+        },
+        "name": {
+          "type": "string",
+          "description": "学习者名称"
+        },
+        "currentLevel": {
+          "type": "string",
+          "enum": ["L1", "L2", "L3", "L4"],
+          "description": "当前整体成熟度等级"
+        },
+        "targetLevel": {
+          "type": "string",
+          "enum": ["L1", "L2", "L3", "L4"],
+          "description": "目标成熟度等级"
+        },
+        "assessmentDate": {
+          "type": "string",
+          "format": "date",
+          "description": "评估日期（ISO-8601格式）"
+        },
+        "nextReviewDate": {
+          "type": "string",
+          "format": "date",
+          "description": "下次评估日期"
+        }
+      }
+    },
+    "version": {
+      "type": "string",
+      "description": "评估数据版本（遵循SemVer）",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "assessmentDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "评估完成时间戳"
+    },
+    "maturity": {
+      "type": "object",
+      "description": "成熟度评估详情",
+      "required": ["overallLevel", "overallScore", "dimensions"],
+      "properties": {
+        "overallLevel": {
+          "type": "string",
+          "enum": ["L1", "L2", "L3", "L4"],
+          "description": "综合成熟度等级"
+        },
+        "overallScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "综合得分（0-100）"
+        },
+        "dimensions": {
+          "type": "array",
+          "description": "五个评估维度的详细评分",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "level", "score", "indicators"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": ["problem-solving", "architecture", "engineering", "core-tech", "learning"],
+                "description": "维度标识符"
+              },
+              "name": {
+                "type": "string",
+                "description": "维度名称"
+              },
+              "level": {
+                "type": "string",
+                "enum": ["L1", "L2", "L3", "L4"],
+                "description": "该维度成熟度等级"
+              },
+              "score": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "维度得分（0-100）"
+              },
+              "weight": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "维度权重（用于计算综合得分）"
+              },
+              "indicators": {
+                "type": "array",
+                "description": "该维度下的具体指标",
+                "items": {
+                  "type": "object",
+                  "required": ["id", "name", "score", "confidence"],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "指标标识符"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "指标名称"
+                    },
+                    "score": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "description": "指标得分"
+                    },
+                    "level": {
+                      "type": "string",
+                      "enum": ["L1", "L2", "L3", "L4"],
+                      "description": "指标等级"
+                    },
+                    "confidence": {
+                      "type": "string",
+                      "enum": ["high", "medium", "low"],
+                      "description": "评估置信度"
+                    },
+                    "evidence": {
+                      "type": "array",
+                      "description": "评估证据引用",
+                      "items": {
+                        "type": "object",
+                        "required": ["type", "path"],
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["note", "project", "reflection", "mistake", "dialogue", "code"],
+                            "description": "证据类型"
+                          },
+                          "path": {
+                            "type": "string",
+                            "description": "证据文件路径"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "证据描述"
+                          }
+                        }
+                      }
+                    },
+                    "gaps": {
+                      "type": "array",
+                      "description": "能力缺口",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "evolution": {
+      "type": "object",
+      "description": "能力演进历史",
+      "properties": {
+        "previousAssessment": {
+          "type": "string",
+          "description": "上次评估文件引用"
+        },
+        "history": {
+          "type": "array",
+          "description": "历史评估记录",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "level": {
+                "type": "string",
+                "enum": ["L1", "L2", "L3", "L4"]
+              },
+              "score": {
+                "type": "number"
+              },
+              "file": {
+                "type": "string",
+                "description": "历史评估文件路径"
+              }
+            }
+          }
+        },
+        "trends": {
+          "type": "object",
+          "description": "各维度趋势",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["improving", "stable", "declining"]
+          }
+        }
+      }
+    },
+    "recommendations": {
+      "type": "object",
+      "description": "学习建议",
+      "properties": {
+        "priority": {
+          "type": "string",
+          "enum": ["high", "medium", "low"]
+        },
+        "nextFocus": {
+          "type": "array",
+          "description": "下一阶段重点学习领域",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dimension": {
+                "type": "string"
+              },
+              "topic": {
+                "type": "string"
+              },
+              "rationale": {
+                "type": "string",
+                "description": "推荐理由"
+              }
+            }
+          }
+        },
+        "actions": {
+          "type": "array",
+          "description": "建议行动",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["learning", "practice", "project", "review"]
+              },
+              "description": {
+                "type": "string"
+              },
+              "targetLevel": {
+                "type": "string",
+                "enum": ["L1", "L2", "L3", "L4"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "评估元数据",
+      "properties": {
+        "assessor": {
+          "type": "string",
+          "description": "评估者（AI/自评/人工）"
+        },
+        "method": {
+          "type": "string",
+          "description": "评估方法"
+        },
+        "notes": {
+          "type": "string",
+          "description": "评估备注"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "dimensionIds": {
+      "type": "string",
+      "enum": ["problem-solving", "architecture", "engineering", "core-tech", "learning"],
+      "description": "五个评估维度标识"
+    },
+    "level": {
+      "type": "string",
+      "enum": ["L1", "L2", "L3", "L4"],
+      "description": "成熟度等级"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "置信度等级"
+    }
+  }
+}
