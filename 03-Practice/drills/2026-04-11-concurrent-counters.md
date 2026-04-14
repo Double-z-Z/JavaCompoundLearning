@@ -168,10 +168,10 @@ JDK LongAdder：getProbe() & (n-1)
 
 ## 🔗 知识关联
 
-- [[LongAdder 设计]] → 为什么 JDK 使用 Cell 数组而非 AtomicLong 数组
-- [[CAS 原理]] → AtomicLong 的底层实现
-- [[分段锁]] → ConcurrentHashMap 的分段设计
-- [[缓存行伪共享]] → @Contended 注解的作用
+- LongAdder 设计 → 为什么 JDK 使用 Cell 数组而非 AtomicLong 数组
+- CAS 原理 → AtomicLong 的底层实现
+- 分段锁思想 → ConcurrentHashMap 的分段设计
+- 缓存行伪共享 → @Contended 注解的作用
 
 ---
 
