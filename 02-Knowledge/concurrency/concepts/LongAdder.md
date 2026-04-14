@@ -1,8 +1,7 @@
 ---
 created: 2026-04-12
-tags: [concurrency, atomic, performance]
-status: 🌿
-source: [[longadder-design]]
+tags: [concurrency, java, performance]
+status: 🌱
 ---
 
 # LongAdder
@@ -24,7 +23,7 @@ LongAdder是JDK8引入的高并发计数器，通过**分段思想**将单个计
 
 
 ## 与已学知识的关联
-- [[CAS]] → LongAdder仍然使用CAS，只是减少了冲突概率
+- CAS → LongAdder仍然使用CAS，只是减少了冲突概率
 - [[分段锁思想]] → 与ConcurrentHashMap相同的分而治之策略
 - [[缓存行伪共享]] → @Contended注解解决的核心问题
 - [[futex]] → 减少阻塞是两者共同的设计目标

@@ -1,8 +1,7 @@
 ---
 created: 2026-04-12
-tags: [concurrency, os, lock]
-status: 🌿
-source: [[futex-deep-dive]]
+tags: [concurrency, linux, os]
+status: 🌱
 ---
 
 # futex
@@ -24,10 +23,10 @@ futex（Fast User-space muTEX）是一种**用户态CAS + 内核态阻塞**的�
 
 
 ## 与已学知识的关联
-- [[CAS]] → futex的用户态部分依赖原子指令
-- [[线程状态]] → futex_wait导致线程从RUNNABLE变为WAITING
-- [[ObjectMonitor]] → synchronized底层通过pthread间接使用futex
-- [[用户态与内核态]] → 理解系统调用开销
+- CAS → futex的用户态部分依赖原子指令
+- 线程状态 → futex_wait导致线程从RUNNABLE变为WAITING
+- ObjectMonitor → synchronized底层通过pthread间接使用futex
+- [[用户态与内核态切换]] → 理解系统调用开销
 
 
 ## 常见误区
