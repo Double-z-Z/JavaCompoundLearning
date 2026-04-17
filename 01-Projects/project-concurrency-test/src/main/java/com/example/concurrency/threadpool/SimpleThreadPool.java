@@ -342,6 +342,7 @@ public class SimpleThreadPool {
     private final class Worker extends ReentrantLock implements Runnable {
         final Thread thread;
         Runnable firstTask;
+        @SuppressWarnings("unused")
         volatile long completedTasks;
 
         Worker(Runnable firstTask) {

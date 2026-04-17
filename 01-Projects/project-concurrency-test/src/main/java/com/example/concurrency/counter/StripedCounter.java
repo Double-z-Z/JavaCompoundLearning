@@ -1,7 +1,6 @@
 package com.example.concurrency.counter;
 
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.LongAdder;
 
 /**
  * 分段计数器实现（进阶）
