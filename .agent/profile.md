@@ -24,14 +24,38 @@
 > 由AI基于能力评估数据实时推荐，用户确认后记录于此
 > 每次对话开始前，AI读取此章节了解当前规划
 
-### 本次对话（2026-04-14）
-- **状态**：规划中
-- **用户选择**：待确认
-- **AI推荐**：
-  - 选项1: 完成并发编程能力测试（3个项目）
-  - 选项2: 开始NIO学习 - BIO基础与聊天室项目
-- **预计完成时间**：2026-04-21
-- **关联知识点**：[[NIO-Buffer]]、[[NIO-Channel]]、[[Socket编程]]
+### 本次对话（2026-04-17）
+- **状态**：已完成 ✅
+- **用户选择**：选项1 - 继续NIO专题 - 学习NIO三大组件
+- **实际完成**：
+  - ✅ 深入理解NIO Buffer核心概念（capacity/position/limit/mark，flip/clear/rewind）
+  - ✅ 理解NIO Channel（阻塞/非阻塞，双向读写）
+  - ✅ 深入理解NIO Selector（epoll机制，红黑树+就绪链表，多路复用原理）
+  - ✅ 探讨NIO多线程架构（主从Reactor，Channel绑定，线程模型）
+  - ✅ 产出4个知识资产（3个原子笔记 + 1个反思记录）
+- **关联知识点**：[[NIO-Buffer]]、[[NIO-Channel]]、[[NIO-Selector]]、[[BIO-BlockingIO]]、[[线程池]]、[[分段锁思想]]
+- **掌握度提升**：
+  - NIO-Buffer: 0 → 55（🌿理解）
+  - NIO-Channel: 0 → 50（🌿理解）
+  - NIO-Selector: 0 → 60（🍎应用）
+  - NIO/网络编程综合: 65分 → 75分
+
+### 本次对话（2026-04-15）
+- **状态**：已完成 ✅
+- **用户选择**：选项2 - 开始NIO学习 - BIO基础与聊天室项目
+- **实际完成**：
+  - ✅ BIO聊天室项目完整实现
+  - ✅ 理解BIO阻塞模型及其局限性
+  - ✅ 产出3个知识资产（练习记录、原子笔记、反思记录）
+- **关联知识点**：[[BIO模型]]、[[Socket编程]]、[[线程池]]、[[并发集合]]
+- **掌握度提升**：NIO/网络编程 50分 → 65分
+
+### 历史决策记录
+| 日期 | 选择 | 实际完成 | 备注 |
+|------|------|---------|------|
+| 2026-04-15 | 开始NIO学习 - BIO聊天室 | ✅ | 完成BIO聊天室，产出原子笔记 |
+| 2026-04-11 | 复习并发编程底层机制 | ✅ | futex、LongAdder、线程池 |
+| 2026-04-10 | 学习LongAdder | ✅ | 产出原子笔记 |
 
 ### 历史决策记录
 | 日期 | 选择 | 实际完成 | 备注 |
@@ -67,7 +91,7 @@
 
 | 主题 | 得分 | 优先级 | 前置知识 | 推荐项目 |
 |------|------|--------|---------|---------|
-| NIO/网络编程 | 50分 | 🔴 高 | 并发编程 | BIO聊天室 → NIO聊天室 |
+| NIO/网络编程 | 65分 | 🔴 高 | 并发编程 | BIO聊天室 ✅ → NIO聊天室 |
 | JVM原理 | 40分 | 🟡 中 | 并发编程 | JVM调优案例分析 |
 | 分布式系统 | 30分 | 🟢 低 | NIO、JVM | 分布式缓存设计 |
 | 工程素养 | 35分 | 🟡 中 | - | Docker容器化项目 |
@@ -88,11 +112,22 @@
 
 ### 薄弱领域（待学习）
 
+- 🌿 BIO模型 - 阻塞IO、Socket编程、多线程处理（mastery=40，已完成基础项目）
 - ⏳ NIO/New IO - Buffer、Channel、Selector、内存映射
-- ⏳ 网络编程 - Socket、ServerSocket、Reactor 模式
 - ⏳ Netty 框架 - 事件驱动、Pipeline、ByteBuf
 - ⏳ JVM 内存模型与调优
 - ⏳ 序列化机制 - Serializable、Protobuf、Kryo
+
+### 已掌握领域（更新）
+
+- ✅ Java 内存模型（JMM）- happens-before、内存屏障、volatile
+- ✅ Java 多线程编程 - Thread、Runnable、线程池、锁机制
+- ✅ 并发工具类 - CountDownLatch、CyclicBarrier、Semaphore、CompletableFuture
+- ✅ 并发集合 - ConcurrentHashMap、CopyOnWriteArrayList、BlockingQueue
+- ✅ 原子类 - AtomicLong、LongAdder、CAS 原理、分段思想
+- ✅ 并发底层机制 - futex、park()/unpark()、线程阻塞全链路
+- ✅ JVM 与 OS 线程状态映射 - 状态流转、调度机制、中断处理
+- 🌿 **BIO/网络编程** - ServerSocket、Socket、阻塞IO模型、多客户端处理（NEW）
 
 ***
 
