@@ -3,7 +3,10 @@
     "allow": [
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); cwd=d.get\\('workspace',{}\\).get\\('current_dir',''\\); cw=d.get\\('context_window',{}\\); used=cw.get\\('used'\\); total=cw.get\\('total'\\); pct=cw.get\\('used_percentage'\\); def fmt\\(n\\): return f'{n/1000:.0f}k' if n<1000000 else f'{n/1000000:.1f}M'.rstrip\\('0'\\).rstrip\\('.'\\)+'M'; print\\(f'{cwd} | Context: {fmt\\(used\\)}/{fmt\\(total\\)} \\({pct:.0f}%\\)' if used is not None and total is not None else f'{cwd} | Context: {pct:.0f}% used' if pct is not None else cwd\\)\")",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); cwd=d.get\\('workspace',{}\\).get\\('current_dir',''\\); cw=d.get\\('context_window',{}\\); used=cw.get\\('used'\\); total=cw.get\\('total'\\); pct=cw.get\\('used_percentage'\\); fmt=lambda n: \\(f'{n/1000:.0f}k' if n<1000000 else f'{n/1000000:.1f}M'.rstrip\\('0'\\).rstrip\\('.'\\)+'M'\\); print\\(f'{cwd} | Context: {fmt\\(used\\)}/{fmt\\(total\\)} \\({pct:.0f}%\\)' if used is not None and total is not None else f'{cwd} | Context: {pct:.0f}% used' if pct is not None else cwd\\)\")",
-      "Bash(obsidian tags *)"
+      "Bash(obsidian tags *)",
+      "Bash(mvn clean *)",
+      "Bash(mvn test *)",
+      "Bash(mvn test-compile *)"
     ]
   }
 }

@@ -13,8 +13,8 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "05-Templates/里程碑复盘模板.md",
-                "mode": "preview",
+                "file": "04-Maps/MOC-NIO网络编程.md",
+                "mode": "source",
                 "source": false,
                 "backlinks": true,
                 "backlinkOpts": {
@@ -28,7 +28,7 @@
                 }
               },
               "icon": "lucide-file",
-              "title": "里程碑复盘模板"
+              "title": "MOC-NIO网络编程"
             }
           }
         ]
@@ -63,7 +63,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "tag:#操作系统",
+                "query": "file:moc",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -84,11 +84,12 @@
               "title": "书签"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 381.5
   },
   "right": {
     "id": "f85e0f9221ca64e0",
@@ -123,12 +124,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "05-Templates/里程碑复盘模板.md",
+                "file": "04-Maps/MOC-NIO网络编程.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "里程碑复盘模板 的出链列表"
+              "title": "MOC-NIO网络编程 的出链列表"
             }
           },
           {
@@ -197,42 +198,43 @@
   },
   "active": "86c08649c6e08c15",
   "lastOpenFiles": [
-    "04-Maps/MOC-能力雷达图.md",
-    "04-Maps/MOC-并发编程.md",
-    "04-Maps/radar-dataviewjs.md",
-    "04-Maps/能力雷达图.radar.md",
-    "04-Maps/auto-generated/knowledge-map.md",
-    "04-Maps/能力雷达图.radar.json",
-    "05-Templates/里程碑复盘模板.md",
-    "99-Archive/高级Java后端开发人员能力评价体系（Architect）设计报告.ini",
-    "99-Archive/README.md",
-    "99-Archive",
-    "resouces/高级Java后端开发人员能力评价体系（Architect）设计报告.ini",
-    "04-Maps/高级Java后端开发人员能力评价体系（Architect）设计报告.ini",
-    "resouces",
-    "EVALUAION_SYSTEM.md",
-    "EVALUAION_SYS.md",
-    "VALUEATION.md",
-    "BUILD-VALUEATION-PLAN.md",
-    "VALUEATION-PLAN.md",
-    "高级Java后端开发人员能力评价体系（Architect）设计报告.md",
-    "05-Templates/季度能力复盘模板.md",
-    "05-Templates/故障复盘模板.md",
-    "05-Templates/架构评审模板.md",
-    "05-Templates/项目评估卡片模板.md",
-    "EXECUTION-PLAN.md",
-    "EXECUTION-PLAN-Architect.md",
-    "高级Java后端开发人员能力评价体系（Architect）设计报告.ini",
-    "install.ps1",
-    "COMPATIBILITY.md",
+    "01-Projects/nio-chatroom/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst",
+    "01-Projects/nio-chatroom/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst",
+    "01-Projects/nio-chatroom/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile",
+    "01-Projects/nio-chatroom/target/maven-status/maven-compiler-plugin/testCompile",
+    "01-Projects/nio-chatroom/target/generated-test-sources/test-annotations",
+    "01-Projects/nio-chatroom/target/generated-test-sources",
+    "01-Projects/project-concurrency-test/target/classes/com/example/review/queue/TaskScheduler.class",
+    "01-Projects/project-concurrency-test/target/classes/com/example/review/counter/AtomicCounter.class",
+    "01-Projects/project-concurrency-test/target/classes/com/example/review/QueueTest.class",
+    "01-Projects/project-concurrency-test/target/classes/com/example/review/CounterTest.class",
+    "01-Projects/project-concurrency-test/target/classes/com/example/concurrency/threadpool/SimpleThreadPool$RejectPolicy.class",
+    "03-Practice/reflections/2026-04-23-test-organization.md",
+    "02-Knowledge/nio/concepts/测试设计.md",
+    "01-Projects/nio-chatroom/docs/test-coverage.md",
+    "01-Projects/nio-chatroom/docs/test-strategy.md",
+    "03-Practice/mistakes/MISTAKE-004-NIO-CancelledKeyException.md",
+    "04-Maps/MOC-NIO网络编程.md",
+    "03-Practice/mistakes/MISTAKE-003-NIO-ByteBuffer-Mode.md",
+    "03-Practice/mistakes/MISTAKE-002-NIO-RaceCondition-Register.md",
+    "03-Practice/mistakes/MISTAKE-001-SocketEOFDeadloop.md",
+    "03-Practice/drills/2026-04-19-broadcast-implementation.md",
+    "03-Practice/drills/2026-04-15-bio-chatroom.md",
+    "03-Practice/drills/2026-04-11-concurrent-counters.md",
+    "03-Practice/reflections/2026-04-11-futex-dialogue.md",
+    "03-Practice/reflections/2026-04-15-bio-dialogue.md",
+    "03-Practice/reflections/2026-04-19-nio-partial-write-question.md",
+    "03-Practice/reflections/2026-04-21-nio-chatroom-debug.md",
+    "03-Practice/reflections/2026-04-19-broadcast-design-dialogue.md",
+    "03-Practice/reflections/2026-04-17-NIO多线程架构-dialogue.md",
+    "03-Practice/reflections/2026-04-15-summary.md",
     "AGENTS.md",
-    "04-Maps/auto-generated/高级Java后端开发人员能力评价体系（Architect）设计报告.md",
-    "02-Knowledge/concurrency/concepts/线程池.md",
-    "02-Knowledge/concurrency/concepts/futex.md",
-    "02-Knowledge/concurrency/concepts/线程阻塞.md",
-    "线程状态.md",
-    "wiki/tutorial",
-    "wiki/reference",
-    "未命名.canvas"
+    "README.md",
+    "EVALUAION_SYSTEM.md",
+    "COMPATIBILITY.md",
+    "CLAUDE.md",
+    "未命名.canvas",
+    "未命名 1.canvas",
+    "01-Projects/bio-chatroom/bio-chatroom.md"
   ]
 }
