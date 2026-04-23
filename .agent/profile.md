@@ -24,6 +24,41 @@
 > 由AI基于能力评估数据实时推荐，用户确认后记录于此
 > 每次对话开始前，AI读取此章节了解当前规划
 
+### 本次对话（2026-04-22）
+- **状态**：已完成 ✅
+- **用户选择**：继续NIO聊天室项目 - ChatServer接口改造与测试优化
+- **实际完成**：
+  - ✅ 创建 ChatServer 封装类，提供阻塞式 start() 和优雅 stop()
+  - ✅ 迁移所有测试类使用 ChatServer 接口（BroadcastTest、RegisterPerformanceTest等）
+  - ✅ 修复 ClientManager.shutdown() 阻塞问题（5006ms → 2ms）
+  - ✅ 重组测试结构：功能测试与性能测试分离（performance/ 目录）
+  - ✅ 配置 Maven Surefire：顺序执行、独立JVM、Profile隔离
+  - ✅ 升级 logback 1.2.12 → 1.3.14，解决 SLF4J 警告
+  - ✅ 产出2个知识资产（1个原子笔记 + 1个反思记录）
+- **关联知识点**：[[ChatServer]]、[[ClientManager]]、[[Maven-Surefire-Plugin]]、[[测试隔离]]、[[CompletableFuture]]
+- **掌握度提升**：
+  - Maven-Surefire-Plugin: 0 → 40（🌿理解）
+  - 测试设计: 30 → 55（🌿理解）
+  - 资源管理: 45 → 60（🍎应用）
+  - NIO/网络编程综合: 80分 → 82分
+
+### 本次对话（2026-04-21）
+- **状态**：已完成 ✅
+- **用户选择**：继续NIO聊天室项目 - 修复广播功能Bug
+- **实际完成**：
+  - ✅ 修复NIO聊天室4个连锁Bug（竞态条件、Buffer模式、CancelledKeyException、并发集合）
+  - ✅ 实现NIO ChatClient和测试客户端协议（长度前缀协议）
+  - ✅ BroadcastTest通过（5客户端广播功能正常）
+  - ✅ BroadcastPerformanceTest通过（4500条广播0丢失，吞吐量2142条/秒）
+  - ✅ 产出4个知识资产（3个错误档案 + 1个调试反思）
+- **关联知识点**：[[NIO-Selector]]、[[NIO-Buffer]]、[[Boss-Worker模型]]、[[CopyOnWriteArrayList]]、[[竞态条件]]、[[粘包拆包]]
+- **掌握度提升**：
+  - NIO-Buffer: 55 → 70（🍎应用）
+  - NIO-Selector: 60 → 70（🍎应用）
+  - Boss-Worker模型: 0 → 55（🌿理解）
+  - 竞态条件排查: 0 → 50（🌿理解）
+  - NIO/网络编程综合: 75分 → 80分
+
 ### 本次对话（2026-04-17）
 - **状态**：已完成 ✅
 - **用户选择**：选项1 - 继续NIO专题 - 学习NIO三大组件
@@ -74,10 +109,10 @@
 
 | 维度 | 当前等级 | 得分 | 趋势 | 目标 |
 |------|---------|------|------|------|
-| 核心技术知识深度 | L2 | 65/100 | ↗️ | L3 |
-| 问题分析与解决 | L2 | 55/100 | → | L2.5 |
-| 架构设计与权衡 | L1 | 45/100 | ↗️ | L2.5 |
-| 工程素养与实践 | L1 | 35/100 | → | L2 |
+| 核心技术知识深度 | L2 | 68/100 | ↗️ | L3 |
+| 问题分析与解决 | L2 | 60/100 | ↗️ | L2.5 |
+| 架构设计与权衡 | L1 | 48/100 | ↗️ | L2.5 |
+| 工程素养与实践 | L1 | 40/100 | ↗️ | L2 |
 | 持续学习能力 | L2 | 60/100 | ↗️ | L3 |
 | **综合** | **L2** | **52/100** | **↗️** | **L3** |
 
@@ -113,7 +148,8 @@
 ### 薄弱领域（待学习）
 
 - 🌿 BIO模型 - 阻塞IO、Socket编程、多线程处理（mastery=40，已完成基础项目）
-- ⏳ NIO/New IO - Buffer、Channel、Selector、内存映射
+- 🌿 **NIO/New IO** - Buffer（mastery=70）、Channel（mastery=50）、Selector（mastery=70）
+- 🌿 **测试设计** - Maven Surefire（mastery=40）、测试隔离、性能测试分离
 - ⏳ Netty 框架 - 事件驱动、Pipeline、ByteBuf
 - ⏳ JVM 内存模型与调优
 - ⏳ 序列化机制 - Serializable、Protobuf、Kryo
@@ -193,9 +229,10 @@
 
 ### 待强化概念
 
-- NIO 三大组件、零拷贝、Reactor 模式
-- 背压（Backpressure）机制
-- Netty 事件循环模型
+- ✅ NIO 三大组件（Buffer、Channel、Selector）- 已掌握基础，待项目实践
+- ⏳ 零拷贝、内存映射
+- ⏳ 背压（Backpressure）机制
+- ⏳ Netty 事件循环模型
 
 ***
 

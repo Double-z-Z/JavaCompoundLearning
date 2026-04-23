@@ -67,7 +67,11 @@
 - NIO单线程聊天室
 - NIO文件传输工具
 
-**知识库位置**：`02-Knowledge/nio/`（待创建）
+**进阶主题**：
+- 服务启停设计模式（状态管理、优雅关闭、ShutdownHook）
+- 生产级服务生命周期管理
+
+**知识库位置**：`02-Knowledge/nio/`
 
 ---
 
@@ -112,6 +116,7 @@
 **学习阶段**：
 1. **Spring Core** - IoC容器、Bean生命周期、AOP、事务管理
 2. **Spring Boot** - 自动配置、Starter机制、内嵌容器
+   - 生产级特性：Actuator健康检查、优雅关闭机制
 3. **Spring源码** - BeanFactory、循环依赖、Spring MVC流程
 
 **知识库位置**：`02-Knowledge/spring/`（待创建）
@@ -191,6 +196,9 @@
 **学习阶段**：
 1. **Docker** - 镜像与容器、Dockerfile、网络与存储
 2. **Kubernetes** - Pod/Deployment/Service、调度与资源管理
+   - 服务生命周期：就绪探针(Readiness)、存活探针(Liveness)
+   - 优雅关闭：preStop钩子、terminationGracePeriodSeconds
+   - 滚动更新策略与零停机部署
 
 **知识库位置**：`02-Knowledge/kubernetes/`（待创建）
 
