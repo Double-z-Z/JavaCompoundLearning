@@ -13,6 +13,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * 测试用的 ChatClient 包装类，提供同步接口便于测试断言。
  *
  * 底层使用项目中的 {@link ChatClient}，避免测试重复实现协议解析。
+ * 
+ * 注意：ChatClient 本身已处理 SHUTDOWN_NOTICE 并自动断开，此处无需重复处理
  */
 public class TestChatClient {
 
@@ -29,6 +31,8 @@ public class TestChatClient {
         this.client.setMessageListener(new ChatClient.MessageListener() {
             @Override
             public void onMessageReceived(ChatMessage message) {
+                // ChatClient 本身已处理 SHUTDOWN_NOTICE 并自动断开
+                // 此处只需记录消息内容
                 String text = message.getContent();
                 synchronized (receivedMessages) {
                     receivedMessages.add(text);

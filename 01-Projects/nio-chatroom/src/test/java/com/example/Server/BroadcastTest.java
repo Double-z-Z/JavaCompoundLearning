@@ -63,9 +63,9 @@ public class BroadcastTest {
                 System.out.println("[Test] 客户端 " + i + " 已连接");
             }
 
-            // 等待所有客户端连接完成
+            // 等待所有客户端连接完成（关键：服务器注册需要时间）
             System.out.println("[Test] 等待客户端就绪...");
-            Thread.sleep(3000);
+            Thread.sleep(5000);
 
             // 第一个客户端发送消息
             String testMessage = "Hello Broadcast!";
