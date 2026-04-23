@@ -2,7 +2,7 @@
 created: 2026-04-17
 tags: [nio, buffer, io-model]
 status: 🌿
-mastery: 55
+mastery: 70
 ---
 
 # NIO Buffer
@@ -89,8 +89,13 @@ while (channel.read(buffer) != -1) {
 - ❌ 误区：`clear()`会清空数据
   - 纠正：`clear()`只是重置position和limit，数据还在，下次写入会覆盖
 
+- ❌ 误区：`wrap(byte[])` 创建的 Buffer 需要 `flip()` 才能读
+  - 纠正：`wrap()` 创建的 Buffer 初始就是读模式（position=0, limit=length），不需要 flip()。flip() 会把 limit 设为 0，导致无法读取
+  - 对比：`allocate()` 创建的是写模式，写入后需要 flip() 切换为读模式
+
 - ❓ 疑问：为什么需要`compact()`？
   - 答案：当Buffer还有未读数据，但需要写入新数据时，`compact()`把未读数据移到开头，避免数据丢失
+  - 场景：处理粘包时，一个 Buffer 里可能包含多个消息，处理完完整消息后还有未读完的数据，`compact()` 保留这些数据供下次读取
 
 
 ## 代码与实践
@@ -112,6 +117,24 @@ while (buffer.hasRemaining()) {
 
 // 回到写模式（数据还在，会被覆盖）
 buffer.clear();
+
+// --- 粘包处理：compact() 保留未读数据 ---
+// 场景：从 Channel 读取数据，Buffer 里可能有多个消息
+while (channel.read(buffer) > 0) {
+    buffer.flip();
+    // 循环处理所有完整的消息
+    while (buffer.remaining() >= MESSAGE_LENGTH) {
+        // 读取一个完整消息...
+    }
+    // 保留未处理的数据到头部，供下次继续处理
+    buffer.compact();
+}
+
+// --- wrap() 的使用：已有数据直接包装 ---
+byte[] data = "Hello".getBytes();
+ByteBuffer readBuffer = ByteBuffer.wrap(data);
+// wrap() 创建的 Buffer 已经是读模式，不需要 flip()！
+channel.write(readBuffer);
 ```
 
 
@@ -129,13 +152,15 @@ buffer.clear();
 ## 🤖 AI评价
 
 ### 掌握度评估
-- 当前等级：🌿理解
+- 当前等级：🍎应用
 - 更新记录：
   - 2026-04-17: mastery=55 (深入理解Buffer核心概念，能解释与BIO的区别，理解flip/clear机制)
+  - 2026-04-21: mastery=70 (通过NIO聊天室实践，深刻理解wrap/flip/compact的语义区别，能正确处理粘包和写半包)
 
 ### 建议下一步
 1. 完成Buffer练习（文件复制、消息编解码）
 2. 学习Channel，理解Buffer+Channel协作模式
+3. 研究Netty的ByteBuf设计（读写索引分离）
 
 ---
 

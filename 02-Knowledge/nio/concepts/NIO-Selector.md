@@ -2,7 +2,7 @@
 created: 2026-04-17
 tags: [nio, selector, epoll, io-multiplexing]
 status: 🌿
-mastery: 60
+mastery: 70
 ---
 
 # NIO Selector
@@ -99,8 +99,14 @@ Java NIO使用LT模式，所以处理完事件后需要`remove()`，否则下次
 - ❌ 误区：WRITE事件需要epoll_wait主动检查发送缓冲区
   - 纠正：WRITE事件由TCP ACK处理程序触发，和READ事件一样通过就绪链表返回。
 
+- ❌ 误区：`key.cancel()` 后该 key 会立刻从 selectedKeys 中消失
+  - 纠正：`cancel()` 只是标记为"待取消"，真正的移除发生在下次 `select()` 时。当前 select() 返回的 selectedKeys 中可能包含已被 cancel 的 key
+
 - ❓ 疑问：为什么epoll用红黑树而不用HashMap？
   - 答案：内核追求内存效率和性能稳定性，红黑树内存紧凑、无rehash、性能稳定O(log n)。
+
+- ❓ 疑问：如何处理一个 select() 返回的批次中 key 被 cancel 的情况？
+  - 答案：在操作 key 前始终检查 `key.isValid()`，对 invalid key 直接跳过
 
 
 ## 代码与实践
@@ -121,11 +127,20 @@ while (true) {
     while (it.hasNext()) {
         SelectionKey key = it.next();
         
+        // 防御性检查：key 可能已被 cancel
+        if (!key.isValid()) {
+            it.remove();
+            continue;
+        }
+        
         if (key.isAcceptable()) {
-            // 接受新连接
-            SocketChannel client = serverChannel.accept();
-            client.configureBlocking(false);
-            client.register(selector, SelectionKey.OP_READ);
+            // 关键：用 while 循环接受所有待处理连接
+            // 因为一次 select 可能对应多个新连接
+            SocketChannel client;
+            while ((client = serverChannel.accept()) != null) {
+                client.configureBlocking(false);
+                client.register(selector, SelectionKey.OP_READ);
+            }
         }
         
         if (key.isReadable()) {
@@ -141,6 +156,11 @@ while (true) {
             } else {
                 // 处理数据...
             }
+        }
+        
+        // 如果前面处理读事件时可能调用了 key.cancel()，重新检查
+        if (key.isValid() && key.isWritable()) {
+            // 处理写事件...
         }
         
         it.remove();  // 必须移除，否则下次还会返回
@@ -166,6 +186,7 @@ while (true) {
 - 当前等级：🍎应用
 - 更新记录：
   - 2026-04-17: mastery=60 (深入理解Selector机制，epoll底层实现，多路复用原理，能解释与BIO的本质区别)
+  - 2026-04-21: mastery=70 (通过NIO聊天室实践，掌握key.isValid()防御、accept()批量处理、cancel()延迟语义)
 
 ### 建议下一步
 1. 完成NIO聊天室项目，实践Selector使用
