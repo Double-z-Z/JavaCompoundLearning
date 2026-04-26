@@ -24,6 +24,42 @@
 > 由AI基于能力评估数据实时推荐，用户确认后记录于此
 > 每次对话开始前，AI读取此章节了解当前规划
 
+### 本次对话（2026-04-25）
+- **状态**：已完成 ✅
+- **用户选择**：深入理解异步编程与 Netty 事件机制
+- **实际完成**：
+  - ✅ 深入理解 CompletableFuture 实现原理（DAG 结构、Treiber Stack、lazySet+CAS）
+  - ✅ 对比 TS Promise 与 Java CompletableFuture 的设计差异
+  - ✅ 理解 ChannelPromise 与 ChannelFuture 的角色分离
+  - ✅ 掌握 Netty Pipeline 事件机制（入站事件 vs 出站操作）
+  - ✅ 理解 read()/write() 与 channelRead()/channelWrite() 的区别
+  - ✅ 产出4个知识资产（3个原子笔记 + 1个对话反思）
+- **关联知识点**：[[CompletableFuture]]、[[ChannelPromise]]、[[ChannelFuture]]、[[Netty-Pipeline-事件机制]]、[[Future]]
+- **掌握度提升**：
+  - CompletableFuture: 0 → 55（🌿理解）
+  - ChannelPromise: 0 → 50（🌿理解）
+  - Netty-Pipeline-事件机制: 0 → 55（🌿理解）
+  - Future: 0 → 45（🌿理解）
+  - 异步编程综合: 50分 → 65分
+
+### 本次对话（2026-04-24）
+- **状态**：已完成 ✅
+- **用户选择**：选项1 - 探索 Netty 框架
+- **实际完成**：
+  - ✅ 深入理解 Netty 核心组件（EventLoop、Channel、Pipeline、ByteBuf）
+  - ✅ 理解 Netty 与 NIO 的关系和抽象层次
+  - ✅ 掌握 ByteBuf 双指针设计与引用计数机制
+  - ✅ 理解 Pipeline 责任链模式和消息传播机制
+  - ✅ 掌握半包处理方案（ByteToMessageDecoder）
+  - ✅ 产出2个知识资产（1个原子笔记 + 1个对话反思）
+- **关联知识点**：[[Netty]]、[[NIO-Selector]]、[[NIO-Buffer]]、[[Boss-Worker模型]]、[[粘包拆包]]
+- **掌握度提升**：
+  - Netty: 0 → 55（🌿理解）
+  - NIO-Selector: 70 → 75（🍎应用）
+  - NIO-Buffer: 70 → 75（🍎应用）
+  - Boss-Worker模型: 55 → 60（🍎应用）
+  - 网络编程综合: 80分 → 82分
+
 ### 本次对话（2026-04-22）
 - **状态**：已完成 ✅
 - **用户选择**：继续NIO聊天室项目 - ChatServer接口改造与测试优化
@@ -148,7 +184,8 @@
 ### 薄弱领域（待学习）
 
 - 🌿 BIO模型 - 阻塞IO、Socket编程、多线程处理（mastery=40，已完成基础项目）
-- 🌿 **NIO/New IO** - Buffer（mastery=70）、Channel（mastery=50）、Selector（mastery=70）
+- 🌿 **NIO/New IO** - Buffer（mastery=75）、Channel（mastery=50）、Selector（mastery=75）
+- 🌿 **Netty** - EventLoop、Channel、Pipeline、ByteBuf（mastery=55）
 - 🌿 **测试设计** - Maven Surefire（mastery=40）、测试隔离、性能测试分离
 - ⏳ Netty 框架 - 事件驱动、Pipeline、ByteBuf
 - ⏳ JVM 内存模型与调优
