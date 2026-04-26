@@ -1,10 +1,11 @@
-package com.example.server.protocol;
+package com.example.server.message.codec;
 
+import com.example.server.message.base.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.buffer.ByteBuf;
 import java.io.IOException;
 
-public class ProtocolCodec {
+public class MessageCodec {
     
     private static final ObjectMapper mapper = new ObjectMapper();
     

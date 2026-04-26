@@ -1,5 +1,6 @@
-package com.example.server.protocol;
+package com.example.server.message.request;
 
+import com.example.server.message.base.Message;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ChatMessage extends Message {

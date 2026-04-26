@@ -1,6 +1,6 @@
 package com.example.server.guard;
 
-import com.example.server.protocol.HeartbeatMessage;
+import com.example.server.message.request.HeartbeatMessage;
 import com.example.server.service.SessionManager;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;

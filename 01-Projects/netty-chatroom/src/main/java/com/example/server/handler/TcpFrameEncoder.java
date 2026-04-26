@@ -1,7 +1,7 @@
 package com.example.server.handler;
 
-import com.example.server.protocol.Message;
-import com.example.server.protocol.ProtocolCodec;
+import com.example.server.message.base.Message;
+import com.example.server.message.codec.MessageCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
@@ -12,15 +12,15 @@ import org.slf4j.LoggerFactory;
  * 协议编码器
  * JSON 内容 + 长度前缀
  */
-public class ProtocolEncoder extends MessageToByteEncoder<Message> {
+public class TcpFrameEncoder extends MessageToByteEncoder<Message> {
     
-    private static final Logger logger = LoggerFactory.getLogger(ProtocolEncoder.class);
+    private static final Logger logger = LoggerFactory.getLogger(TcpFrameEncoder.class);
     
     @Override
     protected void encode(ChannelHandlerContext ctx, Message msg, ByteBuf out) throws Exception {
         try {
             // 编码为 JSON 字节数组
-            byte[] data = ProtocolCodec.encode(msg);
+            byte[] data = MessageCodec.encode(msg);
             
             // 写入长度前缀
             out.writeInt(data.length);

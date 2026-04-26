@@ -1,4 +1,6 @@
-package com.example.server.protocol;
+package com.example.server.message.response;
+
+import com.example.server.message.base.Message;
 
 public class SystemMessage extends Message {
     

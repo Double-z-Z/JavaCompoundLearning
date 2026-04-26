@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netty 聊天室 - WebSocket 客户端</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        .connection-panel {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 3px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            margin: 5px;
+            width: 200px;
+        }
+        button {
+            padding: 5px 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .connected {
+            color: green;
+        }
+        .disconnected {
+            color: red;
+        }
+        #messageArea {
+            height: 300px;
+            border: 1px solid #ddd;
+            overflow-y: auto;
+            padding: 10px;
+            margin: 10px 0;
+            background: #fafafa;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .system {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .chat {
+            background: #f3e5f5;
+        }
+        .self {
+            background: #e8f5e9;
+            text-align: right;
+        }
+        .input-panel {
+            display: flex;
+            gap: 10px;
+        }
+        #messageInput {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Netty 聊天室 - WebSocket 客户端</h1>
+
+        <div class="connection-panel">
+            <div>
+                <label>服务器地址:</label>
+                <input type="text" id="serverUrl" value="ws://localhost:8081/ws" placeholder="ws://localhost:8081/ws">
+            </div>
+            <div>
+                <label>用户ID:</label>
+                <input type="text" id="userId" value="webUser" placeholder="输入用户ID">
+                <button id="connectBtn" onclick="connect()">连接</button>
+                <button id="disconnectBtn" onclick="disconnect()" disabled>断开</button>
+                <span id="status" class="disconnected">未连接</span>
+            </div>
+        </div>
+
+        <div>
+            <button onclick="requestHistory()">获取历史消息</button>
+            <button onclick="requestUserList()">获取用户列表</button>
+        </div>
+
+        <div id="messageArea"></div>
+
+        <div class="input-panel">
+            <input type="text" id="messageInput" placeholder="输入消息..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let currentUserId = '';
+
+        function connect() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            currentUserId = document.getElementById('userId').value;
+
+            if (!currentUserId) {
+                alert('请输入用户ID');
+                return;
+            }
+
+            ws = new WebSocket(serverUrl);
+
+            ws.onopen = function() {
+                document.getElementById('status').textContent = '已连接';
+                document.getElementById('status').className = 'connected';
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('disconnectBtn').disabled = false;
+
+                // 发送认证消息
+                const identifyMsg = {
+                    type: 'IDENTIFY',
+                    userId: currentUserId
+                };
+                ws.send(JSON.stringify(identifyMsg));
+                addMessage('系统', '连接成功，正在认证...', 'system');
+            };
+
+            ws.onmessage = function(event) {
+                const msg = JSON.parse(event.data);
+                handleMessage(msg);
+            };
+
+            ws.onclose = function() {
+                document.getElementById('status').textContent = '已断开';
+                document.getElementById('status').className = 'disconnected';
+                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('disconnectBtn').disabled = true;
+                addMessage('系统', '连接已断开', 'system');
+            };
+
+            ws.onerror = function(error) {
+                addMessage('系统', '错误: ' + error, 'system');
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function handleMessage(msg) {
+            switch(msg.type) {
+                case 'SYSTEM':
+                    addMessage('系统', msg.content, 'system');
+                    break;
+                case 'CHAT':
+                    const from = msg.from === currentUserId ? '我' : msg.from;
+                    const cssClass = msg.from === currentUserId ? 'self' : 'chat';
+                    const to = msg.to ? ` (私聊给 ${msg.to})` : '';
+                    addMessage(from, msg.content + to, cssClass);
+                    break;
+                case 'USER_LIST':
+                    addMessage('系统', '在线用户: ' + (msg.users ? msg.users.join(', ') : '无'), 'system');
+                    break;
+                case 'HISTORY_RESPONSE':
+                    addMessage('系统', `收到 ${msg.totalCount} 条历史消息`, 'system');
+                    if (msg.messages) {
+                        msg.messages.forEach(m => {
+                            addMessage(m.from || '历史', m.content, 'chat');
+                        });
+                    }
+                    break;
+                default:
+                    addMessage('系统', '收到未知消息: ' + JSON.stringify(msg), 'system');
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+
+            if (!content || !ws || ws.readyState !== WebSocket.OPEN) {
+                return;
+            }
+
+            const msg = {
+                type: 'CHAT',
+                content: content
+            };
+
+            ws.send(JSON.stringify(msg));
+            input.value = '';
+        }
+
+        function requestHistory() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('请先连接');
+                return;
+            }
+
+            const msg = {
+                type: 'HISTORY_REQUEST',
+                count: 10
+            };
+            ws.send(JSON.stringify(msg));
+        }
+
+        function requestUserList() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('请先连接');
+                return;
+            }
+
+            const msg = {
+                type: 'USER_LIST'
+            };
+            ws.send(JSON.stringify(msg));
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function addMessage(from, content, cssClass) {
+            const area = document.getElementById('messageArea');
+            const div = document.createElement('div');
+            div.className = 'message ' + cssClass;
+            div.innerHTML = `<strong>${from}:</strong> ${content}`;
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+        }
+    </script>
+</body>
+</html>

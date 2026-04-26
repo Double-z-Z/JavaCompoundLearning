@@ -1,8 +1,8 @@
 ---
 created: 2026-04-24
-updated: 2026-04-24
-status: Phase 1 - 核心功能完成
-tags: [project, netty, 聊天室, 网络编程]
+updated: 2026-04-26
+status: Phase 3 - WebSocket支持已完成
+tags: [project, netty, 聊天室, 网络编程, websocket]
 ---
 
 # Netty 聊天室项目
@@ -108,11 +108,13 @@ SessionManager (共享状态，ConcurrentHashMap 保护)
 长度前缀(4字节) + JSON 内容
 
 消息类型：
-- IDENTIFY      认证消息
-- CHAT          聊天消息（支持私聊/广播）
-- HEARTBEAT     心跳消息
-- SYSTEM        系统消息（用户加入/离开）
-- USER_LIST     用户列表
+- IDENTIFY              认证消息
+- CHAT                  聊天消息（支持私聊/广播）
+- HEARTBEAT             心跳消息
+- SYSTEM                系统消息（用户加入/离开）
+- USER_LIST             用户列表
+- HISTORY_REQUEST       历史消息请求
+- HISTORY_RESPONSE      历史消息响应
 ```
 
 
@@ -132,18 +134,33 @@ SessionManager (共享状态，ConcurrentHashMap 保护)
 - [x] 广播/私聊功能
 - [x] 用户列表查询
 
-### ⏳ 待开始
+### ✅ Phase 2: 增强功能（已完成）
+- [x] 测试客户端实现（基础功能验证）
+- [x] 消息持久化（最近100条，内存存储）
+- [x] ~~压力测试~~（跳过，使用专业工具替代）
+- [x] ~~配置文件支持~~（跳过，非核心需求）
 
-#### Phase 2: 增强功能
-- [ ] 测试客户端实现
-- [ ] 消息持久化（最近100条）
-- [ ] 压力测试
-- [ ] 配置文件支持
+### ✅ Phase 3: 高级功能（进行中）
 
-#### Phase 3: 高级功能
-- [ ] WebSocket 支持
-- [ ] 集群部署
-- [ ] 监控指标
+#### Phase 3: WebSocket 支持（已完成）
+- [x] WebSocket 协议理解与实现
+- [x] WebSocketServerProtocolHandler 配置
+- [x] HTTP 握手升级处理
+- [x] WebSocketFrame 编解码
+- [x] 双协议支持（TCP + WebSocket）
+- [x] 浏览器客户端测试
+- [x] 自动化测试覆盖
+
+#### 待完成
+- [ ] 集群部署（多节点消息同步）
+- [ ] 监控指标（连接数、消息量）
+
+
+## 练习记录
+
+- [2026-04-24 Netty聊天室实现](../03-Practice/drills/2026-04-24-netty-chatroom.md) — Phase 1 核心功能
+- [2026-04-26 Netty聊天室Phase2](../03-Practice/drills/2026-04-26-netty-chatroom-phase2.md) — 消息持久化
+- [2026-04-26 WebSocket协议对话](../03-Practice/reflections/2026-04-26-websocket-protocol-dialogue.md) — WebSocket 原理深度理解
 
 
 ## 关键技术点
@@ -222,10 +239,9 @@ java -jar target/netty-chatroom-1.0-SNAPSHOT.jar 9090
 
 ## 待办清单
 
-- [ ] 编写测试客户端
+- [x] 编写测试客户端
 - [ ] 压力测试
-- [ ] 消息持久化
-- [ ] 配置文件支持
+- [x] 消息持久化
 
 
 ---

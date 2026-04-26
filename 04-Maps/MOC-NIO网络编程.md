@@ -81,6 +81,7 @@ sort file.mtime desc
 - [x] 写半包处理（OP_WRITE事件管理）
 - [x] 跨Worker广播设计（队列+wakeup）
 - [x] Netty框架学习（事件循环、Pipeline、ByteBuf）
+- [x] Netty项目实战（聊天室 Phase 1/2）
 - [ ] 零拷贝技术（mmap、sendfile）
 - [ ] 性能优化（背压、流量控制）
 - [ ] 知识网络密度检查（每个节点≥2个链接）
@@ -94,8 +95,8 @@ sort file.mtime desc
 | NIO-Selector  | 🍎 应用 (70) | ↗️  |
 | NIO-Channel   | 🌿 理解 (50) | →   |
 | Boss-Worker模型 | 🌿 理解 (55) | ↗️  |
-| Netty | 🌿 理解 (55) | ↗️  |
-| 网络编程综合        | 82分        | ↗️  |
+| Netty         | 🍎 应用 (65) | ↗️  |
+| 网络编程综合        | 85分        | ↗️  |
 
 
 ---

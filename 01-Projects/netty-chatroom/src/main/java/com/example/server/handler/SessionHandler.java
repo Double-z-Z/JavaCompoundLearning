@@ -1,6 +1,9 @@
 package com.example.server.handler;
 
-import com.example.server.protocol.*;
+import com.example.server.message.base.Message;
+import com.example.server.message.request.HeartbeatMessage;
+import com.example.server.message.request.IdentifyMessage;
+import com.example.server.message.response.SystemMessage;
 import com.example.server.service.MessageService;
 import com.example.server.service.SessionManager;
 import io.netty.channel.Channel;

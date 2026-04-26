@@ -1,9 +1,9 @@
 package com.example.server;
 
 import com.example.server.handler.ChatHandler;
-import com.example.server.handler.ProtocolDecoder;
-import com.example.server.handler.ProtocolEncoder;
 import com.example.server.handler.SessionHandler;
+import com.example.server.handler.TcpFrameDecoder;
+import com.example.server.handler.TcpFrameEncoder;
 import com.example.server.service.MessageService;
 import com.example.server.service.SessionManager;
 import io.netty.channel.ChannelInitializer;
@@ -34,13 +34,13 @@ public class ChatServerInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline pipeline = ch.pipeline();
         
         // 入站解码器
-        pipeline.addLast(new ProtocolDecoder());
+        pipeline.addLast(new TcpFrameDecoder());
         
         // 业务 Handler
         pipeline.addLast(sessionHandler);
         pipeline.addLast(chatHandler);
 
         // 出站编码器（后添加的先执行）
-        pipeline.addLast(new ProtocolEncoder());
+        pipeline.addLast(new TcpFrameEncoder());
     }
 }

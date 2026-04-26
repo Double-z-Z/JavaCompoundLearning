@@ -1,8 +1,13 @@
 package com.example.Client;
-
-import com.example.server.protocol.*;
-import com.example.server.handler.ProtocolDecoder;
-import com.example.server.handler.ProtocolEncoder;
+import com.example.server.handler.TcpFrameDecoder;
+import com.example.server.handler.TcpFrameEncoder;
+import com.example.server.message.base.Message;
+import com.example.server.message.codec.MessageCodec;
+import com.example.server.message.request.ChatMessage;
+import com.example.server.message.request.HeartbeatMessage;
+import com.example.server.message.request.HistoryRequestMessage;
+import com.example.server.message.request.IdentifyMessage;
+import com.example.server.message.response.UserListMessage;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -35,6 +40,8 @@ public class ChatClient {
     // 连接状态
     private volatile boolean connected = false;
     private volatile boolean identified = false;
+
+    private int batchCount;
     
     public ChatClient(String host, int port, String userId) {
         this.host = host;
@@ -81,8 +88,8 @@ public class ChatClient {
                     @Override
                     protected void initChannel(SocketChannel ch) {
                         ChannelPipeline pipeline = ch.pipeline();
-                        pipeline.addLast(new ProtocolDecoder());
-                        pipeline.addLast(new ProtocolEncoder());
+                        pipeline.addLast(new TcpFrameDecoder());
+                        pipeline.addLast(new TcpFrameEncoder());
                         pipeline.addLast(new ClientHandler());
                     }
                 });
@@ -194,7 +201,7 @@ public class ChatClient {
         message.setFrom(userId);
         // to 为 null 表示广播
         
-        channel.writeAndFlush(message);
+        write(message);
         logger.info("Sent public message: {}", content);
     }
     
@@ -213,10 +220,37 @@ public class ChatClient {
         message.setTo(toUser);
         // to 不为 null 表示私聊
         
-        channel.writeAndFlush(message);
+        write(message);
         logger.info("Sent private message to {}: {}", toUser, content);
     }
-    
+
+    /**
+     * 开始批量发送消息
+     */
+    public void startBatch() {
+        this.batchCount += 1;
+    }
+
+    private void write(Message message) {
+        if (batchCount > 0) {
+            channel.write(message);
+        }
+        else {
+            channel.writeAndFlush(message);
+        }
+    }
+
+    /**
+     * 结束批量发送消息
+     */
+    public void endBatch() {
+        this.batchCount -= 1;
+        if (this.batchCount <= 0) {
+            this.batchCount = 0;
+            channel.flush();
+        }
+    }
+
     /**
      * 请求用户列表
      */
@@ -227,8 +261,23 @@ public class ChatClient {
         }
         
         UserListMessage message = new UserListMessage();
-        channel.writeAndFlush(message);
+        write(message);
         logger.debug("Requested user list");
+    }
+
+    /**
+     * 请求历史消息
+     * @param count 请求的消息数量（1-100）
+     */
+    public void requestHistory(int count) {
+        if (!isReady()) {
+            logger.warn("Client not ready, cannot request history");
+            return;
+        }
+
+        HistoryRequestMessage message = new HistoryRequestMessage(count);
+        write(message);
+        logger.debug("Requested history, count: {}", count);
     }
     
     /**
@@ -267,7 +316,7 @@ public class ChatClient {
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Message msg) {
             try {
-                String messageStr = ProtocolCodec.toJson(msg);
+                String messageStr = MessageCodec.toJson(msg);
                 
                 // 处理心跳响应
                 if (msg instanceof HeartbeatMessage) {
@@ -309,6 +358,14 @@ public class ChatClient {
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             logger.error("Exception in client handler", cause);
             ctx.close();
+        }
+    }
+
+    private class ClientWriteHandler extends ChannelOutboundHandlerAdapter {
+        
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+            channel.write(msg, promise);
         }
     }
 }

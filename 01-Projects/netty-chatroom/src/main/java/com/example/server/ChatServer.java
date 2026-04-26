@@ -25,21 +25,28 @@ import java.util.concurrent.TimeUnit;
  * 4. 提供 awaitRunning() / awaitTerminated() 等待方法
  */
 public class ChatServer extends AbstractExecutionThreadService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(ChatServer.class);
-    
-    private final int port;
+
+    private final int tcpPort;
+    private final int websocketPort;
     private final SessionManager sessionManager;
     private final MessageService messageService;
     private final HealthKeeper healthKeeper;
-    
+
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
-    private volatile Channel serverChannel;
+    private volatile Channel tcpChannel;
+    private volatile Channel websocketChannel;
     private Thread serverThread;
-    
-    public ChatServer(int port) {
-        this.port = port;
+
+    public ChatServer(int tcpPort) {
+        this(tcpPort, tcpPort + 1);  // WebSocket 默认用 TCP 端口 + 1
+    }
+
+    public ChatServer(int tcpPort, int websocketPort) {
+        this.tcpPort = tcpPort;
+        this.websocketPort = websocketPort;
         this.sessionManager = new SessionManager();
         this.messageService = new MessageService(sessionManager);
         this.healthKeeper = new HealthKeeper(sessionManager);
@@ -51,25 +58,36 @@ public class ChatServer extends AbstractExecutionThreadService {
      */
     @Override
     protected void startUp() throws Exception {
-        logger.info("Starting ChatServer on port {}", port);
-        
+        logger.info("Starting ChatServer on TCP port {}, WebSocket port {}", tcpPort, websocketPort);
+
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup();
-        
-        ServerBootstrap bootstrap = new ServerBootstrap();
-        bootstrap.group(bossGroup, workerGroup)
+
+        // ========== TCP 端口 ==========
+        ServerBootstrap tcpBootstrap = new ServerBootstrap();
+        tcpBootstrap.group(bossGroup, workerGroup)
             .channel(NioServerSocketChannel.class)
             .childHandler(new ChatServerInitializer(sessionManager, messageService))
             .option(ChannelOption.SO_BACKLOG, 128)
             .childOption(ChannelOption.SO_KEEPALIVE, true);
-        
-        // 绑定端口，阻塞等待完成
-        serverChannel = bootstrap.bind(port).sync().channel();
-        logger.info("ChatServer bound to port {}", port);
-        
+
+        tcpChannel = tcpBootstrap.bind(tcpPort).sync().channel();
+        logger.info("TCP server bound to port {}", tcpPort);
+
+        // ========== WebSocket 端口 ==========
+        ServerBootstrap wsBootstrap = new ServerBootstrap();
+        wsBootstrap.group(bossGroup, workerGroup)
+            .channel(NioServerSocketChannel.class)
+            .childHandler(new WebSocketChatServerInitializer(sessionManager, messageService))
+            .option(ChannelOption.SO_BACKLOG, 128)
+            .childOption(ChannelOption.SO_KEEPALIVE, true);
+
+        websocketChannel = wsBootstrap.bind(websocketPort).sync().channel();
+        logger.info("WebSocket server bound to port {}", websocketPort);
+
         // 启动健康检查
         healthKeeper.start();
-        
+
         logger.info("ChatServer started successfully");
     }
     
@@ -81,12 +99,12 @@ public class ChatServer extends AbstractExecutionThreadService {
     protected void run() throws Exception {
         // 记录服务线程，用于后续管理
         serverThread = Thread.currentThread();
-        
+
         logger.info("ChatServer is running, waiting for shutdown signal...");
-        
-        // 阻塞等待关闭信号
-        serverChannel.closeFuture().sync();
-        
+
+        // 阻塞等待任意一个 Channel 关闭（通常它们会同时关闭）
+        tcpChannel.closeFuture().sync();
+
         logger.info("Server channel closed, exiting run loop");
     }
     
@@ -104,8 +122,11 @@ public class ChatServer extends AbstractExecutionThreadService {
         }
         
         // 关闭 Channel
-        if (serverChannel != null) {
-            serverChannel.close();
+        if (tcpChannel != null) {
+            tcpChannel.close();
+        }
+        if (websocketChannel != null) {
+            websocketChannel.close();
         }
         
         // 关闭 EventLoopGroup
@@ -126,8 +147,11 @@ public class ChatServer extends AbstractExecutionThreadService {
     protected void triggerShutdown() {
         logger.info("Triggering ChatServer shutdown");
         // 关闭 Channel 会触发 closeFuture，从而退出 run() 循环
-        if (serverChannel != null) {
-            serverChannel.close();
+        if (tcpChannel != null) {
+            tcpChannel.close();
+        }
+        if (websocketChannel != null) {
+            websocketChannel.close();
         }
     }
     
@@ -136,7 +160,7 @@ public class ChatServer extends AbstractExecutionThreadService {
      */
     @Override
     protected String serviceName() {
-        return "ChatServer-" + port;
+        return "ChatServer-" + tcpPort;
     }
     
     /**
@@ -154,10 +178,17 @@ public class ChatServer extends AbstractExecutionThreadService {
     }
     
     /**
-     * 获取服务端口号
+     * 获取 TCP 端口号
      */
-    public int getPort() {
-        return port;
+    public int getTcpPort() {
+        return tcpPort;
+    }
+
+    /**
+     * 获取 WebSocket 端口号
+     */
+    public int getWebsocketPort() {
+        return websocketPort;
     }
     
     public static void main(String[] args) {

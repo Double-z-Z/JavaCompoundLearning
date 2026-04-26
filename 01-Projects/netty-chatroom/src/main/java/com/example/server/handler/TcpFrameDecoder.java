@@ -1,7 +1,7 @@
 package com.example.server.handler;
 
-import com.example.server.protocol.Message;
-import com.example.server.protocol.ProtocolCodec;
+import com.example.server.message.base.Message;
+import com.example.server.message.codec.MessageCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -14,9 +14,9 @@ import java.util.List;
  * 协议解码器
  * 长度前缀 + JSON 内容
  */
-public class ProtocolDecoder extends ByteToMessageDecoder {
+public class TcpFrameDecoder extends ByteToMessageDecoder {
     
-    private static final Logger logger = LoggerFactory.getLogger(ProtocolDecoder.class);
+    private static final Logger logger = LoggerFactory.getLogger(TcpFrameDecoder.class);
     
     // 最大消息长度 1MB
     private static final int MAX_FRAME_LENGTH = 1024 * 1024;
@@ -56,7 +56,7 @@ public class ProtocolDecoder extends ByteToMessageDecoder {
         
         try {
             // 解码为 Message 对象
-            Message message = ProtocolCodec.decode(data);
+            Message message = MessageCodec.decode(data);
             out.add(message);
             
             logger.debug("Decoded message: {}", message.getType());

@@ -1,4 +1,6 @@
-package com.example.server.protocol;
+package com.example.server.message.request;
+
+import com.example.server.message.base.Message;
 
 public class HeartbeatMessage extends Message {
     

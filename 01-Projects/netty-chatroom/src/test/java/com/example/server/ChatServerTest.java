@@ -2,7 +2,6 @@ package com.example.server;
 
 import com.example.Client.ChatClient;
 import com.example.Client.ClientListener;
-import com.example.server.protocol.ChatMessage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
