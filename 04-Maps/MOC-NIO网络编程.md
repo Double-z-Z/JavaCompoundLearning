@@ -27,6 +27,7 @@ tags:
 | [[跨线程通信]] | 使用ConcurrentLinkedQueue + selector.wakeup() | 🌿 |
 | [[CopyOnWriteArrayList]] | 读多写少场景的安全遍历集合 | 🌿 |
 | [[Race-Condition]] | 多线程时序竞态导致的隐蔽Bug | 🌿 |
+| [[Netty]] | 基于NIO的高性能异步事件驱动网络框架 | 🌿 |
 
 
 ## 知识网络
@@ -62,6 +63,7 @@ sort file.mtime desc
 - [[2026-04-17-NIO学习对话]] — NIO三大组件基础概念学习
 - [[2026-04-19-nio-partial-write-question]] — NIO部分发送的疑问（待深入研究）
 - [[2026-04-21-nio-chatroom-debug]] — NIO聊天室广播调试实录（4个连锁Bug）
+- [[2026-04-24-netty-learning-dialogue]] — Netty框架核心概念学习（EventLoop、Pipeline、ByteBuf）
 
 
 ## 练习记录
@@ -78,7 +80,8 @@ sort file.mtime desc
 - [x] 粘包/拆包处理（compact模式）
 - [x] 写半包处理（OP_WRITE事件管理）
 - [x] 跨Worker广播设计（队列+wakeup）
-- [ ] Netty框架学习（事件循环、Pipeline、ByteBuf）
+- [x] Netty框架学习（事件循环、Pipeline、ByteBuf）
+- [x] Netty项目实战（聊天室 Phase 1/2）
 - [ ] 零拷贝技术（mmap、sendfile）
 - [ ] 性能优化（背压、流量控制）
 - [ ] 知识网络密度检查（每个节点≥2个链接）
@@ -92,7 +95,8 @@ sort file.mtime desc
 | NIO-Selector  | 🍎 应用 (70) | ↗️  |
 | NIO-Channel   | 🌿 理解 (50) | →   |
 | Boss-Worker模型 | 🌿 理解 (55) | ↗️  |
-| 网络编程综合        | 80分        | ↗️  |
+| Netty         | 🍎 应用 (65) | ↗️  |
+| 网络编程综合        | 85分        | ↗️  |
 
 
 ---

@@ -24,6 +24,71 @@
 > 由AI基于能力评估数据实时推荐，用户确认后记录于此
 > 每次对话开始前，AI读取此章节了解当前规划
 
+### 本次对话（2026-04-27）
+- **状态**：进行中 🔄
+- **用户选择**：方案A - Redis → 分布式理论 → K8s 纵向深入路径
+- **前置讨论**：
+  - 重新评估Netty集群部署价值（自定义广播协议学习价值有限）
+  - 确定分布式系统学习路径：理论→实践→生产级
+  - 选择纵向深入：Redis → 分布式理论 → K8s
+- **当前阶段**：Redis基础学习（数据结构、持久化、主从复制）
+- **关联知识点**：[[Redis]]、[[IO多路复用]]、[[分布式缓存]]
+- **预计产出**：Redis原子笔记 + Netty聊天室Redis持久化改造
+
+### 本次对话（2026-04-26）
+- **状态**：已完成 ✅
+- **用户选择**：继续 Netty 聊天室 Phase 3（WebSocket 支持）
+- **实际完成**：
+  - ✅ WebSocket 协议深度理解（握手、帧格式、与 HTTP 关系）
+  - ✅ 实现 WebSocket 服务端支持（双协议：TCP + WebSocket）
+  - ✅ WebSocketFrameHandler 实现（帧解析 → Message 对象）
+  - ✅ 浏览器客户端测试页面
+  - ✅ 自动化测试覆盖（WebSocketServerTest）
+  - ✅ 项目结构重构（OpenRewrite 批量重构）
+  - ✅ 产出1个反思记录（WebSocket 协议对话）
+- **关联知识点**：[[WebSocket]]、[[HTTP长轮询]]、[[Netty]]、[[TCP协议]]
+- **掌握度提升**：
+  - Netty: 65 → 70（🍎应用）
+  - WebSocket: 0 → 55（🌿理解）
+  - HTTP长轮询: 0 → 45（🌿理解）
+  - 网络编程综合: 85分 → 88分
+
+### 本次对话（2026-04-25）
+- **状态**：已完成 ✅
+- **用户选择**：深入理解异步编程与 Netty 事件机制
+- **实际完成**：
+  - ✅ 深入理解 CompletableFuture 实现原理（DAG 结构、Treiber Stack、lazySet+CAS）
+  - ✅ 对比 TS Promise 与 Java CompletableFuture 的设计差异
+  - ✅ 理解 ChannelPromise 与 ChannelFuture 的角色分离
+  - ✅ 掌握 Netty Pipeline 事件机制（入站事件 vs 出站操作）
+  - ✅ 理解 read()/write() 与 channelRead()/channelWrite() 的区别
+  - ✅ 产出4个知识资产（3个原子笔记 + 1个对话反思）
+- **关联知识点**：[[CompletableFuture]]、[[ChannelPromise]]、[[ChannelFuture]]、[[Netty-Pipeline-事件机制]]、[[Future]]
+- **掌握度提升**：
+  - CompletableFuture: 0 → 55（🌿理解）
+  - ChannelPromise: 0 → 50（🌿理解）
+  - Netty-Pipeline-事件机制: 0 → 55（🌿理解）
+  - Future: 0 → 45（🌿理解）
+  - 异步编程综合: 50分 → 65分
+
+### 本次对话（2026-04-24）
+- **状态**：已完成 ✅
+- **用户选择**：选项1 - 探索 Netty 框架
+- **实际完成**：
+  - ✅ 深入理解 Netty 核心组件（EventLoop、Channel、Pipeline、ByteBuf）
+  - ✅ 理解 Netty 与 NIO 的关系和抽象层次
+  - ✅ 掌握 ByteBuf 双指针设计与引用计数机制
+  - ✅ 理解 Pipeline 责任链模式和消息传播机制
+  - ✅ 掌握半包处理方案（ByteToMessageDecoder）
+  - ✅ 产出2个知识资产（1个原子笔记 + 1个对话反思）
+- **关联知识点**：[[Netty]]、[[NIO-Selector]]、[[NIO-Buffer]]、[[Boss-Worker模型]]、[[粘包拆包]]
+- **掌握度提升**：
+  - Netty: 0 → 55（🌿理解）
+  - NIO-Selector: 70 → 75（🍎应用）
+  - NIO-Buffer: 70 → 75（🍎应用）
+  - Boss-Worker模型: 55 → 60（🍎应用）
+  - 网络编程综合: 80分 → 82分
+
 ### 本次对话（2026-04-22）
 - **状态**：已完成 ✅
 - **用户选择**：继续NIO聊天室项目 - ChatServer接口改造与测试优化
@@ -148,7 +213,8 @@
 ### 薄弱领域（待学习）
 
 - 🌿 BIO模型 - 阻塞IO、Socket编程、多线程处理（mastery=40，已完成基础项目）
-- 🌿 **NIO/New IO** - Buffer（mastery=70）、Channel（mastery=50）、Selector（mastery=70）
+- 🌿 **NIO/New IO** - Buffer（mastery=75）、Channel（mastery=50）、Selector（mastery=75）
+- 🌿 **Netty** - EventLoop、Channel、Pipeline、ByteBuf（mastery=55）
 - 🌿 **测试设计** - Maven Surefire（mastery=40）、测试隔离、性能测试分离
 - ⏳ Netty 框架 - 事件驱动、Pipeline、ByteBuf
 - ⏳ JVM 内存模型与调优

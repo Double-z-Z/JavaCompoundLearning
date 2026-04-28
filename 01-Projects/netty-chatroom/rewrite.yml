@@ -1,0 +1,59 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.example.ChatRoomRefactor
+displayName: ChatRoom Project Refactoring
+recipeList:
+  # 1. 重命名 ProtocolEncoder -> TcpFrameEncoder
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.handler.ProtocolEncoder
+      newFullyQualifiedTypeName: com.example.server.handler.TcpFrameEncoder
+
+  # 2. 重命名 ProtocolDecoder -> TcpFrameDecoder
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.handler.ProtocolDecoder
+      newFullyQualifiedTypeName: com.example.server.handler.TcpFrameDecoder
+
+  # 3. 移动 Message 类到新包
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.protocol.Message
+      newFullyQualifiedTypeName: com.example.server.message.base.Message
+
+  # 4. 移动 ChatMessage 到 request 包
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.protocol.ChatMessage
+      newFullyQualifiedTypeName: com.example.server.message.request.ChatMessage
+
+  # 5. 移动 IdentifyMessage 到 request 包
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.protocol.IdentifyMessage
+      newFullyQualifiedTypeName: com.example.server.message.request.IdentifyMessage
+
+  # 6. 移动 HeartbeatMessage 到 request 包
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.protocol.HeartbeatMessage
+      newFullyQualifiedTypeName: com.example.server.message.request.HeartbeatMessage
+
+  # 7. 移动 HistoryRequestMessage 到 request 包
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.protocol.HistoryRequestMessage
+      newFullyQualifiedTypeName: com.example.server.message.request.HistoryRequestMessage
+
+  # 8. 移动 SystemMessage 到 response 包
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.protocol.SystemMessage
+      newFullyQualifiedTypeName: com.example.server.message.response.SystemMessage
+
+  # 9. 移动 UserListMessage 到 response 包
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.protocol.UserListMessage
+      newFullyQualifiedTypeName: com.example.server.message.response.UserListMessage
+
+  # 10. 移动 HistoryResponseMessage 到 response 包
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.protocol.HistoryResponseMessage
+      newFullyQualifiedTypeName: com.example.server.message.response.HistoryResponseMessage
+
+  # 11. 移动 ProtocolCodec 到 codec 包并重命名
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.server.protocol.ProtocolCodec
+      newFullyQualifiedTypeName: com.example.server.message.codec.MessageCodec
