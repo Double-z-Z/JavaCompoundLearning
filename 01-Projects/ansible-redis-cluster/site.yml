@@ -1,0 +1,5 @@
+---
+- name: Deploy Redis Cluster
+  hosts: redis_cluster
+  roles:
+    - redis

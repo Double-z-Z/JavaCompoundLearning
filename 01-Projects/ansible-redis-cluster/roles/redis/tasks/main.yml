@@ -1,0 +1,26 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  become: yes
+
+- name: Install Redis
+  apt:
+    name: redis-server
+    state: present
+  become: yes
+
+- name: Configure Redis
+  template:
+    src: redis.conf.j2
+    dest: /etc/redis/redis.conf
+    mode: '0644'
+  become: yes
+  notify: Restart Redis
+
+- name: Start Redis
+  systemd:
+    name: redis-server
+    state: started
+    enabled: yes
+  become: yes

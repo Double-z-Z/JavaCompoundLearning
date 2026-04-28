@@ -1,0 +1,9 @@
+bind 127.0.0.1 {{ ansible_host }}
+port {{ redis_port }}
+cluster-enabled {{ redis_cluster_enabled }}
+cluster-config-file nodes-{{ redis_port }}.conf
+cluster-node-timeout {{ redis_cluster_node_timeout }}
+appendonly yes
+daemonize no
+supervised systemd
+dir /var/lib/redis

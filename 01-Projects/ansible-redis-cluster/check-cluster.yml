@@ -1,0 +1,33 @@
+---
+- name: Check Redis Cluster Status
+  hosts: redis_masters[0]  # 只在第一个 master 上执行
+  gather_facts: no
+  tasks:
+    - name: Check cluster nodes
+      shell: redis-cli -h {{ inventory_hostname }} cluster nodes
+      register: cluster_nodes
+
+    - name: Display cluster nodes
+      debug:
+        var: cluster_nodes.stdout_lines
+
+    - name: Check cluster info
+      shell: redis-cli -h {{ inventory_hostname }} cluster info
+      register: cluster_info
+
+    - name: Display cluster info
+      debug:
+        var: cluster_info.stdout_lines
+
+- name: Check all nodes status
+  hosts: redis_cluster
+  gather_facts: no
+  tasks:
+    - name: Check Redis ping
+      shell: redis-cli -h {{ inventory_hostname }} ping
+      register: redis_ping
+      ignore_errors: yes
+
+    - name: Display ping result
+      debug:
+        msg: "{{ inventory_hostname }}: {{ redis_ping.stdout }}"

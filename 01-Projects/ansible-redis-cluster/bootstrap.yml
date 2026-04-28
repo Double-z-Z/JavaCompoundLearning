@@ -1,0 +1,40 @@
+---
+# 初始化 playbook：配置 SSH 密钥认证
+# 用法：ansible-playbook bootstrap.yml -u ubuntu --ask-pass
+
+- name: Bootstrap Redis Cluster Nodes
+  hosts: redis_cluster
+  become: yes
+  vars:
+    admin_user: ubuntu
+    redis_user: redis
+  tasks:
+    - name: Ensure redis user exists
+      user:
+        name: "{{ redis_user }}"
+        state: present
+        shell: /bin/bash
+        create_home: yes
+
+    - name: Ensure .ssh directory exists for redis user
+      file:
+        path: "/home/{{ redis_user }}/.ssh"
+        state: directory
+        owner: "{{ redis_user }}"
+        group: "{{ redis_user }}"
+        mode: '0700'
+
+    - name: Add SSH public key to redis user
+      authorized_key:
+        user: "{{ redis_user }}"
+        state: present
+        key: "{{ lookup('file', '/home/dz-fedora/workspace/JavaLearning/.ssh/id_rsa.pub') }}"
+
+    - name: Ensure redis user has sudo access (optional)
+      lineinfile:
+        path: /etc/sudoers.d/redis
+        line: "{{ redis_user }} ALL=(ALL) NOPASSWD:ALL"
+        create: yes
+        mode: '0440'
+        validate: 'visudo -cf %s'
+      when: configure_sudo | default(false) | bool
