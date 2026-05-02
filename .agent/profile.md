@@ -24,6 +24,26 @@
 > 由AI基于能力评估数据实时推荐，用户确认后记录于此
 > 每次对话开始前，AI读取此章节了解当前规划
 
+### 本次对话（2026-05-02）- 本地缓存与 Caffeine 深度讨论
+- **状态**：已完成 ✅
+- **用户选择**：讨论本地缓存理论知识（Guava vs Caffeine）
+- **实际完成**：
+  - ✅ 本地缓存基本概念（进程内内存缓存）
+  - ✅ Guava vs Caffeine 架构对比（LRU vs W-TinyLFU）
+  - ✅ W-TinyLFU 算法深入（Window/Main 双区、晋升机制、衰减策略）
+  - ✅ Count-Min Sketch 概率计数（空间效率、误差控制）
+  - ✅ Ring Buffer 无锁批量处理（多生产者 CAS、单消费者批量）
+  - ✅ 缓存失效策略（expire vs refresh vs invalidate）
+  - ✅ 产出 4 个原子笔记 + 1 个反思记录
+- **关联知识点**：[[W-TinyLFU]]、[[Count-Min-Sketch]]、[[Ring-Buffer]]、[[缓存失效策略]]
+- **掌握度提升**：
+  - W-TinyLFU: 0 → 55（🌿理解）
+  - Count-Min-Sketch: 0 → 50（🌿理解）
+  - Ring-Buffer: 0 → 50（🌿理解）
+  - 缓存失效策略: 0 → 45（🌿理解）
+  - 多级缓存一致性: 0 → 30（🌱初识，暂存待深入研究）
+  - 本地缓存综合: +30分
+
 ### 本次对话（2026-05-02）
 - **状态**: 已完成 ✅
 - **用户选择**: 选项1 - Ansible 部署 Redis Cluster 实战项目
