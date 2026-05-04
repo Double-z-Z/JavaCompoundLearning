@@ -2,13 +2,13 @@ spring:
   application:
     name: redis-counter-service
   
-  # Redis 配置
+  # Redis Cluster 配置
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES:10.0.0.102:6379,10.0.0.103:6379,10.0.0.104:6379,10.0.0.105:6379,10.0.0.106:6379,10.0.0.107:6379}
+        max-redirects: 3
       password: ${REDIS_PASSWORD:}
-      database: 0
       
       # Lettuce 连接池配置
       lettuce:
@@ -18,6 +18,10 @@ spring:
           min-idle: 5             # 最小空闲连接
           max-wait: 3000ms        # 最大等待时间
         shutdown-timeout: 100ms
+        cluster:
+          refresh:
+            adaptive: true        # 自适应刷新拓扑
+            period: 60s           # 定期刷新间隔
 
 # 服务器配置
 server:

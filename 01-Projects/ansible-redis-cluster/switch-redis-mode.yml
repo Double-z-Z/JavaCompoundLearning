@@ -1,0 +1,64 @@
+---
+# Redis 集群模式切换 playbook
+# 使用方法:
+#   切换到单机模式: ansible-playbook -i inventory switch-redis-mode.yml -e mode=standalone
+#   切换到集群模式: ansible-playbook -i inventory switch-redis-mode.yml -e mode=cluster
+
+- name: Switch Redis Mode (Standalone/Cluster)
+  hosts: redis_cluster
+  gather_facts: no
+  vars:
+    redis_port: 6379
+  tasks:
+    - name: Get current cluster mode
+      shell: redis-cli -p {{ redis_port }} cluster info 2>/dev/null || echo "standalone"
+      register: current_mode
+      changed_when: false
+
+    - name: Display current mode
+      debug:
+        msg: "Current mode: {{ current_mode.stdout }}"
+
+    - name: Stop Redis
+      systemd:
+        name: redis-server
+        state: stopped
+      become: yes
+
+    - name: Set standalone mode (disable cluster)
+      lineinfile:
+        path: /etc/redis/redis.conf
+        regexp: '^cluster-enabled'
+        line: 'cluster-enabled no'
+        state: present
+      become: yes
+      when: mode == "standalone"
+
+    - name: Set cluster mode (enable cluster)
+      lineinfile:
+        path: /etc/redis/redis.conf
+        regexp: '^cluster-enabled'
+        line: 'cluster-enabled yes'
+        state: present
+      become: yes
+      when: mode == "cluster"
+
+    - name: Start Redis
+      systemd:
+        name: redis-server
+        state: started
+      become: yes
+
+    - name: Verify mode
+      shell: |
+        if redis-cli -p {{ redis_port }} cluster info 2>/dev/null | grep -q "cluster_state:ok"; then
+          echo "cluster"
+        else
+          echo "standalone"
+        fi
+      register: verify_mode
+      changed_when: false
+
+    - name: Display result
+      debug:
+        msg: "Redis is now in {{ verify_mode.stdout }} mode"

@@ -52,6 +52,10 @@ logs/
 # Git worktrees
 .claude/worktrees/
 
+# 本地配置（不需要提交）
+.claude/settings.local.json
+.claude/settings.json
+
 # 归档资料目录 - 备份文件，不纳入版本控制
 # 如需备份，请手动管理或使用其他备份方案
 99-Archive/
@@ -60,3 +64,6 @@ logs/
 .ssh/
 *.pem
 *.key
+
+# Redis dump file
+dump.rdb

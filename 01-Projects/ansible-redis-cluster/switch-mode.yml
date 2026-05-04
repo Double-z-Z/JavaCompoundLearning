@@ -1,0 +1,47 @@
+---
+# Redis 模式切换 playbook
+# 使用方法:
+#   ansible-playbook switch-mode.yml -e target=10.0.0.103 -e mode=standalone
+#   ansible-playbook switch-mode.yml -e target=10.0.0.103 -e mode=cluster
+
+- name: Switch Redis Mode
+  hosts: "{{ target | default('all') }}"
+  become: yes
+  vars:
+    redis_port: 6379
+  tasks:
+    - name: Display current target and mode
+      debug:
+        msg: "Switching {{ inventory_hostname }} to {{ mode }} mode"
+
+    - name: Stop Redis
+      systemd:
+        name: redis-server
+        state: stopped
+
+    - name: Set cluster mode
+      lineinfile:
+        path: /etc/redis/redis.conf
+        regexp: '^cluster-enabled'
+        line: 'cluster-enabled yes'
+      when: mode == "cluster"
+
+    - name: Set standalone mode
+      lineinfile:
+        path: /etc/redis/redis.conf
+        regexp: '^cluster-enabled'
+        line: 'cluster-enabled no'
+      when: mode == "standalone"
+
+    - name: Start Redis
+      systemd:
+        name: redis-server
+        state: started
+
+    - name: Verify
+      shell: redis-cli -p {{ redis_port }} ping
+      register: result
+
+    - name: Show result
+      debug:
+        msg: "{{ inventory_hostname }}: {{ result.stdout }}"
