@@ -1,362 +1,126 @@
 # Learner Profile
 
 > 学习者画像 - 帮助AI了解学习者的背景、目标和进度
-> 
+>
 > 🎯 **本文件是动态学习规划的唯一可信来源**
-> 📚 技术路线参考：`LEARNING-ROADMAP.md`
-> 📊 能力评估数据：`.agent/assessment/current.json`
+> 📚 历史记录：`.agent/_system/history.md`（不需主动读取）
+> 📊 能力评估：`.agent/assessment/current.json`
+> 🗺️ GOAL索引：`.agent/goals/GOAL-Index.md`
 
-***
+---
 
 ## 基本信息
 
-| 属性   | 值                |
-| ---- | ---------------- |
-| 当前水平 | 中级 (L2)          |
-| 目标水平 | L3（精通级）        |
+| 属性 | 值 |
+|------|-----|
+| 当前水平 | 中级 (L2) |
+| 目标水平 | L3（精通级） |
 | 学习风格 | 项目驱动型，偏好通过实践理解原理 |
-| 时间投入 | 时间不限             |
+| 时间投入 | 时间不限 |
+| 环境 | Fedora / Java 17 / PVE |
 
-***
-
-## 当前学习计划
-
-> 由AI基于能力评估数据实时推荐，用户确认后记录于此
-> 每次对话开始前，AI读取此章节了解当前规划
-
-### 本次对话（2026-05-02）- 本地缓存与 Caffeine 深度讨论
-- **状态**：已完成 ✅
-- **用户选择**：讨论本地缓存理论知识（Guava vs Caffeine）
-- **实际完成**：
-  - ✅ 本地缓存基本概念（进程内内存缓存）
-  - ✅ Guava vs Caffeine 架构对比（LRU vs W-TinyLFU）
-  - ✅ W-TinyLFU 算法深入（Window/Main 双区、晋升机制、衰减策略）
-  - ✅ Count-Min Sketch 概率计数（空间效率、误差控制）
-  - ✅ Ring Buffer 无锁批量处理（多生产者 CAS、单消费者批量）
-  - ✅ 缓存失效策略（expire vs refresh vs invalidate）
-  - ✅ 产出 4 个原子笔记 + 1 个反思记录
-- **关联知识点**：[[W-TinyLFU]]、[[Count-Min-Sketch]]、[[Ring-Buffer]]、[[缓存失效策略]]
-- **掌握度提升**：
-  - W-TinyLFU: 0 → 55（🌿理解）
-  - Count-Min-Sketch: 0 → 50（🌿理解）
-  - Ring-Buffer: 0 → 50（🌿理解）
-  - 缓存失效策略: 0 → 45（🌿理解）
-  - 多级缓存一致性: 0 → 30（🌱初识，暂存待深入研究）
-  - 本地缓存综合: +30分
-
-### 本次对话（2026-05-02）
-- **状态**: 已完成 ✅
-- **用户选择**: 选项1 - Ansible 部署 Redis Cluster 实战项目
-- **项目笔记**: [[ansible-redis-cluster]]
-- **完成阶段**: Phase 1/2/3 全部完成
-  - ✅ Phase 1: PVE 虚拟机创建 + SSH 配置
-  - ✅ Phase 2: Redis 安装与配置
-  - ✅ Phase 3: 集群初始化 + 故障转移测试
-- **关联知识点及掌握度提升**: 
-  - [[Ansible]]: 40 → 70 (+30) 🍎应用
-  - [[Redis-Cluster模式]]: 65 → 85 (+20) 🍎应用
-  - [[PVE虚拟化]]: 30 → 50 (+20) 🌿理解
-  - [[Redis-主从复制]]: 60 → 70 (+10) 🍎应用
-  - [[Redis-持久化]]: 65 → 70 (+5) 🍎应用
-  - [[Redis-哨兵模式]]: 65 → 70 (+5) 🌿理解
-- **实际产出**: 
-  - 3 个 Phase 练习记录
-  - 完整的 Ansible Playbook（含 Role）
-  - 可运行的 Redis Cluster（6 节点）
-  - 故障转移已验证（102 停止 → 106 提升 → 102 恢复为 Slave）
-- **总学习时长**: 约 2-3 小时
-- **完成时间**: 2026-05-02
-
-### 本次对话（2026-05-01）
-- **状态**：已完成 ✅
-- **用户选择**：选项1 - 继续Redis理论学习（持久化机制）
-- **实际完成**：
-  - ✅ Redis 持久化机制（RDB/AOF/混合持久化）
-  - ✅ Redis 主从复制原理（全量/增量同步、复制缓冲区）
-  - ✅ Redis 哨兵模式（Raft 选举、故障转移）
-  - ✅ Redis Cluster 模式（数据分片、Gossip 协议）
-  - ✅ 深入讨论 Raft 算法、网络分区、脑裂问题
-  - ✅ 产出 4 个原子笔记
-- **关联知识点**：[[Redis-持久化]]、[[Redis-主从复制]]、[[Redis-哨兵模式]]、[[Redis-Cluster模式]]
-- **掌握度提升**：
-  - Redis-持久化: 0 → 65（🌿理解）
-  - Redis-主从复制: 0 → 60（🌿理解）
-  - Redis-哨兵模式: 0 → 65（🌿理解）
-  - Redis-Cluster模式: 0 → 65（🌿理解）
-  - 分布式系统理论: +25分
-  - Gossip协议与反熵: 深入理解
-  - Raft与Cluster选举对比: 深入理解
-
-### 本次对话（2026-04-27）
-- **状态**：已完成 ✅
-- **用户选择**：方案A - Redis → 分布式理论 → K8s 纵向深入路径
-- **前置讨论**：
-  - 重新评估Netty集群部署价值（自定义广播协议学习价值有限）
-  - 确定分布式系统学习路径：理论→实践→生产级
-  - 选择纵向深入：Redis → 分布式理论 → K8s
-- **当前阶段**：Redis基础学习（数据结构、持久化、主从复制）
-- **关联知识点**：[[Redis]]、[[IO多路复用]]、[[分布式缓存]]
-- **预计产出**：Redis原子笔记 + Netty聊天室Redis持久化改造
-
-### 本次对话（2026-04-26）
-- **状态**：已完成 ✅
-- **用户选择**：继续 Netty 聊天室 Phase 3（WebSocket 支持）
-- **实际完成**：
-  - ✅ WebSocket 协议深度理解（握手、帧格式、与 HTTP 关系）
-  - ✅ 实现 WebSocket 服务端支持（双协议：TCP + WebSocket）
-  - ✅ WebSocketFrameHandler 实现（帧解析 → Message 对象）
-  - ✅ 浏览器客户端测试页面
-  - ✅ 自动化测试覆盖（WebSocketServerTest）
-  - ✅ 项目结构重构（OpenRewrite 批量重构）
-  - ✅ 产出1个反思记录（WebSocket 协议对话）
-- **关联知识点**：[[WebSocket]]、[[HTTP长轮询]]、[[Netty]]、[[TCP协议]]
-- **掌握度提升**：
-  - Netty: 65 → 70（🍎应用）
-  - WebSocket: 0 → 55（🌿理解）
-  - HTTP长轮询: 0 → 45（🌿理解）
-  - 网络编程综合: 85分 → 88分
-
-### 本次对话（2026-04-25）
-- **状态**：已完成 ✅
-- **用户选择**：深入理解异步编程与 Netty 事件机制
-- **实际完成**：
-  - ✅ 深入理解 CompletableFuture 实现原理（DAG 结构、Treiber Stack、lazySet+CAS）
-  - ✅ 对比 TS Promise 与 Java CompletableFuture 的设计差异
-  - ✅ 理解 ChannelPromise 与 ChannelFuture 的角色分离
-  - ✅ 掌握 Netty Pipeline 事件机制（入站事件 vs 出站操作）
-  - ✅ 理解 read()/write() 与 channelRead()/channelWrite() 的区别
-  - ✅ 产出4个知识资产（3个原子笔记 + 1个对话反思）
-- **关联知识点**：[[CompletableFuture]]、[[ChannelPromise]]、[[ChannelFuture]]、[[Netty-Pipeline-事件机制]]、[[Future]]
-- **掌握度提升**：
-  - CompletableFuture: 0 → 55（🌿理解）
-  - ChannelPromise: 0 → 50（🌿理解）
-  - Netty-Pipeline-事件机制: 0 → 55（🌿理解）
-  - Future: 0 → 45（🌿理解）
-  - 异步编程综合: 50分 → 65分
-
-### 本次对话（2026-04-24）
-- **状态**：已完成 ✅
-- **用户选择**：选项1 - 探索 Netty 框架
-- **实际完成**：
-  - ✅ 深入理解 Netty 核心组件（EventLoop、Channel、Pipeline、ByteBuf）
-  - ✅ 理解 Netty 与 NIO 的关系和抽象层次
-  - ✅ 掌握 ByteBuf 双指针设计与引用计数机制
-  - ✅ 理解 Pipeline 责任链模式和消息传播机制
-  - ✅ 掌握半包处理方案（ByteToMessageDecoder）
-  - ✅ 产出2个知识资产（1个原子笔记 + 1个对话反思）
-- **关联知识点**：[[Netty]]、[[NIO-Selector]]、[[NIO-Buffer]]、[[Boss-Worker模型]]、[[粘包拆包]]
-- **掌握度提升**：
-  - Netty: 0 → 55（🌿理解）
-  - NIO-Selector: 70 → 75（🍎应用）
-  - NIO-Buffer: 70 → 75（🍎应用）
-  - Boss-Worker模型: 55 → 60（🍎应用）
-  - 网络编程综合: 80分 → 82分
-
-### 本次对话（2026-04-22）
-- **状态**：已完成 ✅
-- **用户选择**：继续NIO聊天室项目 - ChatServer接口改造与测试优化
-- **实际完成**：
-  - ✅ 创建 ChatServer 封装类，提供阻塞式 start() 和优雅 stop()
-  - ✅ 迁移所有测试类使用 ChatServer 接口（BroadcastTest、RegisterPerformanceTest等）
-  - ✅ 修复 ClientManager.shutdown() 阻塞问题（5006ms → 2ms）
-  - ✅ 重组测试结构：功能测试与性能测试分离（performance/ 目录）
-  - ✅ 配置 Maven Surefire：顺序执行、独立JVM、Profile隔离
-  - ✅ 升级 logback 1.2.12 → 1.3.14，解决 SLF4J 警告
-  - ✅ 产出2个知识资产（1个原子笔记 + 1个反思记录）
-- **关联知识点**：[[ChatServer]]、[[ClientManager]]、[[Maven-Surefire-Plugin]]、[[测试隔离]]、[[CompletableFuture]]
-- **掌握度提升**：
-  - Maven-Surefire-Plugin: 0 → 40（🌿理解）
-  - 测试设计: 30 → 55（🌿理解）
-  - 资源管理: 45 → 60（🍎应用）
-  - NIO/网络编程综合: 80分 → 82分
-
-### 本次对话（2026-04-21）
-- **状态**：已完成 ✅
-- **用户选择**：继续NIO聊天室项目 - 修复广播功能Bug
-- **实际完成**：
-  - ✅ 修复NIO聊天室4个连锁Bug（竞态条件、Buffer模式、CancelledKeyException、并发集合）
-  - ✅ 实现NIO ChatClient和测试客户端协议（长度前缀协议）
-  - ✅ BroadcastTest通过（5客户端广播功能正常）
-  - ✅ BroadcastPerformanceTest通过（4500条广播0丢失，吞吐量2142条/秒）
-  - ✅ 产出4个知识资产（3个错误档案 + 1个调试反思）
-- **关联知识点**：[[NIO-Selector]]、[[NIO-Buffer]]、[[Boss-Worker模型]]、[[CopyOnWriteArrayList]]、[[竞态条件]]、[[粘包拆包]]
-- **掌握度提升**：
-  - NIO-Buffer: 55 → 70（🍎应用）
-  - NIO-Selector: 60 → 70（🍎应用）
-  - Boss-Worker模型: 0 → 55（🌿理解）
-  - 竞态条件排查: 0 → 50（🌿理解）
-  - NIO/网络编程综合: 75分 → 80分
-
-### 本次对话（2026-04-17）
-- **状态**：已完成 ✅
-- **用户选择**：选项1 - 继续NIO专题 - 学习NIO三大组件
-- **实际完成**：
-  - ✅ 深入理解NIO Buffer核心概念（capacity/position/limit/mark，flip/clear/rewind）
-  - ✅ 理解NIO Channel（阻塞/非阻塞，双向读写）
-  - ✅ 深入理解NIO Selector（epoll机制，红黑树+就绪链表，多路复用原理）
-  - ✅ 探讨NIO多线程架构（主从Reactor，Channel绑定，线程模型）
-  - ✅ 产出4个知识资产（3个原子笔记 + 1个反思记录）
-- **关联知识点**：[[NIO-Buffer]]、[[NIO-Channel]]、[[NIO-Selector]]、[[BIO-BlockingIO]]、[[线程池]]、[[分段锁思想]]
-- **掌握度提升**：
-  - NIO-Buffer: 0 → 55（🌿理解）
-  - NIO-Channel: 0 → 50（🌿理解）
-  - NIO-Selector: 0 → 60（🍎应用）
-  - NIO/网络编程综合: 65分 → 75分
-
-### 本次对话（2026-04-15）
-- **状态**：已完成 ✅
-- **用户选择**：选项2 - 开始NIO学习 - BIO基础与聊天室项目
-- **实际完成**：
-  - ✅ BIO聊天室项目完整实现
-  - ✅ 理解BIO阻塞模型及其局限性
-  - ✅ 产出3个知识资产（练习记录、原子笔记、反思记录）
-- **关联知识点**：[[BIO模型]]、[[Socket编程]]、[[线程池]]、[[并发集合]]
-- **掌握度提升**：NIO/网络编程 50分 → 65分
-
-### 历史决策记录
-| 日期 | 选择 | 实际完成 | 备注 |
-|------|------|---------|------|
-| 2026-04-15 | 开始NIO学习 - BIO聊天室 | ✅ | 完成BIO聊天室，产出原子笔记 |
-| 2026-04-11 | 复习并发编程底层机制 | ✅ | futex、LongAdder、线程池 |
-| 2026-04-10 | 学习LongAdder | ✅ | 产出原子笔记 |
-
-### 历史决策记录
-| 日期 | 选择 | 实际完成 | 备注 |
-|------|------|---------|------|
-| 2026-04-11 | 复习并发编程底层机制 | ✅ | futex、LongAdder、线程池 |
-| 2026-04-10 | 学习LongAdder | ✅ | 产出原子笔记 |
-
-***
-
-## JEMS 成熟度评估
-
-> 基于《高级Java后端开发人员能力评价体系》
-> 评估档案：`.agent/assessment/current.json`
-
-### 五维能力概览
-
-| 维度 | 当前等级 | 得分 | 趋势 | 目标 |
-|------|---------|------|------|------|
-| 核心技术知识深度 | L2 | 68/100 | ↗️ | L3 |
-| 问题分析与解决 | L2 | 60/100 | ↗️ | L2.5 |
-| 架构设计与权衡 | L1 | 48/100 | ↗️ | L2.5 |
-| 工程素养与实践 | L1 | 40/100 | ↗️ | L2 |
-| 持续学习能力 | L2 | 60/100 | ↗️ | L3 |
-| **综合** | **L2** | **52/100** | **↗️** | **L3** |
-
-### 强项子维度（L3）
-
-- ✅ **并发编程** - 80分，高置信度
-  - 证据：futex、LongAdder、线程池等10+原子笔记
-  - 路径：`02-Knowledge/concurrency/concepts/`
-
-### 薄弱子维度（L1-L2）- 优先学习
-
-| 主题 | 得分 | 优先级 | 前置知识 | 推荐项目 |
-|------|------|--------|---------|---------|
-| NIO/网络编程 | 65分 | 🔴 高 | 并发编程 | BIO聊天室 ✅ → NIO聊天室 |
-| JVM原理 | 40分 | 🟡 中 | 并发编程 | JVM调优案例分析 |
-| 分布式系统 | 30分 | 🟢 低 | NIO、JVM | 分布式缓存设计 |
-| 工程素养 | 35分 | 🟡 中 | - | Docker容器化项目 |
-
-***
-
-## 能力矩阵
-
-### 强项领域（已掌握）
-
-- ✅ Java 内存模型（JMM）- happens-before、内存屏障、volatile
-- ✅ Java 多线程编程 - Thread、Runnable、线程池、锁机制
-- ✅ 并发工具类 - CountDownLatch、CyclicBarrier、Semaphore、CompletableFuture
-- ✅ 并发集合 - ConcurrentHashMap、CopyOnWriteArrayList、BlockingQueue
-- ✅ 原子类 - AtomicLong、LongAdder、CAS 原理、分段思想
-- ✅ 并发底层机制 - futex、park()/unpark()、线程阻塞全链路
-- ✅ JVM 与 OS 线程状态映射 - 状态流转、调度机制、中断处理
-
-### 薄弱领域（待学习）
-
-- 🌿 BIO模型 - 阻塞IO、Socket编程、多线程处理（mastery=40，已完成基础项目）
-- 🌿 **NIO/New IO** - Buffer（mastery=75）、Channel（mastery=50）、Selector（mastery=75）
-- 🌿 **Netty** - EventLoop、Channel、Pipeline、ByteBuf（mastery=55）
-- 🌿 **测试设计** - Maven Surefire（mastery=40）、测试隔离、性能测试分离
-- ⏳ Netty 框架 - 事件驱动、Pipeline、ByteBuf
-- ⏳ JVM 内存模型与调优
-- ⏳ 序列化机制 - Serializable、Protobuf、Kryo
-
-## 已掌握知识点
-
-> 由AI根据学习活动和评估自动更新
-> 格式：知识点 (mastery分数, 等级emoji)
-
-### Redis 系列
-| 知识点 | mastery | 等级 | 最后更新 |
-|--------|---------|------|----------|
-| [[Redis-持久化]] | 70 | 🍎应用 | 2026-05-02 |
-| [[Redis-主从复制]] | 70 | 🍎应用 | 2026-05-02 |
-| [[Redis-哨兵模式]] | 70 | 🌿理解 | 2026-05-02 |
-| [[Redis-Cluster模式]] | 85 | 🍎应用 | 2026-05-02 |
-| [[Redis-String]] | 30 | 🌿理解 | 2026-05-02 |
-| [[内容热度分布与冷热分层]] | 20 | 🌿理解 | 2026-05-02 |
-
-### DevOps 系列
-| 知识点 | mastery | 等级 | 最后更新 |
-|--------|---------|------|----------|
-| [[Ansible]] | 70 | 🍎应用 | 2026-05-02 |
-| [[PVE虚拟化]] | 50 | 🌿理解 | 2026-05-02 |
-
-### 架构设计
-| 知识点 | mastery | 等级 | 最后更新 |
-|--------|---------|------|----------|
-| [[架构设计思维]] | 45 | 🌿理解 | 2026-05-02 |
-| [[定量分析]] | 30 | 🌿理解 | 2026-05-02 |
-
-### 已掌握领域（更新）
-
-- ✅ Java 内存模型（JMM）- happens-before、内存屏障、volatile
-- ✅ Java 多线程编程 - Thread、Runnable、线程池、锁机制
-- ✅ 并发工具类 - CountDownLatch、CyclicBarrier、Semaphore、CompletableFuture
-- ✅ 并发集合 - ConcurrentHashMap、CopyOnWriteArrayList、BlockingQueue
-- ✅ 原子类 - AtomicLong、LongAdder、CAS 原理、分段思想
-- ✅ 并发底层机制 - futex、park()/unpark()、线程阻塞全链路
-- ✅ JVM 与 OS 线程状态映射 - 状态流转、调度机制、中断处理
-- 🌿 **BIO/网络编程** - ServerSocket、Socket、阻塞IO模型、多客户端处理（NEW）
-
-***
-
-## 学习原则（复利规则）
-
-1. **每个知识点必须链接到已有知识**
-2. **每个错误必须归类到错误模式库**
-3. **每个项目必须产出可复用组件**
-4. **每次对话必须沉淀为结构化笔记**
-
-***
+---
 
 ## 当前快照（META-Index）
 
-> 本快照供AI快速了解当前状态，详细数据见 `.agent/_system/META-Index-知识模型.md`
+> AI对话前必须读取此章节
 
 | 指标 | 值 | 说明 |
 |------|-----|------|
 | 活跃EMRG | 3 | 并发/NIO/Redis |
-| GOAL完成率 | 2/8 | 25% |
-| P0 GOAL | 3 | Java/Redis/SpringCloud |
+| GOAL总数 | 8 | P0×3, P1×4, P2×1 |
+| GOAL完成率 | 0/8 | 刚开始 |
+| P0 GOAL | 3 | Java核心/Redis深入/SpringCloud |
 | 上次更新 | 2026-05-06 | 三层架构重构 |
 
 ### P0优先级
 
-| GOAL | 状态 | 关键缺口 |
-|------|------|---------|
-| [[GOAL-Java核心深化]] | 进行中 | epoll机制/线程池原理 |
-| [[GOAL-Redis深入]] | 进行中 | 数据结构底层 |
-| [[GOAL-SpringCloud微服务]] | 待开始 | 原理空白 |
+| GOAL | 状态 | driver | deadline | 关键缺口 |
+|------|------|--------|----------|---------|
+| [[GOAL-Java核心深化]] | active | promotion | 2026-08-06 | epoll机制/线程池原理/反射 |
+| [[GOAL-Redis深入]] | active | promotion | 2026-07-06 | 数据结构底层 |
+| [[GOAL-SpringCloud微服务]] | active | promotion | 2026-08-06 | 原理空白 |
 
-***
+> 详细GOAL信息见 `.agent/goals/GOAL-*.md`
+
+### 已掌握的强项
+
+| 领域 | mastery | 证据 |
+|------|---------|------|
+| 并发编程 | 🍎 80 | futex、LongAdder、线程池 |
+| Redis Cluster | 🍎 85 | Cluster部署+故障转移验证 |
+| NIO/网络 | 🍎 70+ | Selector/Buffer/Netty |
+
+---
+
+## 长期愿景
+
+> 定义"有什么可学"，动态规划见`#当前快照`
+
+### 技术体系总览
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Java后端技术体系                        │
+├─────────────┬─────────────┬─────────────┬─────────────────┤
+│  基础核心    │   框架生态   │   数据存储   │     系统架构        │
+├─────────────┼─────────────┼─────────────┼─────────────────┤
+│ • 并发编程   │ • Spring    │ • MySQL     │ • 微服务架构        │
+│ • NIO网络   │ • SpringBoot│ • Redis     │ • 消息队列          │
+│ • JVM原理   │ • SpringCloud│ • ES       │ • 容器化/K8s       │
+│ • 设计模式   │ • MyBatis   │             │ • 分布式理论        │
+└─────────────┴─────────────┴─────────────┴─────────────────┘
+```
+
+### 模块一：基础核心
+
+1. **并发编程** - JMM、多线程、锁机制、JUC工具类
+2. **NIO与网络编程** - BIO、NIO三大组件、粘包半包、Netty
+3. **JVM原理与调优** - 内存模型、GC、类加载
+4. **设计模式** - 创建型、结构型、行为型
+
+### 模块二：框架生态
+
+1. **Spring框架** - IoC、AOP、事务、生命周期
+2. **Spring Cloud** - 服务治理、熔断降级、网关配置
+3. **MyBatis** - SQL映射、缓存机制、源码分析
+
+### 模块三：数据存储
+
+1. **MySQL** - 索引优化、事务锁、分库分表
+2. **Redis** - 数据结构、持久化、高可用
+3. **Elasticsearch** - 倒排索引、集群、查询DSL
+
+### 模块四：系统架构
+
+1. **消息队列** - Kafka、RocketMQ、RabbitMQ
+2. **容器化与K8s** - Docker、K8s核心、运维实践
+3. **分布式理论** - CAP/BASE、一致性协议、高并发架构
+
+---
 
 ## 拒绝清单（Anti-MOC）
 
+> LLM推荐学习内容前必须检查此清单，命中则过滤
 
-***
+| 主题 | 拒绝原因 | 复审条件 |
+|-----|---------|---------|
+| React/Vue 前端深入 | 非职业方向，仅了解即可 | 转全栈时复审 |
+| 区块链/Web3 | 与后端架构无关 | 永不复审 |
+
+---
+
+## 环境默认值
+
+| 类别 | 值 |
+|------|-----|
+| OS | Fedora |
+| Java | 17 |
+| 虚拟化 | PVE (Proxmox Virtual Environment) |
+| 构建工具 | Maven |
+| IDE | (待补充) |
+
+---
 
 ## 个性化指令
 
@@ -364,65 +128,29 @@
 - 生成练习时，优先针对我的错误模式
 - 发现知识关联时，主动建议更新知识图谱（如 NIO 与并发编程的关联）
 - 长文内容自动提取结构化要点
+- **P0 GOAL优先**：推荐前先检查是否与P0 GOAL缺口匹配
 
-***
+---
 
 ## 知识库索引
 
-### 已掌握知识点路径
+| 类型 | 路径 |
+|------|------|
+| 涌现MOC | `04-Maps/EMRG-*.md` |
+| 目标MOC | `.agent/goals/GOAL-*.md` |
+| 元文件 | `.agent/_system/META-*.md` |
+| 核心概念 | `02-Knowledge/<主题>/concepts/` |
+| 错误模式 | `03-Practice/mistakes/` |
+| 项目 | `01-Projects/*/` |
 
-- 核心概念：`02-Knowledge/concurrency/concepts/`
-- 深度文档：`02-Knowledge/concurrency/deep-dives/`
-- 错误模式：`03-Practice/mistakes/`
-- 项目组件：`01-Projects/*/src/`
-
-### 待学习主题（按优先级排序）
-
-1. **NIO专题**（🔴 高优先级）
-   - 目标：掌握Buffer、Channel、Selector
-   - 项目：BIO聊天室 → NIO聊天室 → NIO文件传输
-   - 知识库：`02-Knowledge/nio/`（待创建）
-
-2. **JVM专题**（🟡 中优先级）
-   - 目标：理解内存模型、GC机制
-   - 项目：JVM调优案例分析
-   - 知识库：`02-Knowledge/jvm/`（待创建）
-
-3. **设计模式**（🟡 中优先级）
-   - 目标：掌握常用模式，能识别框架中的应用
-   - 项目：重构实战
-   - 知识库：`02-Knowledge/patterns/`（待创建）
-
-***
-
-## 历史学习数据
-
-### 已完成项目
-
-- project-concurrency-test - 并发计数器、生产者-消费者模型
-- 深度复习：并发编程底层机制（2026-04-11）
-
-### 掌握模式
-
-- 分段思想：LongAdder、ConcurrentHashMap 的分段锁
-- CAS 优化：用户态优先，减少内核态切换
-- 跨层次理解：Java → JVM → OS → Hardware 全链路分析
-- 状态管理：JVM 线程状态与 OS 线程状态的映射
-
-### 待强化概念
-
-- ✅ NIO 三大组件（Buffer、Channel、Selector）- 已掌握基础，待项目实践
-- ⏳ 零拷贝、内存映射
-- ⏳ 背压（Backpressure）机制
-- ⏳ Netty 事件循环模型
-
-***
+---
 
 ## 更新记录
 
-| 日期         | 更新内容          |
-| ---------- | ------------- |
+| 日期 | 更新内容 |
+|------|---------|
+| 2026-05-06 | 精简profile.md，历史迁移history.md，长期愿景迁移到这里 |
+| 2026-05-06 | GOAL工程化，添加driver/deadline/缺口矩阵 |
+| 2026-05-06 | 拒绝清单填充，对话前必做五步，config.md更新 |
 | 2026-04-14 | 重构规划体系，明确本文件为动态规划唯一来源 |
 | 2026-04-14 | 建立JEMS评估体系，生成基线评估 |
-| 2026-04-13 | 重构目录结构，更新路径索引 |
-| 2026-04-11 | 完成并发编程底层机制复习 |

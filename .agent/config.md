@@ -14,6 +14,9 @@
 | config_file | `.agent/config.md` | 本文件 |
 | profile_file | `.agent/profile.md` | 学习者画像 |
 | assessment_dir | `.agent/assessment/` | 能力评估档案 |
+| goals_dir | `.agent/goals/` | 技术负债 MOC（GOAL 层） |
+| system_dir | `.agent/_system/` | 系统日志与仪表盘（Meta 层） |
+| archive_dir | `.agent/goals/_archive/` | 过期 GOAL 归档 |
 
 ### 知识库 (02-Knowledge/)
 

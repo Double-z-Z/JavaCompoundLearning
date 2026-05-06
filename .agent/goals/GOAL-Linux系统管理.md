@@ -1,58 +1,57 @@
 ---
 type: goal
-description: Linux系统管理与Shell脚本自动化
-driver: 晋升层
+status: active
+driver: promotion
 urgency: low
 deadline: 2026-12-06
 review_date: 2026-09-01
+incident_ref: [[goal-java简历]]
 exit_conditions:
   - 熟练使用Linux日常命令
-  - 掌握Shell脚本编写（函数、数组、正则）
+  - 掌握Shell脚本编写
   - 理解Linux进程/内存/IO监控
-  - 能编写自动化运维脚本
-evidence: 简历要求"熟悉Linux系统操作，掌握Shell脚本编写"
-status: pending
+gap_analysis:
+  - EMRG现状: Shell基础知识有储备
+  - GOAL目标: 熟练使用Linux和Shell
+  - 缺口: 系统监控待加强
 related_emrg: []
+created: 2026-05-06
+updated: 2026-05-06
 ---
 
 # GOAL: Linux系统管理
+
+## 驱动信息
+
+| 字段 | 值 |
+|------|-----|
+| driver | promotion（晋升层） |
+| urgency | low |
+| deadline | 2026-12-06 |
+| incident_ref | [[goal-java简历]] - 简历要求"熟悉Linux系统操作，掌握Shell脚本编写" |
+
+## 退出条件
+
+- [ ] Linux日常命令熟练使用
+- [ ] Shell脚本编写（函数、数组、正则）
+- [ ] 进程/内存/IO监控
 
 ## 目标技能
 
 | 技能 | 当前水平 | 目标水平 |
 |------|---------|---------|
-| Linux命令 | 🌿理解 (50) | 🍎应用 (75) |
-| Shell脚本 | 🌿理解 (40) | 🍎应用 (70) |
-| 系统监控 | 🌱初识 (30) | 🌿理解 (55) |
-
-## 学习路径
-
-```
-阶段1: Shell脚本深化
-├── 变量与数组
-├── 函数与返回值
-├── 正则表达式
-├── 条件判断与循环
-└── 常用命令组合（awk/sed/grep）
-
-阶段2: 系统监控
-├── CPU/内存/IO监控
-├── 进程管理
-├── 网络诊断（netstat/ss/tcpdump）
-└── 日志分析
-
-阶段3: 自动化运维
-├── 定时任务(cron)
-├── 日志轮转
-├── 备份脚本
-└── 监控脚本
-```
-
-## 简历要求回顾
-
-> 熟悉 Linux 系统操作，掌握 Shell 脚本编写
+| Linux命令 | 🌿 50 | 🍎 75 |
+| Shell脚本 | 🌿 40 | 🍎 70 |
 
 ## 关联项目
 
-- [[ansible-redis-cluster]] - Ansible自动化
-- [[shell重定向]] - Shell基础知识
+- [[ansible-redis-cluster]]
+- [[shell重定向]]
+
+---
+
+## 更新记录
+
+| 日期 | 更新内容 | 操作者 |
+|------|---------|--------|
+| 2026-05-06 | 重建为工程化GOAL | AI |
