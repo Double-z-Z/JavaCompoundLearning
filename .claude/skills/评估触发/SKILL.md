@@ -3,6 +3,24 @@ name: 评估触发
 description: 当对话中涉及学习成果时触发评估流程
 ---
 
+# 加载清单（严格按顺序）
+
+## 1. 按需加载
+
+| 文件 | 触发条件 | 用途 |
+|------|---------|------|
+| `04-Maps/EMRG-*.md` | 更新成熟度 | EMRG状态 |
+| `03-Practice/assessment/` | 完成项目评估时 | 评估卡片 |
+| `.agent/goals/GOAL-*.md` | 涉及 GOAL 时 | 更新进度 |
+| `.agent/_system/META-Gap-诊断矩阵.md` | 更新 Gap 时 | 同步诊断 |
+
+## 2. 禁止加载
+
+- 评估过程中扫描与当前成果无关的知识领域
+- 加载未涉及的 P1/P2 GOAL 完整内容
+
+---
+
 # 评估触发
 
 > **触发条件**
@@ -81,7 +99,7 @@ description: 当对话中涉及学习成果时触发评估流程
 ### 3. 更新评估档案
 
 - 更新 `.agent/assessment/current.json`
-- 更新 `04-Maps/MOC-能力雷达图.md`
+- 更新 `04-Maps/META-能力雷达图.md`
 - 更新 `.agent/profile.md` 中的 mastery 字段
 
 ### 4. 推荐学习路径

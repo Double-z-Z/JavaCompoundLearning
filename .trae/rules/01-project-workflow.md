@@ -31,13 +31,13 @@ description: 项目工作流程、Skill触发条件、Mastery规则、质量红�
 **核心规则**：
 - 引导填写评估卡片（基于模板）
 - 给出评估建议（等级 + 置信度）
-- 更新 `.agent/assessment/current.json`、`.agent/profile.md`、`04-Maps/`
+- 更新 `.agent/assessment/current.json`、`.agent/profile.md`、`04-Maps/EMRG-*.md`
 
 ### 学习推荐
 **触发**：用户说"开始今日学习" / 每次新对话开场 / 完成一个主题后。
 **核心规则**：
 - 分析 `.agent/profile.md`、`02-Knowledge/`、`03-Practice/mistakes/`、`01-Projects/` 数据
-- 生成学习状态分析 + 3 个选项（继续项目 / 复习巩固 / 探索新知）
+- 生成学习状态分析 + 3 个选项（继续项目 / 深化缺口 / 探索新知）
 - 引用 mastery 分数、MOC 进度、历史错误预警
 - 用户选择后，**记录到 `.agent/profile.md`** 的"当前学习计划"
 
@@ -47,7 +47,7 @@ description: 项目工作流程、Skill触发条件、Mastery规则、质量红�
 
 ### 整理图谱
 **触发**：对话结束时（如有知识产出）。
-**核心规则**：更新 `04-Maps/` 下的 MOC 文件和知识图谱，确保新知识点有至少 2 个链接。
+**核心规则**：更新 `04-Maps/EMRG-*.md` 文件，确保新知识点有至少 2 个链接。
 
 ---
 
@@ -66,7 +66,6 @@ description: 项目工作流程、Skill触发条件、Mastery规则、质量红�
 - 完成练习：+10~20
 - 建立新关联：+10~15
 - 教学/纠正误区：+15~25
-- 复习巩固：+5~10
 - 发现理解偏差：-5~-10
 
 **必须在原子笔记和 `.agent/profile.md` 中同步记录 mastery 变化。**
