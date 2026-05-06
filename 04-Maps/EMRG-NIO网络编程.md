@@ -1,36 +1,99 @@
 ---
 created: 2026-04-21
+updated: 2026-05-06
 tags:
   - MOC
   - nio
   - network
+  - learning-path
 ---
 
 # MOC: NIO 网络编程
 
 > Java NIO 与网络编程知识地图
+> **学习路径可视化版本**
+
+
+## 学习路径（从前置到深入）
+
+```mermaid
+graph TB
+    subgraph stage1["阶段1: 基础 🌱"]
+        S1["BIO模型<br/>掌握度: 🌿 40"]
+        S2["Socket编程<br/>掌握度: 🌿 40"]
+    end
+
+    subgraph stage2["阶段2: 核心组件 🍎"]
+        S3["NIO-Buffer<br/>掌握度: 🍎 70"]
+        S4["NIO-Channel<br/>掌握度: 🌿 50"]
+        S5["NIO-Selector<br/>掌握度: 🍎 70"]
+    end
+
+    subgraph stage3["阶段3: 实战 🌿"]
+        S6["粘包拆包处理<br/>掌握度: 🌿 55"]
+        S7["Boss-Worker模型<br/>掌握度: 🌿 55"]
+        S8["广播功能实现<br/>掌握度: 🌿 60"]
+    end
+
+    subgraph stage4["阶段4: 深入 ⏳"]
+        S9["Reactor模式<br/>待学习"]
+        S10["零拷贝<br/>待学习"]
+        S11["Netty框架<br/>掌握度: 🍎 65"]
+    end
+
+    S1 --> S3
+    S2 --> S3
+    S3 --> S6
+    S4 --> S6
+    S5 --> S6
+    S6 --> S7
+    S7 --> S8
+    S8 --> S9
+    S9 --> S10
+    S9 --> S11
+
+    style stage1 fill:#f8f9fa,stroke:#868e96
+    style stage2 fill:#fff4e6,stroke:#e67700
+    style stage3 fill:#e7f5ff,stroke:#1971c2
+    style stage4 fill:#f3d9fa,stroke:#862e9c
+```
+
+
+## 前置知识要求
+
+| 知识 | 必需程度 | 来源 |
+|------|---------|------|
+| Java并发基础 | 必须 | [[Java多线程]] |
+| 阻塞与非阻塞概念 | 必须 | [[BIO-BlockingIO]] |
+| TCP/IP协议基础 | 推荐 | [[TCP协议]] |
+
+
+## 学完后能做什么
+
+- [x] 构建NIO聊天室（已完成）
+- [x] 实现多客户端广播
+- [ ] 构建高性能HTTP服务器
+- [ ] 学习Netty源码
 
 
 ## 核心概念
 
-| 概念 | 一句话描述 | 掌握状态 |
-|-----|-----------|---------|
-| [[NIO-Buffer]] | 带状态管理的智能数据容器（position/limit/capacity） | 🍎 |
-| [[NIO-Channel]] | 双向非阻塞IO通道，连接Buffer与网络 | 🌿 |
-| [[NIO-Selector]] | 多路复用器，单线程管理多连接（epoll实现） | 🍎 |
-| [[BIO-BlockingIO]] | 阻塞IO模型，一连接一线程 | 🌿 |
-| [[Socket-EOF-Semantics]] | read()=-1 表示流结束，不是消息边界 | 🌿 |
-| [[粘包拆包]] | TCP字节流无消息边界，应用层必须自行分割 | 🌿 |
-| [[Boss-Worker模型]] | Boss线程accept，Worker线程处理读写 | 🌿 |
-| [[OP_WRITE事件处理]] | 只在待发送数据时注册，发送完取消 | 🌿 |
-| [[NIO优雅关闭模式]] | 先标志位、再wakeup、最后强制关闭的三阶段模式 | 🌿 |
-| [[跨线程通信]] | 使用ConcurrentLinkedQueue + selector.wakeup() | 🌿 |
-| [[CopyOnWriteArrayList]] | 读多写少场景的安全遍历集合 | 🌿 |
-| [[Race-Condition]] | 多线程时序竞态导致的隐蔽Bug | 🌿 |
-| [[Netty]] | 基于NIO的高性能异步事件驱动网络框架 | 🌿 |
+| 概念 | 一句话描述 | 掌握状态 | 对应阶段 |
+|-----|-----------|---------|---------|
+| [[BIO-BlockingIO]] | 阻塞IO模型，一连接一线程 | 🌿 40 | 阶段1 |
+| [[NIO-Buffer]] | 带状态管理的智能数据容器（position/limit/capacity） | 🍎 70 | 阶段2 |
+| [[NIO-Channel]] | 双向非阻塞IO通道，连接Buffer与网络 | 🌿 50 | 阶段2 |
+| [[NIO-Selector]] | 多路复用器，单线程管理多连接（epoll实现） | 🍎 70 | 阶段2 |
+| [[粘包拆包]] | TCP字节流无消息边界，应用层必须自行分割 | 🌿 55 | 阶段3 |
+| [[Boss-Worker模型]] | Boss线程accept，Worker线程处理读写 | 🌿 55 | 阶段3 |
+| [[OP_WRITE事件处理]] | 只在待发送数据时注册，发送完取消 | 🌿 55 | 阶段3 |
+| [[NIO优雅关闭模式]] | 先标志位、再wakeup、最后强制关闭的三阶段模式 | 🌿 55 | 阶段3 |
+| [[跨线程通信]] | 使用ConcurrentLinkedQueue + selector.wakeup() | 🌿 55 | 阶段3 |
+| [[Netty]] | 基于NIO的高性能异步事件驱动网络框架 | 🍎 65 | 阶段4 |
+| [[Reactor模式]] | 高性能网络服务器的核心设计模式 | ⏳ 待学 | 阶段4 |
 
 
-## 知识网络
+## 知识网络（Obsidian Graph View）
 
 ```dataview
 table status, file.mtime as "更新时间"
