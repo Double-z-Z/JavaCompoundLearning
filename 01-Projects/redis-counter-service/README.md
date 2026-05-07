@@ -9,7 +9,9 @@
 - ✅ 设置计数器过期时间
 - ✅ RESTful API 接口
 - ✅ 环境变量配置支持
-- 🔄 高并发压测验证（待完成）
+- ✅ 两种扣减策略（atomic / raw）
+- ✅ 批量扣减 API
+- ✅ 高并发压测验证（已验证 35K QPS）
 
 ## 技术栈
 
@@ -79,7 +81,49 @@ Base URL: `http://localhost:8080`
 |------|-----|------|-----------|
 | POST | `/stock/{sku}/init?quantity={n}` | 初始化库存 | `curl -X POST "http://localhost:8080/stock/SKU001/init?quantity=100"` |
 | POST | `/stock/{sku}/decrement?quantity={n}` | 扣减库存 | `curl -X POST "http://localhost:8080/stock/SKU001/decrement?quantity=1"` |
+| POST | `/stock/{sku}/batch-decrement` | 批量扣减 | 见下方示例 |
 | GET | `/stock/{sku}` | 查询库存 | `curl http://localhost:8080/stock/SKU001` |
+| GET | `/stock/strategy` | 查看当前策略 | `curl http://localhost:8080/stock/strategy` |
+
+### 批量扣减 API
+
+**POST** `/stock/{sku}/batch-decrement`
+
+**请求体：**
+```json
+{
+  "requests": [
+    {"requestId": "1", "quantity": 1},
+    {"requestId": "2", "quantity": 2},
+    {"requestId": "3", "quantity": 3}
+  ]
+}
+```
+
+**响应：**
+```json
+{
+  "sku": "SKU001",
+  "results": [
+    {"requestId": "1", "status": "success", "remaining": 99},
+    {"requestId": "2", "status": "success", "remaining": 97},
+    {"requestId": "3", "status": "success", "remaining": 94}
+  ],
+  "summary": {
+    "total": 3,
+    "success": 3,
+    "failed": 0,
+    "finalStock": 94
+  }
+}
+```
+
+**cURL 示例：**
+```bash
+curl -X POST "http://localhost:8080/stock/SKU001/batch-decrement" \
+  -H "Content-Type: application/json" \
+  -d '{"requests":[{"requestId":"1","quantity":1},{"requestId":"2","quantity":2}]}'
+```
 
 ---
 
@@ -91,7 +135,7 @@ Base URL: `http://localhost:8080`
 spring:
   application:
     name: redis-counter-service
-  
+
   # Redis Cluster 配置
   data:
     redis:
@@ -99,7 +143,7 @@ spring:
         nodes: ${REDIS_CLUSTER_NODES:localhost:6379}
         max-redirects: 3
       password: ${REDIS_PASSWORD:}
-      
+
       # Lettuce 连接池配置
       lettuce:
         pool:
@@ -126,7 +170,19 @@ logging:
   level:
     com.example.counter: DEBUG
     org.springframework.data.redis: INFO
+
+# 库存扣减策略配置
+stock:
+  decrement:
+    strategy: atomic  # atomic | raw
 ```
+
+### 扣减策略说明
+
+| 策略 | 实现 | 超卖风险 | 说明 |
+|------|------|----------|------|
+| `atomic` | Lua 脚本 | 0 | 保证原子性，0 超卖 |
+| `raw` | DECRBY | 存在 | 不执行 Lua 脚本，用于性能对比 |
 
 ### 环境变量说明
 
@@ -143,16 +199,34 @@ logging:
 ```
 redis-counter-service/
 ├── src/
-│   └── main/
-│       ├── java/com/example/counter/
-│       │   ├── CounterApplication.java      # 启动类
-│       │   ├── CounterController.java       # REST API
-│       │   ├── CounterService.java          # 服务接口
-│       │   ├── CounterServiceImpl.java      # 服务实现
-│       │   └── config/
-│       │       └── RedisConfig.java         # Redis 配置
-│       └── resources/
-│           └── application.yml              # 配置文件
+│   ├── main/
+│   │   ├── java/com/example/counter/
+│   │   │   ├── CounterApplication.java       # 启动类
+│   │   │   ├── CounterController.java       # REST API（计数器）
+│   │   │   ├── CounterService.java          # 服务接口（计数器）
+│   │   │   ├── CounterServiceImpl.java      # 服务实现（计数器）
+│   │   │   ├── StockController.java         # REST API（库存）
+│   │   │   ├── StockService.java            # 服务接口（库存）
+│   │   │   ├── StockServiceImpl.java        # 服务实现（库存）
+│   │   │   ├── dto/                         # 数据传输对象
+│   │   │   │   ├── BatchDecrementRequest.java
+│   │   │   │   ├── BatchDecrementResponse.java
+│   │   │   │   └── DecrementResult.java
+│   │   │   ├── strategy/                    # 扣减策略
+│   │   │   │   ├── DecrementStrategy.java
+│   │   │   │   ├── AtomicDecrementStrategy.java
+│   │   │   │   ├── RawDecrementStrategy.java
+│   │   │   │   └── DecrementStrategySelector.java
+│   │   │   └── config/
+│   │   │       └── RedisConfig.java         # Redis 配置
+│   │   └── resources/
+│   │       └── application.yml              # 配置文件
+│   └── test/
+│       └── java/com/example/counter/
+│           └── StrategyTest.java             # 策略单元测试
+├── docs/
+│   ├── pipeline压测指南.md                  # 压测指南
+│   └── 压测记录.md                          # 压测报告
 ├── pom.xml
 └── README.md
 ```
@@ -163,10 +237,13 @@ redis-counter-service/
 
 - [[Redis-String]] - 计数器底层数据结构
 - [[Redis-Cluster模式]] - 集群部署与连接
+- [[Redis-Pipeline]] - Pipeline 批量操作
+- [[Redis-Lua脚本]] - Lua 脚本原子操作
 - [[Spring-Boot-自动配置]] - 自动配置原理
 - [[ResponseEntity]] - REST API 响应封装
 
 ## 相关文档
 
+- 压测指南: [[docs/pipeline压测指南]]
 - 项目笔记: [[项目设计和规划]]
 - 设计思考: [[docs/design]]

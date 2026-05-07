@@ -1,33 +1,28 @@
 package com.example.counter;
 
+import com.example.counter.dto.DecrementResult;
+import com.example.counter.strategy.DecrementStrategy;
+import com.example.counter.strategy.DecrementStrategySelector;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 库存服务实现 - 基于 Redis Lua 脚本保证原子性
+ * 库存服务实现
+ * 支持策略模式切换扣减策略
  */
 @Service
 public class StockServiceImpl implements StockService {
 
     private final StringRedisTemplate redisTemplate;
+    private final DecrementStrategySelector strategySelector;
 
-    // Lua 脚本：库存扣减（原子操作，防止超卖）
-    // 返回值：剩余库存 或 -1（库存不足）
-    private static final String DECREMENT_SCRIPT = """
-            local stock = tonumber(redis.call('GET', KEYS[1]) or 0)
-            local quantity = tonumber(ARGV[1])
-            if stock >= quantity then
-                return redis.call('DECRBY', KEYS[1], quantity)
-            else
-                return -1
-            end
-            """;
-
-    public StockServiceImpl(StringRedisTemplate redisTemplate) {
+    public StockServiceImpl(StringRedisTemplate redisTemplate,
+                           DecrementStrategySelector strategySelector) {
         this.redisTemplate = redisTemplate;
+        this.strategySelector = strategySelector;
     }
 
     @Override
@@ -37,12 +32,30 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public Long decrementStock(String sku, long quantity) {
-        DefaultRedisScript<Long> script = new DefaultRedisScript<>(DECREMENT_SCRIPT, Long.class);
-        return redisTemplate.execute(
-                script,
-                Collections.singletonList("stock:" + sku),
-                String.valueOf(quantity)
-        );
+        DecrementStrategy strategy = strategySelector.select();
+        return strategy.decrement(sku, quantity);
+    }
+
+    @Override
+    public List<DecrementResult> batchDecrementStock(String sku, List<Long> quantities) {
+        DecrementStrategy strategy = strategySelector.select();
+        List<Long> results = strategy.batchDecrement(sku, quantities);
+
+        List<DecrementResult> decrementResults = new ArrayList<>();
+        for (int i = 0; i < quantities.size(); i++) {
+            long remaining = results.get(i);
+            DecrementResult result = new DecrementResult();
+            result.setRequestId("req-" + i);
+            if (remaining >= 0) {
+                result.setStatus("success");
+                result.setRemaining(remaining);
+            } else {
+                result.setStatus("insufficient_stock");
+                result.setRemaining(-1);
+            }
+            decrementResults.add(result);
+        }
+        return decrementResults;
     }
 
     @Override

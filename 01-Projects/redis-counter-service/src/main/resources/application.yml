@@ -13,10 +13,10 @@ spring:
       # Lettuce 连接池配置
       lettuce:
         pool:
-          max-active: 50          # 最大连接数
-          max-idle: 20            # 最大空闲连接
-          min-idle: 5             # 最小空闲连接
-          max-wait: 3000ms        # 最大等待时间
+          max-active: 100         # 最大连接数（调优）
+          max-idle: 50           # 最大空闲连接（调优）
+          min-idle: 20           # 最小空闲连接（调优）
+          max-wait: 1000ms       # 最大等待时间（调优）
         shutdown-timeout: 100ms
         cluster:
           refresh:
@@ -36,3 +36,8 @@ logging:
   level:
     com.example.counter: DEBUG
     org.springframework.data.redis: INFO
+
+# 库存扣减策略配置
+stock:
+  decrement:
+    strategy: atomic  # atomic | raw
