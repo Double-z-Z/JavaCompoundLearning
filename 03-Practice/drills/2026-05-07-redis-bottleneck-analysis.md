@@ -46,11 +46,14 @@ mastery: 65
 |------|------|--------|-----|-----|------|
 | bombardier | ping | 1,784,182 | **59,493** | 1.25ms | 纯 Tomcat，无 Redis |
 | bombardier | decrement | 1,164,835 | **38,841** | 2.27ms | 完整链路，含 Redis Lua |
+| bombardier | decrement (纯文本) | 1,324,578 | **44,364** | 1.96ms | 移除 JSON，QPS +14.2% |
 | JMeter | decrement | 1,047,333 | 33,622 | 1.93ms | 未充分预热 |
 
 **关键发现**: 
 - 首次测试 26,753 QPS → 预热后 38,841 QPS（+45%）
 - JMeter 33K vs bombardier 38K，工具自身性能也会影响结果
+- **纯文本响应优化成功**：38K → 44K（+14.2%），验证了 Spring MVC + JSON 确实是瓶颈
+
 
 ## 瓶颈定位结论
 
@@ -82,5 +85,7 @@ HTTP decrement: 38,841 QPS (43%)
 
 ## 下一步练习
 
-- [ ] 纯文本响应优化（移除 JSON）
+- [x] 纯文本响应优化（移除 JSON） ✅ 已完成，QPS +14.2%
 - [ ] WebFlux 响应式改造
+- [ ] Protobuf 协议优化
+
