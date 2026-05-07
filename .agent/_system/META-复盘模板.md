@@ -111,7 +111,7 @@ Why 5: (根本原因)
 - GOAL-xxx: P1 → P0
 
 ### 新增Anti-MOC
-- [[META-Anti-Recommended]] 添加xxx
+- [[META-拒绝清单]] 添加xxx
 ```
 
 ---

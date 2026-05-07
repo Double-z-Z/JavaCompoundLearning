@@ -21,44 +21,15 @@
 
 ---
 
-## 当前快照（META-Index）
+## 当前快照
 
-| 指标 | 值 | 说明 |
-|------|-----|-----|
-| 活跃EMRG | 3 | 并发/NIO/Redis |
-| GOAL总数 | 8 | P0×3, P1×4, P2×1 |
-| GOAL完成率 | 0/8 | 刚开始 |
-| P0 GOAL | 3 | Java核心/Redis深入/SpringCloud |
-| 上次更新 | 2026-05-06 | 三层架构重构 |
-
-### P0优先级
-
-| GOAL | 状态 | driver | deadline | 关键缺口 |
-|------|------|--------|----------|---------|
-| [[GOAL-Java核心深化]] | active | promotion | 2026-08-06 | epoll机制/线程池原理/反射 |
-| [[GOAL-Redis深入]] | active | promotion | 2026-07-06 | 数据结构底层 |
-| [[GOAL-SpringCloud微服务]] | active | promotion | 2026-08-06 | 原理空白 |
-
-> 详细GOAL信息见 `.agent/goals/GOAL-*.md`
-
-### 已掌握的强项
-
-| 领域 | mastery | 证据 |
-|------|---------|------|
-| 并发编程 | 🍎 80 | futex、LongAdder、线程池 |
-| Redis Cluster | 🍎 85 | Cluster部署+故障转移验证 |
-| NIO/网络 | 🍎 70+ | Selector/Buffer/Netty |
+> 详见 `.agent/_system/META_认知快照.md`
 
 ---
 
-## 拒绝清单（Anti-MOC）
+## 拒绝清单
 
-> LLM推荐学习内容前必须检查此清单，命中则过滤
-
-| 主题 | 拒绝原因 | 复审条件 |
-|-----|---------|---------|
-| React/Vue 前端深入 | 非职业方向，仅了解即可 | 转全栈时复审 |
-| 区块链/Web3 | 与后端架构无关 | 永不复审 |
+> 详见 `.agent/_system/META-拒绝清单.md`
 
 ---
 

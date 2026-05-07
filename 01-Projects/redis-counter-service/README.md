@@ -168,5 +168,5 @@ redis-counter-service/
 
 ## 相关文档
 
-- 项目笔记: [[redis-counter-service]]
+- 项目笔记: [[项目设计和规划]]
 - 设计思考: [[docs/design]]
