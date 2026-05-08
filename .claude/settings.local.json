@@ -35,7 +35,10 @@
       "Bash(sed -n '65,80p' AGENTS.md)",
       "Bash(sed -n '65,82p' AGENTS.md)",
       "Bash(sed -n '54,62p' .agent/profile.md)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(mkdir -p /home/dz-fedora/workspace/JavaLearning/01-Projects/redis-counter-service-webflux/src/main/java/com/example/counter)",
+      "Bash(mkdir -p /home/dz-fedora/workspace/JavaLearning/01-Projects/redis-counter-service-webflux/src/main/resources)",
+      "Bash(mkdir -p /home/dz-fedora/workspace/JavaLearning/01-Projects/redis-counter-service-webflux/src/test/java/com/example/counter)"
     ]
   },
   "preferredNotifChannel": "terminal_bell"

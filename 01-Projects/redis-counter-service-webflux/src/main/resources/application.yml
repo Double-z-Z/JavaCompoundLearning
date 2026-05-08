@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: redis-counter-service-webflux
+
+  # Redis Cluster 配置
+  data:
+    redis:
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES:10.0.0.102:6379,10.0.0.103:6379,10.0.0.104:6379,10.0.0.105:6379,10.0.0.106:6379,10.0.0.107:6379}
+        max-redirects: 3
+      password: ${REDIS_PASSWORD:}
+
+# 服务器配置（WebFlux 使用 Netty，默认 8080，与 MVC 版本二选一）
+server:
+  port: 8080
+
+# 日志配置
+logging:
+  level:
+    com.example.counter: DEBUG
+    org.springframework.data.redis: INFO
+    reactor.netty: INFO
+
+# 库存扣减策略配置
+stock:
+  decrement:
+    strategy: atomic  # atomic | raw
