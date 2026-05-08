@@ -256,7 +256,7 @@ mastery: 45
 
 ---
 
-## 7. 涌现检测（整理笔记专属）
+### 7. 涌现检测（整理笔记专属）
 
 在整理笔记时，同步检测涌现触发条件：
 
@@ -311,7 +311,7 @@ mastery: 45
 | 原因 | ... |
 ```
 
-### **汇总索引**
+#### **汇总索引**
 
 在 `03-Practice/reflections/` 创建汇总文件：
 
@@ -338,6 +338,9 @@ mastery: 45
 
 ### 反思记录
 - [03-Practice/reflections/日期-对话.md](链接)
+  - insights_extracted: true / false
+  - 已提取原子笔记（如为 true）: [[概念A]], [[概念B]]
+  - 如未提取: ⚠️ 洞察尚未沉淀到知识图谱，建议立即提取
 
 ---
 
@@ -366,9 +369,9 @@ mastery: 45
 
 ---
 
-## 8. 示例流程
+### 8. 示例流程
 
-### 示例：学习 LongAdder
+#### 示例：学习 LongAdder
 
 ```
 1. 用户实现 LongAdderCounter
@@ -396,6 +399,112 @@ mastery: 45
    → 更新 .agent/profile.md 的已掌握知识点
    → 记录：LongAdder (mastery=40, 🌿理解)
 ```
+
+---
+
+### 9. 对话后萃取流程（非可选）
+
+**触发**：任何以 dialogue/reflection/summary 形式保存到 `03-Practice/reflections/` 的对话结束后，**必须**执行本流程。
+
+**核心原则**：对话记录是"原料仓库"，洞察必须被萃取到知识图谱中才能成为复利资产。
+
+---
+
+**Step 1: 自动提取关键洞察**
+
+- 读取本次对话历史（或刚保存的 reflection 文件正文）
+- 提取 1-3 个"可复用的认知结论"
+  - 不是全文摘要，是可指导实践的洞察
+  - 格式：一句话结论 + 为什么重要 + 适用边界
+- 排除：
+  - 纯事实复述（如"Redis 支持 String 类型"）
+  - 过于具体的调试步骤（如"在第 37 行加了 synchronized"）
+  - 尚未验证的猜测
+
+---
+
+**Step 2: 检查是否已存在**
+
+```
+使用 obsidian search query="洞察关键词"
+├── 命中已有原子笔记
+│   → 比较：新洞察 vs 已有笔记的内容
+│   ├── 内容覆盖 → 在已有笔记中补充链接和案例，不新建
+│   └── 内容补充 → 扩充现有笔记的"核心理解"部分
+│
+└── 未命中
+    → 进入 Step 3：生成原子笔记草稿
+```
+
+---
+
+**Step 3: 写入草稿到 `02-Knowledge/<主题>/concepts/`**
+
+按 `05-Templates/原子笔记模板.md` 生成草稿：
+
+```markdown
+---
+type: atomic-note
+id: CONCEPT-<简述>
+date: YYYY-MM-DD
+mastery: 20              # 初识，如对话中已纠正误区可设为 40
+source: "[[03-Practice/reflections/对话文件名]]"
+related_emrg: [EMRG-xxx]
+related_goal: [GOAL-xxx]
+---
+
+# 概念名称
+
+## 一句话定义
+...
+
+## 核心理解
+...
+
+## 关键关联
+- [[已有概念A]] - 关联原因：...
+- [[已有概念B]] - 关联原因：...
+
+## 我的误区（如适用）
+<!-- 来自对话中的顿悟时刻 -->
+```
+
+**草稿生成后，输出给用户确认**：
+> "我从本次对话中提取了以下洞察，已按原子笔记模板生成草稿：
+> 1. [[概念A]] - ...
+> 2. [[概念B]] - ...
+> 是否确认写入？或需要修改？"
+
+---
+
+**Step 4: 更新 reflection 文件的 frontmatter**
+
+用户确认写入后，在原对话记录中追加/更新 frontmatter：
+
+```yaml
+insights_extracted: true
+key_insights:
+  - "洞察1的一句话描述"
+  - "洞察2的一句话描述"
+extracted_notes:
+  - "[[02-Knowledge/主题/concepts/概念A]]"
+  - "[[02-Knowledge/主题/concepts/概念B]]"
+```
+
+---
+
+**Step 5: 更新相关系统状态**
+
+1. **mastery 同步**
+   - 在原子笔记的 `🤖 AI评价` 区域记录对话带来的 mastery 变化
+   - 同步更新 `.agent/profile.md` 的掌握度追踪
+
+2. **EMRG 成熟度检查**
+   - 如新增 verified 级别笔记（mastery ≥ 61）→ 检查 EMRG 成熟度是否需要更新
+   - 如新增双向链接 → 更新 EMRG 链接数统计
+
+3. **Gap 矩阵同步（如关联 GOAL）**
+   - 如笔记关联了 GOAL 缺口，且 mastery ≥ 61 → 标记缺口为 🟢 已达标
 
 ---
 

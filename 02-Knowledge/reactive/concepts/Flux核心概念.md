@@ -1,0 +1,204 @@
+---
+type: atomic-note
+id: CONCEPT-flux-mono-core
+created: 2026-05-07
+tags: [reactor, flux, mono, reactive-streams, publisher]
+related_emrg: [EMRG-Spring性能优化]
+related_goal: [GOAL-Java核心深化]
+mastery: 50
+---
+
+# Flux/Mono 核心概念
+
+## 一句话定义
+
+**Flux = 一个可以发射 0 个、1 个或多个元素的"数据流管道"**
+**Mono = 一个可以发射 0 或 1 个元素的"数据流管道"**
+
+## 核心理解
+
+### 生活类比
+
+想象一个 **自动售货机出货口**：
+
+```
+传统方式（同步/命令式）：
+你投币 → 等待 → 拿到商品（一次只能处理一个顾客，线程被占用）
+
+Flux 方式（响应式/声明式）：
+你投币 → 售货机开始工作 → 商品一个个出来（可以同时服务多个顾客）
+```
+
+| 场景 | 传统方式 | Flux |
+|------|---------|------|
+| 取商品 | 等待全部完成 | 商品出来一个就给你一个 |
+| 出错 | 整个流程中断 | 可以继续处理后续的 |
+| 多人使用 | 排队等待 | 各自独立通道 |
+
+### 三种结果类型
+
+Reactor 有两个核心类型：
+
+| 类型 | 发射数量 | 类比 | 典型场景 |
+|------|----------|------|----------|
+| **Mono\<T\>** | 0 或 1 个 | **快递包裹**（要么有，要么没有） | 扣减库存返回单个结果、查询详情 |
+| **Flux\<T\>** | 0 到 N 个 | **流水线产品**（一批批出来） | 查询列表、事件流、实时数据推送 |
+
+### 核心：信号（Signals）
+
+Flux 通过三种"信号"与订阅者通信：
+
+```
+Flux 数据流：
+    ┌─── onNext("A") ──┐
+    │                   │
+    ├─── onNext("B") ──┤  ← 正常数据（可以有 0~N 个）
+    │                   │
+    ├─── onNext("C") ──┘
+    │
+    └─── onComplete()     ← 完成（可选，表示正常结束）
+    
+    或者
+    
+    ┌─── onNext("A") ──┐
+    │                   │
+    └─── onError(e) ───┘  ← 错误（一旦出错就终止）
+```
+
+**规则**：
+- `onNext` 可以调用 0 次或多次
+- `onComplete` 和 `onError` 只能调用其中一个（互斥）
+- 一旦发出完成或错误信号，流就结束了
+
+### 关键特性：惰性求值
+
+```java
+// 这行代码不会立即执行！只是定义了"怎么做"
+Flux<Integer> numbers = Flux.range(1, 100)
+    .map(n -> n * 2)
+    .filter(n -> n > 50);
+
+// 只有调用 subscribe() 时才开始执行
+numbers.subscribe(System.out::println);
+```
+
+**好处**：
+- **声明式编程**：先定义"做什么"，再决定"什么时候做"
+- **支持组合和复用**：可以在不同场景复用同一个流定义
+- **按需消耗资源**：只有真正需要时才执行计算
+
+## 代码示例
+
+### 基本 Flux 操作
+
+```java
+// 1. 创建 Flux（发射 3 个元素）
+Flux<String> flux = Flux.just("A", "B", "C");
+
+// 2. 订阅并消费（触发执行）
+flux.subscribe(
+    item -> System.out.println("收到: " + item),   // onNext: 处理每个元素
+    error -> System.out.println("错误: " + error), // onError: 处理错误
+    () -> System.out.println("完成!")              // onComplete: 完成时回调
+);
+
+// 输出:
+// 收到: A
+// 收到: B
+// 收到: C
+// 完成!
+```
+
+### 实际业务示例
+
+```java
+// 3. 查询所有库存（返回 Flux）
+public Flux<StockInfo> listAllStocks() {
+    return Flux.fromIterable(stockService.getAll())
+            .map(this::convertToDto);  // 转换每个元素
+}
+
+// 4. 过滤和转换
+stockService.listAll()
+    .filter(s -> s.getQuantity() > 0)      // 只要库存 > 0 的
+    .map(StockResponse::from)              // 转换格式
+    .take(10)                               // 只取前 10 个
+    .subscribe(System.out::println);        // 订阅消费
+```
+
+### Mono 示例
+
+```java
+// 5. 扣减库存（返回 Mono）
+public Mono<DecrementResult> decrementStock(String sku, long quantity) {
+    return redisTemplate.opsForValue()
+        .decrement(sku + ":stock", quantity)
+        .map(newQuantity -> new DecrementResult(sku, newQuantity))
+        .onErrorResume(e -> {
+            log.error("扣减失败", e);
+            return Mono.just(new DecrementResult(sku, -1));
+        });
+}
+```
+
+## 关键关联
+
+- [[WebFlux响应式编程]]: Flux/Mono 是 WebFlux 的核心数据类型
+- [[Spring-MVC性能瓶颈]]: 从同步阻塞到异步非阻塞的关键转变点
+- [[JVM预热效应]]: 响应式编程的冷热流概念与 JVM 预热相关
+- [[Redis性能压测]]: 在高并发 Redis 场景中应用 Flux/Mono
+
+**为什么需要这些关联**：
+- WebFlux：Flux/Mono 是 WebFlax 的基础，不理解它们就无法使用 WebFlux
+- Spring MVC 性能瓶颈：理解为什么需要从同步转向异步
+- JVM 预热：响应式流的惰性求值与 JIT 编译的预热效应类似
+- Redis 压测：实际应用场景，redis-counter-service 改造的目标
+
+## 常见误区
+
+| 误区 | 正确理解 |
+|------|----------|
+| "Flux 就是 List 的替代品" | Flux 是**数据流**，支持异步、背压、错误处理；List 是内存中的集合 |
+| "subscribe() 后立即返回结果" | subscribe() 是异步的，立即返回；结果通过回调传递 |
+| "Flux 一定比 for 循环快" | 对于简单操作，for 循环更快；Flux 的优势在 IO 密集型场景 |
+| "Mono 和 Flux 不能互相转换" | 可以用 `.single()` / `.collectList()` 等方法转换 |
+| "必须手动管理线程" | Reactor 自动调度线程，开发者只需关注业务逻辑 |
+
+## 最佳实践
+
+### 何时用 Mono vs Flux？
+
+```java
+// ✅ 用 Mono：明确知道返回 0 或 1 个结果
+@GetMapping("/stock/{sku}")
+public Mono<StockResponse> getStock(@PathVariable String sku) { ... }
+
+// ✅ 用 Flux：可能返回 0 到 N 个结果
+@GetMapping("/stocks")
+public Flux<StockResponse> listStocks() { ... }
+
+// ❌ 错误：明明只有一个却用 Flux
+public Flux<StockResponse> getSingleStock() { ... }  // 应该用 Mono
+```
+
+### 操作符链式调用
+
+```java
+// 推荐风格：链式调用，清晰表达数据流转
+stockService.getStock(sku)
+    .filter(stock -> stock.getQuantity() > 0)      // 过滤
+    .map(StockResponse::from)                       // 转换
+    .switchIfEmpty(Mono.error(new NotFoundException()))  // 空值处理
+    .doOnNext(resp -> log.info("返回库存: {}", resp))   // 副作用
+    .subscribe(resp -> sendToClient(resp));           // 订阅
+```
+
+## 掌握度评估
+
+- 当前等级：🌿 理解
+- 已理解：
+  - ✅ Flux/Mono 的基本概念和区别
+  - ✅ 三种信号（onNext/onError/onComplete）
+  - ✅ 惰性求值的原理和好处
+  - ✅ 基本的创建和订阅操作
+- 下一步：深入学习操作符（map/flatMap/zip/merge）、背压机制、错误处理策略
