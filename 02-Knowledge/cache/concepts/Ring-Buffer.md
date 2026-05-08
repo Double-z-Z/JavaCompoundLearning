@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-ring-buffer
 created: 2026-05-02
-tags: [cache, concurrency, lock-free]
-status: 🌿
+tags: [cache, 并发, lock-free]
 mastery: 50
+source: "[[03-Practice/reflections/2026-05-02-本地缓存-Caffeine-对话.md]]"
+related_emrg: []
+related_goal: [GOAL-ORM与缓存]
 ---
 
 # Ring Buffer 无锁批量处理
@@ -119,6 +123,6 @@ class RingBuffer {
 
 ```dataview
 TABLE status, mastery, length(file.inlinks) as "入链", length(file.outlinks) as "出链"
-FROM #cache OR #concurrency OR #lock-free
+FROM #cache OR #并发 OR #lock-free
 SORT mastery DESC
 ```

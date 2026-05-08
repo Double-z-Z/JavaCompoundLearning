@@ -1,6 +1,7 @@
 ---
 created: 2026-05-02
-tags: [drill, redis, ansible, devops]
+type: drill
+tags: [redis, ansible, devops]
 difficulty: 🌿
 related_concepts:
   - [[Ansible]]

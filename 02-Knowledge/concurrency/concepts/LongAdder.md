@@ -1,6 +1,6 @@
 ---
 created: 2026-04-12
-tags: [concurrency, java, performance]
+tags: [并发, java, performance]
 status: 🌱
 ---
 
@@ -49,7 +49,7 @@ long sum = counter.sum();  // 遍历累加所有Cell
 
 
 ## 来源
-- 项目：[[project-concurrency-test]]
+- 项目：[[project-并发-test]]
 - 原文档：[[longadder-design]]
 
 

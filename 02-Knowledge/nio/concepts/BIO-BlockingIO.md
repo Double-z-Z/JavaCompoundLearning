@@ -1,6 +1,6 @@
 ---
 created: 2026-04-15
-tags: [nio, network, io-model]
+tags: [nio, 网络编程, IO模型]
 status: 🌿
 mastery: 40
 ---

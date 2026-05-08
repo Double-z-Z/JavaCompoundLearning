@@ -1,12 +1,14 @@
 ---
-created: 2026-04-15
-tags: [reflection, nio, bio, network]
+type: dialogue-reflection
+date: 2026-04-15
+id: REFLECTION-2026-04-15-nio
+topics: ["nio", "bio", "network"]
 dialogue_type: 项目实战
-related_concepts:
-  - [[BIO模型]]
-  - [[线程池]]
-  - [[并发集合]]
-  - [[线程阻塞]]
+related_emrg: ["EMRG-NIO网络编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: true
+key_insights: []
 ---
 
 # BIO聊天室项目对话精华

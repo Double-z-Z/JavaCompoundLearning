@@ -1,7 +1,7 @@
 ---
 created: 2026-05-02
 updated: 2026-05-02
-tags: [redis, scenarios, roadmap, projects]
+tags: [redis, 场景分析, roadmap, projects]
 status: planning
 ---
 

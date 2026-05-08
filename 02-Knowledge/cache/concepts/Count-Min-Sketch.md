@@ -1,8 +1,16 @@
 ---
+type: atomic-note
+id: CONCEPT-count-min-sketch
 created: 2026-05-02
-tags: [cache, algorithm, probabilistic-data-structure]
-status: 🌿
+tags:
+  - cache
+  - 算法
+  - probabilistic-data-structure
 mastery: 50
+source: "[[03-Practice/reflections/2026-05-02-本地缓存-Caffeine-对话.md]]"
+related_emrg: []
+related_goal:
+  - GOAL-ORM与缓存
 ---
 
 # Count-Min Sketch 概率计数器
@@ -99,6 +107,6 @@ Count-Min Sketch 是一种概率数据结构，用多个哈希函数将 key 映�
 
 ```dataview
 TABLE status, mastery, length(file.inlinks) as "入链", length(file.outlinks) as "出链"
-FROM #cache OR #algorithm OR #probabilistic-data-structure
+FROM #cache OR #算法 OR #probabilistic-data-structure
 SORT mastery DESC
 ```

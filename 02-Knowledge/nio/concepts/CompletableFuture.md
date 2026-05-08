@@ -1,6 +1,6 @@
 ---
 created: 2026-04-25
-tags: [nio, concurrency, async]
+tags: [nio, 并发, async]
 status: 🌿
 mastery: 55
 ---
@@ -203,6 +203,6 @@ String result = future.get();
 
 ```dataview
 TABLE status, mastery, length(file.inlinks) as "入链", length(file.outlinks) as "出链"
-FROM #nio OR #concurrency
+FROM #nio OR #并发
 SORT mastery DESC
 ```

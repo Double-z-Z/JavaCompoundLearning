@@ -1,6 +1,7 @@
 ---
 created: 2026-04-15
-tags: [drill, nio, bio, network]
+type: drill
+tags: [nio, bio, 网络编程]
 difficulty: 🌿
 related_concepts:
   - [[BIO模型]]

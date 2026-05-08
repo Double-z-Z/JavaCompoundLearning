@@ -1,6 +1,7 @@
 ---
 created: 2026-04-15
-tags: [project, nio, bio, network]
+type: project
+tags: [nio, bio, 网络编程]
 status: in-progress
 ---
 

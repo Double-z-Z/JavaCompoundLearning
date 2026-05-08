@@ -1,6 +1,7 @@
 ---
 created: {{date:YYYY-MM-DD}}
-tags: [MOC, {{主题}}]
+type: moc
+tags: [{{主题}}]
 ---
 
 # MOC: {{主题名称}}

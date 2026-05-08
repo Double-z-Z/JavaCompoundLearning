@@ -2,7 +2,7 @@
 type: atomic-note
 id: CONCEPT-spring-config-management
 created: 2026-05-07
-tags: [spring, configuration, refreshscope, environment, config-center, hot-reload]
+tags: [spring, 配置刷新, 配置中心, 热加载]
 related_emrg: []
 related_goal: [GOAL-Java核心深化]
 mastery: 35

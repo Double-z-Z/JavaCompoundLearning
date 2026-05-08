@@ -1,7 +1,14 @@
 ---
-created: 2026-04-23
-type: reflection
-tags: [nio, testing, project]
+type: dialogue-reflection
+date: 2026-04-23
+id: REFLECTION-2026-04-23-nio
+topics: ["nio", "testing", "project", "test", "organization"]
+dialogue_type: 苏格拉底式
+related_emrg: ["EMRG-NIO网络编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: false
+key_insights: []
 ---
 
 # 测试整理反思 - NIO聊天室

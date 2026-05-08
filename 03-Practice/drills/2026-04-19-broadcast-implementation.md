@@ -1,6 +1,7 @@
 ---
 created: 2026-04-19
-tags: [drill, NIO, 广播, 聊天室]
+type: drill
+tags: [NIO, 广播, 聊天室]
 difficulty: 🌿
 related_concepts:
   - [[NIO-Selector]]

@@ -17,7 +17,7 @@ description: 技术负债的生命周期管理：创建、更新、归档GOAL。
 
 ## 加载清单（严格按顺序）
 
-1. `.agent/profile.md` — 读取 `#当前快照`（了解当前坐标，避免重复定义）
+1. `.agent/profile.md` — 读取 `「当前快照」`（了解当前坐标，避免重复定义）
 2. `.agent/goals/` — 扫描所有 `.md` 文件的 frontmatter（检查命名冲突、避免重复创建）
 3. `05-Templates/GOAL模板.md` — 读取创建模板
 

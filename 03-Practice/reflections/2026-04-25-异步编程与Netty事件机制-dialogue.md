@@ -1,12 +1,14 @@
 ---
-created: 2026-04-25
-tags: [reflection, nio, netty, async, concurrency]
+type: dialogue-reflection
+date: 2026-04-25
+id: REFLECTION-2026-04-25-nio
+topics: ["nio", "netty", "async", "concurrency", "异步编程与Netty事件机制"]
 dialogue_type: 苏格拉底式
-related_concepts:
-  - [[CompletableFuture]]
-  - [[ChannelPromise]]
-  - [[Netty-Pipeline-事件机制]]
-  - [[Future]]
+related_emrg: ["EMRG-NIO网络编程", "EMRG-并发编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: true
+key_insights: []
 ---
 
 # 异步编程与 Netty 事件机制对话精华

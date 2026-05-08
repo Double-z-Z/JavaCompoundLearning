@@ -1,6 +1,7 @@
 ---
 created: 2026-04-23
-tags: [drill, nio, 状态机, 重构]
+type: drill
+tags: [nio, 状态机, 重构]
 difficulty: 🌿
 related_concepts:
   - [[状态机模式-服务生命周期]]

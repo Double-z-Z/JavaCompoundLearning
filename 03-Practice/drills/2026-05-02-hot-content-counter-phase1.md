@@ -1,6 +1,7 @@
 ---
 created: 2026-05-02
-tags: [practice, cache, local-cache, phase1]
+type: drill
+tags: [cache]
 project: [[hot-content-counter]]
 status: pending
 ---

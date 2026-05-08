@@ -1,7 +1,7 @@
 ---
 created: 2026-05-04
 topic: Redis性能基准测试与网络路径分析
-tags: [redis, benchmark, network, WSL]
+tags: [redis, benchmark, 网络编程, WSL]
 ---
 
 # 2026-05-04 Redis性能基准测试与网络路径分析

@@ -1,6 +1,7 @@
 ---
 created: 2026-04-26
-tags: [drill, netty, 聊天室]
+type: drill
+tags: [netty, 聊天室]
 difficulty: 🌿
 related_concepts:
   - [[Netty]]

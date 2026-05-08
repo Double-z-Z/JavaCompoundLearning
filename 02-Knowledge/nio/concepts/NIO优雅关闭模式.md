@@ -1,6 +1,6 @@
 ---
 created: 2026-04-19
-tags: [nio, resource-management, best-practice]
+tags: [nio, 资源管理]
 status: 🌿
 mastery: 60
 ---

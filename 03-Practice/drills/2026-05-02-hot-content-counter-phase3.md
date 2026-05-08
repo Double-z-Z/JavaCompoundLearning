@@ -1,6 +1,7 @@
 ---
 created: 2026-05-02
-tags: [practice, cache, mysql, consistency, phase3]
+type: drill
+tags: [cache, mysql, consistency]
 project: [[hot-content-counter]]
 status: pending
 ---

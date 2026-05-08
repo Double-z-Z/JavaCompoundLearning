@@ -1,6 +1,7 @@
 ---
 created: 2026-05-02
-tags: [practice, cache, redis, phase2]
+type: drill
+tags: [cache, redis]
 project: [[hot-content-counter]]
 status: pending
 ---

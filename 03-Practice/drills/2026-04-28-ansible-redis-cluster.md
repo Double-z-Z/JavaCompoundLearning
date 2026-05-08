@@ -1,6 +1,7 @@
 ---
 created: 2026-04-28
-tags: [drill, redis, ansible, cluster, devops]
+type: drill
+tags: [redis, ansible, cluster, devops]
 difficulty: 🌿
 related_concepts:
   - [[RESP协议]]

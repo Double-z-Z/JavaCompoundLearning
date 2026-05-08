@@ -2,10 +2,11 @@
 type: atomic-note
 id: CONCEPT-flux-mono-core
 created: 2026-05-07
-tags: [reactor, flux, mono, reactive-streams, publisher]
+tags: [reactor, publisher]
 related_emrg: [EMRG-Spring性能优化]
 related_goal: [GOAL-Java核心深化]
 mastery: 50
+source: "[[03-Practice/reflections/2026-05-07-webflux-deep-dive-dialogue.md]]"
 ---
 
 # Flux/Mono 核心概念

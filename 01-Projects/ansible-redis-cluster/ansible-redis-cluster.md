@@ -1,7 +1,8 @@
 ---
 created: 2026-05-02
+type: project
 updated: 2026-05-02
-tags: [project, redis, ansible, devops, cluster]
+tags: [redis, ansible, devops, cluster]
 status: completed
 ---
 

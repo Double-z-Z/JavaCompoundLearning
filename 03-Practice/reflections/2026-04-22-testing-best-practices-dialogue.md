@@ -1,11 +1,14 @@
 ---
-created: 2026-04-22
-tags: [reflection, testing, nio, best-practices]
+type: dialogue-reflection
+date: 2026-04-22
+id: REFLECTION-2026-04-22-testing
+topics: ["testing", "nio", "best-practices", "best", "practices"]
 dialogue_type: 苏格拉底式
-related_concepts:
-  - [[测试隔离]]
-  - [[性能测试]]
-  - [[Maven Surefire]]
+related_emrg: ["EMRG-NIO网络编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: true
+key_insights: []
 ---
 
 # 测试设计最佳实践对话精华

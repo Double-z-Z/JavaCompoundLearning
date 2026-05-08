@@ -1,6 +1,6 @@
 ---
 created: 2026-04-12
-tags: [concurrency, linux, os]
+tags: [并发, linux, os]
 status: 🌱
 ---
 
@@ -54,7 +54,7 @@ int futex_lock(int *futex_var) {
 
 
 ## 来源
-- 项目：[[project-concurrency-test]]
+- 项目：[[project-并发-test]]
 - 对话：[[2026-04-11-futex-dialogue]]
 - 原文档：[[futex-deep-dive]]
 

@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-w-tinylfu
 created: 2026-05-02
 tags: [cache, caffeine]
-status: 🌿
 mastery: 55
+source: "[[03-Practice/reflections/2026-05-02-本地缓存-Caffeine-对话.md]]"
+related_emrg: []
+related_goal: [GOAL-ORM与缓存]
 ---
 
 # W-TinyLFU 缓存淘汰算法
@@ -44,7 +48,7 @@ W-TinyLFU 是一种缓存淘汰策略，通过 Window Cache（5% LRU）保护新
 
 ## 关键关联
 
-- [[Count-Min Sketch]] - 关联原因：W-TinyLFU 使用 Count-Min Sketch 进行概率频率统计，是空间效率与精度权衡的经典案例
+- [[Count-Min-Sketch]] - 关联原因：W-TinyLFU 使用 Count-Min Sketch 进行概率频率统计，是空间效率与精度权衡的经典案例
 - [[LRU]] - 关联原因：Window Cache 使用纯 LRU，与 Main Cache 的 LFU 形成互补，解决突发热点问题
 - [[NIO-Selector]] - 关联原因：Window/Main 双区设计类似于 NIO 的 Boss/Worker 分工，新连接先注册到 Boss，再分发到 Worker
 - [[JVM分代垃圾回收]] - 关联原因：Window=新生代（快速淘汰/晋升），Main=老年代（长期存活），同样的分代思想

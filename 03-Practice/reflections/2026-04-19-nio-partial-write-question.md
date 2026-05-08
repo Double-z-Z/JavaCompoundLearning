@@ -1,12 +1,14 @@
 ---
-created: 2026-04-19
-tags: [question, NIO, 网络编程, 消息边界]
+type: dialogue-reflection
+date: 2026-04-19
+id: REFLECTION-2026-04-19-NIO
+topics: ["NIO", "网络编程", "消息边界", "partial", "write"]
 dialogue_type: 疑问待解答
-related_concepts:
-  - [[NIO-Channel]]
-  - [[TCP协议]]
-  - [[消息边界]]
-  - [[粘包拆包]]
+related_emrg: ["EMRG-NIO网络编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: false
+key_insights: []
 ---
 
 # NIO部分发送的疑问
@@ -125,4 +127,3 @@ TCP协议栈: 将数据分成多个Segment发送
 ---
 
 > 💡 **一句话总结**：TCP是字节流，NIO部分发送只是延迟传输，真正的问题是应用层如何定义消息边界。
-

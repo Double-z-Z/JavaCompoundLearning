@@ -1,6 +1,7 @@
 ---
 created: 2026-04-21
-tags: [mistake, nio, selector, exception-handling]
+type: mistake
+tags: [nio, 异常处理]
 error_id: MISTAKE-004
 status: resolved
 related_concepts:

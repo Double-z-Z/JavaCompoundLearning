@@ -1,6 +1,7 @@
 ---
 created: 2026-04-16
-tags: [mistake, nio, network]
+type: mistake
+tags: [nio, 网络编程]
 error_id: MISTAKE-001
 status: resolved
 related_concepts:

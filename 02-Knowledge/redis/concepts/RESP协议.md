@@ -1,6 +1,6 @@
 ---
 created: 2026-04-28
-tags: [redis, protocol, network]
+tags: [redis, protocol, 网络编程]
 status: 🌿
 mastery: 60
 ---

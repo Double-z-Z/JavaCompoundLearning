@@ -1,8 +1,8 @@
 ---
 created: 2026-04-12
+type: moc
 tags:
-  - MOC
-  - concurrency
+  - 并发
 ---
 
 # MOC: 并发编程
@@ -31,7 +31,7 @@ tags:
 ## 知识网络
 ```dataview
 table status, file.mtime as "更新时间"
-from #concurrency
+from #并发
 sort file.mtime desc
 ```
 

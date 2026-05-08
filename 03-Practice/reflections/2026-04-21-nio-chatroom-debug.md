@@ -1,13 +1,14 @@
 ---
-created: 2026-04-21
-tags: [reflection, NIO, 调试, 竞态条件, 并发]
+type: dialogue-reflection
+date: 2026-04-21
+id: REFLECTION-2026-04-21-NIO
+topics: ["NIO", "调试", "竞态条件", "并发", "chatroom"]
 dialogue_type: 实战调试
-related_concepts:
-  - [[NIO-Selector]]
-  - [[NIO-Buffer]]
-  - [[Boss-Worker模型]]
-  - [[CopyOnWriteArrayList]]
-  - [[Race-Condition]]
+related_emrg: ["EMRG-NIO网络编程", "EMRG-并发编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: true
+key_insights: []
 ---
 
 # NIO 聊天室广播调试实录

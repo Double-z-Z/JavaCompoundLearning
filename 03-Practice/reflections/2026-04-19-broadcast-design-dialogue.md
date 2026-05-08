@@ -1,11 +1,14 @@
 ---
-created: 2026-04-19
-tags: [reflection, NIO, 广播, 设计讨论]
+type: dialogue-reflection
+date: 2026-04-19
+id: REFLECTION-2026-04-19-NIO
+topics: ["NIO", "广播", "设计讨论", "broadcast", "design"]
 dialogue_type: 苏格拉底式
-related_concepts:
-  - [[消息队列设计]]
-  - [[内存优化]]
-  - [[NIO并发模型]]
+related_emrg: ["EMRG-NIO网络编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: true
+key_insights: []
 ---
 
 # 广播队列设计讨论精华

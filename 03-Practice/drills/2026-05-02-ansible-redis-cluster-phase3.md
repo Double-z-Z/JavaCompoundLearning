@@ -1,6 +1,7 @@
 ---
 created: 2026-05-02
-tags: [drill, redis, cluster, ha]
+type: drill
+tags: [redis, cluster, 高可用]
 difficulty: 🍎
 related_concepts:
   - [[Redis-Cluster模式]]

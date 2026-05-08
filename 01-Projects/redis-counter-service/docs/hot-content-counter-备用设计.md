@@ -1,7 +1,8 @@
 ---
 created: 2026-05-02
+type: project
 updated: 2026-05-02
-tags: [project, redis, cache, architecture, backup]
+tags: [redis, cache, architecture, backup]
 status: parked
 ---
 

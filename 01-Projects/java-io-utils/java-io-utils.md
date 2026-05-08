@@ -1,10 +1,11 @@
 ---
 created: 2026-04-19
-tags: [project, io, best-practice, tool-library]
+type: project
+tags: [IO模型, 工具库]
 status: planning
 ---
 
-# Java IO工具库 (java-io-utils)
+# Java IO工具库 (java-IO模型-utils)
 
 > 项目目标：创建一个可复用的IO工具库，封装资源关闭的最佳实践，支持生产环境的各种关闭场景
 > 项目类型：学习验证型 + 工具库

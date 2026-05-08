@@ -1,12 +1,14 @@
 ---
-created: 2026-04-24
-tags: [reflection, nio, netty, dialogue]
+type: dialogue-reflection
+date: 2026-04-24
+id: REFLECTION-2026-04-24-nio
+topics: ["nio", "netty", "learning"]
 dialogue_type: 苏格拉底式
-related_concepts:
-  - [[Netty]]
-  - [[NIO-Selector]]
-  - [[NIO-Buffer]]
-  - [[Boss-Worker模型]]
+related_emrg: ["EMRG-NIO网络编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: true
+key_insights: []
 ---
 
 # Netty 框架学习对话精华

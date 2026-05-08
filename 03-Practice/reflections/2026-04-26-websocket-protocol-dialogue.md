@@ -1,12 +1,14 @@
 ---
-created: 2026-04-26
-tags: [reflection, netty, websocket, http]
+type: dialogue-reflection
+date: 2026-04-26
+id: REFLECTION-2026-04-26-netty
+topics: ["netty", "websocket", "http", "protocol"]
 dialogue_type: 横向拓展
-related_concepts:
-  - [[WebSocket]]
-  - [[HTTP长轮询]]
-  - [[TCP协议]]
-  - [[Netty]]
+related_emrg: ["EMRG-NIO网络编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: true
+key_insights: []
 ---
 
 # WebSocket 协议深度对话精华

@@ -1,8 +1,9 @@
 ---
 created: 2026-04-24
+type: project
 updated: 2026-04-26
 status: Phase 3 - WebSocket支持已完成
-tags: [project, netty, 聊天室, 网络编程, websocket]
+tags: [netty, 聊天室, 网络编程, websocket]
 ---
 
 # Netty 聊天室项目

@@ -1,7 +1,8 @@
 ---
 created: 2026-04-17
+type: project
 updated: 2026-04-23
-tags: [project, nio, network, testing]
+tags: [nio, 网络编程, testing]
 status: active
 ---
 

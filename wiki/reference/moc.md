@@ -18,7 +18,8 @@ MOC = Map of Content（内容地图）
 
 ```markdown
 ---
-tags: [MOC, 并发编程]
+type: moc
+tags: [并发编程]
 ---
 
 # MOC: 并发编程

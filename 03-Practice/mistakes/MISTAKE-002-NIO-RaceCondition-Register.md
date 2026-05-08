@@ -1,6 +1,7 @@
 ---
 created: 2026-04-21
-tags: [mistake, nio, concurrency, race-condition]
+type: mistake
+tags: [nio, 并发, race-condition]
 error_id: MISTAKE-002
 status: resolved
 related_concepts:

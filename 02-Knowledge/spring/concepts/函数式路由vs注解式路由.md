@@ -2,10 +2,11 @@
 type: atomic-note
 id: CONCEPT-functional-vs-annotation-routing
 created: 2026-05-07
-tags: [webflux, routing, functional-programming, annotation, router-function]
+tags: [webflux, routing, 函数式编程, annotation, router-function]
 related_emrg: [EMRG-Spring性能优化]
 related_goal: [GOAL-Java核心深化]
 mastery: 45
+source: "[[03-Practice/reflections/2026-05-07-webflux-deep-dive-dialogue.md]]"
 ---
 
 # 函数式路由 vs 注解式路由

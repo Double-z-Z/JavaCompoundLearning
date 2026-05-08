@@ -3,10 +3,11 @@ type: atomic-note
 id: CONCEPT-webflux-reactive
 created: 2026-05-07
 updated: 2026-05-07
-tags: [spring, webflux, reactive, non-blocking, reactor]
+tags: [spring, webflux, 非阻塞, reactor]
 related_emrg: [EMRG-Spring性能优化]
 related_goal: [GOAL-Java核心深化]
 mastery: 60
+source: "[[03-Practice/reflections/2026-05-07-webflux-deep-dive-dialogue.md]]"
 ---
 
 # WebFlux 响应式编程

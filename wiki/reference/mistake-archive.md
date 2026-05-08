@@ -18,7 +18,8 @@
 ```markdown
 ---
 created: 2026-04-11
-tags: [mistake, concurrency]
+type: mistake
+tags: [并发]
 error_id: MISTAKE-001
 status: active
 ---

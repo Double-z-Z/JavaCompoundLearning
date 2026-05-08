@@ -10,7 +10,7 @@ description: 用户说"开始今日学习"/"推荐"/"今日学什么"时触发�
 
 | 顺序  | 文件                                        | 章节               | 用途                            |
 | --- | ----------------------------------------- | ---------------- | ----------------------------- |
-| 1.1 | `.agent/profile.md`                       | `#当前快照`、`#拒绝清单`  | 坐标/边界过滤                       |
+| 1.1 | `.agent/profile.md`                       | `「当前快照」`、`「拒绝清单」`  | 坐标/边界过滤                       |
 | 1.2 | `.agent/goals/GOAL-Index.md`              | P0 行（仅状态=active） | GOAL优先级 + deadline检查          |
 | 1.3 | `.agent/_system/META-Gap-诊断矩阵.md`         | P0 GOAL缺口分析      | Gap过滤（由每周回顾Skill生成，本Skill只读取） |
 | 1.4 | `.agent/_system/META-拒绝清单.md` | 拒绝清单             | Anti-MOC过滤                    |
@@ -52,11 +52,11 @@ obsidian search query="mastery:<50" --limit 5
 
 ```
 .agent/profile.md
-├── #当前快照: 已掌握知识点及mastery分数
-├── #当前快照: 当前进行中的项目
-├── #当前快照: 历史学习数据（学习频率、偏好）
-├── #当前快照: 当前学习计划（用户上次的决定）
-└── #拒绝清单: Anti-MOC 边界过滤（⚠️ 必须读取，不可跳过）
+├── 「当前快照」: 已掌握知识点及mastery分数
+├── 「当前快照」: 当前进行中的项目
+├── 「当前快照」: 历史学习数据（学习频率、偏好）
+├── 「当前快照」: 当前学习计划（用户上次的决定）
+└── 「拒绝清单」: Anti-MOC 边界过滤（⚠️ 必须读取，不可跳过）
 
 .agent/goals/GOAL-Index.md
 ├── GOAL优先级列表（P0/P1/P2）
@@ -109,7 +109,7 @@ obsidian search query="mastery:<50" --limit 5
 
 **数据来源**：
 
-- 拒绝清单 → `.agent/profile.md #拒绝清单` + `.agent/_system/META-拒绝清单.md`
+- 拒绝清单 → `.agent/profile.md 「拒绝清单」` + `.agent/_system/META-拒绝清单.md`
 - GOAL缺口 → `.agent/_system/META-Gap-诊断矩阵.md`（由每周回顾Skill生成，本Skill只读取）
 - GOAL deadline → 各 `GOAL-*.md` 的 frontmatter.deadline
 
@@ -185,7 +185,7 @@ obsidian search query="mastery:<50" --limit 5
 - **关联知识点**: [[epoll机制]]、[[NIO-Selector]]
 ```
 
-> ⚠️ 同时更新 `.agent/profile.md #当前快照` 中的"当前学习计划"字段（仅保留最新决策，不保留历史）。
+> ⚠️ 同时更新 `.agent/profile.md 「当前快照」` 中的"当前学习计划"字段（仅保留最新决策，不保留历史）。
 
 ***
 
@@ -300,7 +300,7 @@ obsidian search query="mastery:<50" --limit 5
 生成推荐后检查：
 
 - [ ] 是否引用了P0 GOAL的Gap矩阵？
-- [ ] 是否读取了 `.agent/profile.md #拒绝清单` 并过滤？
+- [ ] 是否读取了 `.agent/profile.md 「拒绝清单」` 并过滤？
 - [ ] 是否检查了GOAL deadline并处理过期项？
 - [ ] 是否使用了 Obsidian CLI 检索知识？
 - [ ] 是否引用了具体的mastery分数？

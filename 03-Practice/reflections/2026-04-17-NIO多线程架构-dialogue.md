@@ -1,12 +1,14 @@
 ---
-created: 2026-04-17
-tags: [reflection, nio, concurrency, netty]
+type: dialogue-reflection
+date: 2026-04-17
+id: REFLECTION-2026-04-17-nio
+topics: ["nio", "concurrency", "netty", "NIO多线程架构"]
 dialogue_type: 苏格拉底式
-related_concepts:
-  - [[NIO-Selector]]
-  - [[NIO-Channel]]
-  - [[线程池]]
-  - [[主从Reactor]]
+related_emrg: ["EMRG-NIO网络编程", "EMRG-并发编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: true
+key_insights: []
 ---
 
 # NIO多线程架构设计对话精华

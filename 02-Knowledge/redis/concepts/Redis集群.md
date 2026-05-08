@@ -1,6 +1,6 @@
 ---
 created: 2026-04-28
-tags: [redis, cluster, distributed-system]
+tags: [redis, cluster, 分布式]
 status: 🌿
 mastery: 55
 ---

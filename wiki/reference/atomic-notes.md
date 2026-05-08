@@ -19,7 +19,7 @@
 ```markdown
 ---
 created: 2026-04-12
-tags: [concurrency]
+tags: [并发]
 status: 🌿理解
 mastery: 60
 related_concepts:

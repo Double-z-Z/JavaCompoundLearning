@@ -1,6 +1,7 @@
 ---
 created: 2026-04-21
-tags: [mistake, nio, buffer, io-model]
+type: mistake
+tags: [nio, IO模型]
 error_id: MISTAKE-003
 status: resolved
 related_concepts:

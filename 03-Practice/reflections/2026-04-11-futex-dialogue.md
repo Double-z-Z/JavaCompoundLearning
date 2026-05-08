@@ -1,3 +1,16 @@
+---
+type: dialogue-reflection
+date: 2026-04-11
+id: REFLECTION-2026-04-11-futex
+topics: ["futex"]
+dialogue_type: 苏格拉底式
+related_emrg: ["EMRG-并发编程"]
+related_goal: ["GOAL-Java核心深化"]
+insights_extracted: false
+mastery_changed: false
+key_insights: []
+---
+
 # 苏格拉底对话精华：futex 深度探索
 
 > 📅 日期：2026-04-11  

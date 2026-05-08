@@ -73,7 +73,8 @@ description: 选择一个项目作为学习项目时，帮助插接所需知识�
 ```markdown
 ---
 created: YYYY-MM-DD
-tags: [project, <主题>]
+type: project
+tags: [<主题>]
 status: planning
 ---
 

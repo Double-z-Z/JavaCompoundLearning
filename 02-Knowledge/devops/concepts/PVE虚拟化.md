@@ -1,6 +1,6 @@
 ---
 created: 2026-04-27
-tags: [devops, virtualization, pve, proxmox]
+tags: [devops, virtualization, pve]
 status: 🌿
 mastery: 50
 ---

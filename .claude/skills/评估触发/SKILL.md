@@ -9,7 +9,7 @@ description: 当对话中涉及学习成果时触发评估流程
 
 | 文件 | 触发条件 | 用途 |
 |------|---------|------|
-| `04-Maps/EMRG-*.md` | 更新成熟度 | EMRG状态 |
+| `04-Maps/Emergent/EMRG-*.md` | 更新成熟度 | EMRG状态 |
 | `03-Practice/assessment/` | 完成项目评估时 | 评估卡片 |
 | `.agent/goals/GOAL-*.md` | 涉及 GOAL 时 | 更新进度 |
 | `.agent/_system/META-Gap-诊断矩阵.md` | 更新 Gap 时 | 同步诊断 |
@@ -100,7 +100,10 @@ description: 当对话中涉及学习成果时触发评估流程
 
 - 更新 `.agent/assessment/current.json`
 - 更新 `04-Maps/META-能力雷达图.md`
-- 更新 `.agent/profile.md` 中的 mastery 字段
+- 更新 `.agent/profile.md` 中「当前快照」的知识点列表及最新 mastery 值
+  - ✅ 允许：修改某知识点的当前 mastery 数值
+  - ❌ 禁止：写入历史变化过程、评估详情、产出物清单
+  - 详细评估记录写入 `03-Practice/assessment/`
 
 ### 4. 推荐学习路径
 

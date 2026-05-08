@@ -1,6 +1,6 @@
 ---
 created: 2026-04-12
-tags: [concurrency, jvm]
+tags: [并发, jvm]
 status: 🌱
 ---
 

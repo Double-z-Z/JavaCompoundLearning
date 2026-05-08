@@ -1,6 +1,6 @@
 ---
 created: 2026-04-17
-tags: [nio, channel, io-model]
+tags: [nio, IO模型]
 status: 🌿
 mastery: 50
 ---
