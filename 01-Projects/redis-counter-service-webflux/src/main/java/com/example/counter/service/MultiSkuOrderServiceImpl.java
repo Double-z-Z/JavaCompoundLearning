@@ -79,7 +79,6 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
                     if (hasFailure.get()) {
                         // Compensate: rollback successful decrements
                         return compensate(successMap.get())
-                                .doOnNext(v -> log.info("Compensation completed for {} items", successMap.get().size()))
                                 .thenReturn(OrderResult.failure("Partial failure, compensated", successMap.get()));
                     }
                     return Mono.just(OrderResult.success(successMap.get()));
