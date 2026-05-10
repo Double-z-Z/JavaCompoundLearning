@@ -47,6 +47,7 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
         // AtomicReference to collect results across async operations
         AtomicReference<Map<String, Long>> successMap = new AtomicReference<>(new HashMap<>());
         AtomicReference<Map<String, Integer>> failedMap = new AtomicReference<>(new HashMap<>());
+        AtomicReference<Map<String, Long>> compensateMap = new AtomicReference<>(new HashMap<>());
         AtomicBoolean hasFailure = new AtomicBoolean(false);
 
         // Execute all SKU decrements in parallel
@@ -54,6 +55,15 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
                 .flatMap(item -> {
                     String sku = item.getSku();
                     int qty = item.getQty();
+
+                    // 应用层校验：qty 必须大于 0
+                    if (qty <= 0) {
+                        hasFailure.set(true);
+                        failedMap.get().put(sku, qty);
+                        log.warn("SKU {} invalid quantity: {}", sku, qty);
+                        return Mono.empty();
+                    }
+
                     String key = "stock:" + sku;
 
                     return redisTemplate.execute(
@@ -68,7 +78,10 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
                             failedMap.get().put(sku, qty);
                             log.info("SKU {} decrement failed: insufficient stock, requested {}", sku, qty);
                         } else {
+                            // successMap: 存储剩余库存（用于返回给调用方）
                             successMap.get().put(sku, remaining);
+                            // 补偿map: 存储扣减量（用于补偿回滚）
+                            compensateMap.get().put(sku, (long) qty);
                             log.info("SKU {} decremented to {}", sku, remaining);
                         }
                         return result;
@@ -78,8 +91,8 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
                 .flatMap(results -> {
                     if (hasFailure.get()) {
                         // Compensate: rollback successful decrements
-                        return compensate(successMap.get())
-                                .thenReturn(OrderResult.failure("Partial failure, compensated", successMap.get()));
+                        return compensate(compensateMap.get())
+                                .thenReturn(OrderResult.failure("Partial failure, compensated", successMap.get(), failedMap.get()));
                     }
                     return Mono.just(OrderResult.success(successMap.get()));
                 });

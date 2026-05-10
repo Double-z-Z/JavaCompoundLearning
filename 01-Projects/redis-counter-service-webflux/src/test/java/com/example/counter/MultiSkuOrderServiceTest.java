@@ -11,9 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.test.context.TestPropertySource;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -48,10 +50,10 @@ public class MultiSkuOrderServiceTest {
     @AfterEach
     void cleanup() {
         // 清理所有测试数据
-        redisTemplate.keys(PREFIX + "*")
-                .flatMap(key -> redisTemplate.delete(key))
-                .collectList()
-                .block();
+        redisTemplate.scan(ScanOptions.scanOptions().match(PREFIX + "*").build())
+            .flatMap(key -> redisTemplate.unlink(key))  // 用 UNLINK 替代 DELETE，异步删除大键
+            .collectList()
+            .block(Duration.ofSeconds(5));  // 强制超时
     }
 
     // 辅助方法：安全获取failed map（实现bug：failed可能为null）
@@ -114,13 +116,13 @@ public class MultiSkuOrderServiceTest {
                         assertTrue(result.isSuccess());
                         assertEquals(90L, result.getDecremented().get(sku));
                         assertTrue(safeGetFailed(result).isEmpty());
-
-                        // 验证Redis库存
-                        String stock = redisTemplate.opsForValue().get("stock:" + sku).block();
-                        assertEquals("90", stock);
                         return true;
                     })
                     .verifyComplete();
+
+                    // 验证Redis库存
+                    String stock = redisTemplate.opsForValue().get("stock:" + sku).block();
+                    assertEquals("90", stock);
         }
     }
 
@@ -175,13 +177,13 @@ public class MultiSkuOrderServiceTest {
                     .expectNextMatches(result -> {
                         assertTrue(result.isSuccess(), "Should succeed when stock equals qty");
                         assertEquals(0L, result.getDecremented().get(sku));
-
-                        // 验证Redis库存为0
-                        String stock = redisTemplate.opsForValue().get("stock:" + sku).block();
-                        assertEquals("0", stock);
                         return true;
                     })
                     .verifyComplete();
+
+            // 验证Redis库存为0
+            String stock = redisTemplate.opsForValue().get("stock:" + sku).block();
+            assertEquals("0", stock);
         }
     }
 
@@ -207,12 +209,13 @@ public class MultiSkuOrderServiceTest {
                         assertTrue(result.getDecremented().isEmpty());
                         assertEquals(10, safeGetFailed(result).get(sku));
 
-                        // 验证库存未变化
-                        String stock = redisTemplate.opsForValue().get("stock:" + sku).block();
-                        assertEquals("5", stock);
                         return true;
                     })
                     .verifyComplete();
+            
+            // 验证库存未变化
+            String stock = redisTemplate.opsForValue().get("stock:" + sku).block();
+            assertEquals("5", stock);
         }
 
         @Test
@@ -235,18 +238,17 @@ public class MultiSkuOrderServiceTest {
                     .expectNextMatches(result -> {
                         assertFalse(result.isSuccess());
                         assertTrue(result.getMessage().contains("Partial failure"));
-
-                        // 验证补偿：skuA应该回滚到100
-                        String stockA = redisTemplate.opsForValue().get("stock:" + skuA).block();
-                        assertEquals("100", stockA, "skuA should rollback to 100");
-
-                        // 验证skuB保持5
-                        String stockB = redisTemplate.opsForValue().get("stock:" + skuB).block();
-                        assertEquals("5", stockB, "skuB should remain 5");
-
                         return true;
                     })
                     .verifyComplete();
+
+            // 验证补偿：skuA应该回滚到100
+            String stockA = redisTemplate.opsForValue().get("stock:" + skuA).block();
+            assertEquals("100", stockA, "skuA should rollback to 100");
+
+            // 验证skuB保持5
+            String stockB = redisTemplate.opsForValue().get("stock:" + skuB).block();
+            assertEquals("5", stockB, "skuB should remain 5");
         }
 
         @Test
@@ -272,13 +274,13 @@ public class MultiSkuOrderServiceTest {
                         assertEquals(2, safeGetFailed(result).size());
                         assertEquals(10, safeGetFailed(result).get(skuA));
                         assertEquals(10, safeGetFailed(result).get(skuB));
-
-                        // 验证库存均未变化
-                        assertEquals("5", redisTemplate.opsForValue().get("stock:" + skuA).block());
-                        assertEquals("5", redisTemplate.opsForValue().get("stock:" + skuB).block());
                         return true;
                     })
                     .verifyComplete();
+
+            // 验证库存均未变化
+            assertEquals("5", redisTemplate.opsForValue().get("stock:" + skuA).block());
+            assertEquals("5", redisTemplate.opsForValue().get("stock:" + skuB).block());
         }
 
         @Test
@@ -346,13 +348,14 @@ public class MultiSkuOrderServiceTest {
             orderService.placeOrder(request)
                     .as(StepVerifier::create)
                     .expectNextMatches(result -> {
-                        // DECRBY key 0 理论上库存不变
-                        System.out.println("Result for qty=0: success=" + result.isSuccess() +
-                            ", decremented=" + result.getDecremented().get(sku));
-                        // TODO: 待确认行为 - qty=0 是否应该视为成功？
-                        return true;  // 先跑通，后续确认
+                        assertFalse(result.isSuccess());
+                        assertTrue(safeGetFailed(result).containsKey(sku));
+                        return true;
                     })
                     .verifyComplete();
+
+            // 验证库存未变化
+            assertEquals("100", redisTemplate.opsForValue().get("stock:" + sku).block());
         }
 
         @Test
@@ -367,14 +370,14 @@ public class MultiSkuOrderServiceTest {
             orderService.placeOrder(request)
                     .as(StepVerifier::create)
                     .expectNextMatches(result -> {
-                        // 负数会导致库存增加（DECRBY -10 = INCRBY 10）
-                        String stock = redisTemplate.opsForValue().get("stock:" + sku).block();
-                        System.out.println("Result for qty=-10: stock=" + stock +
-                            " (expected 110 if no validation)");
-                        // TODO: 待确认 - 是否需要在应用层校验 qty > 0？
+                        assertFalse(result.isSuccess());
+                        assertTrue(safeGetFailed(result).containsKey(sku));
                         return true;
                     })
                     .verifyComplete();
+
+            // 验证库存未变化（不应该执行扣减）
+            assertEquals("100", redisTemplate.opsForValue().get("stock:" + sku).block());
         }
 
         @Test
@@ -423,14 +426,13 @@ public class MultiSkuOrderServiceTest {
                     .as(StepVerifier::create)
                     .expectNextMatches(result -> {
                         System.out.println("Duplicate SKU result: " + result.getDecremented().get(sku));
-                        // TODO: 待确认 - flatMap并行执行是否存在竞态？
-                        // 正确结果应为 100 - 10 - 20 = 70
-                        // 如果存在竞态，可能得到 100 - 20 = 80（第二次基于原始值）
-                        String stock = redisTemplate.opsForValue().get("stock:" + sku).block();
-                        System.out.println("Final stock: " + stock);
                         return true;
                     })
                     .verifyComplete();
+
+            // 验证最终库存
+            String stock = redisTemplate.opsForValue().get("stock:" + sku).block();
+            System.out.println("Final stock: " + stock);
         }
     }
 }

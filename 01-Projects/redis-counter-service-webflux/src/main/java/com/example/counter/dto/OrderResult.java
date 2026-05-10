@@ -26,6 +26,15 @@ public class OrderResult {
         return result;
     }
 
+    public static OrderResult failure(String message, Map<String, Long> decremented, Map<String, Integer> failed) {
+        OrderResult result = new OrderResult();
+        result.success = false;
+        result.message = message;
+        result.decremented = decremented;
+        result.failed = failed;
+        return result;
+    }
+
     public boolean isSuccess() { return success; }
     public void setSuccess(boolean success) { this.success = success; }
     public String getMessage() { return message; }
