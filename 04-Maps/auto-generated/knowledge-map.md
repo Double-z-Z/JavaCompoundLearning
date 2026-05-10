@@ -2,6 +2,24 @@
 
 ## 今日学习
 
+### 2026-05-09
+- **WebFlux 响应式编程** 🔄
+  - Reactor 核心类型：Mono (0~1) vs Flux (0~N)
+  - 核心操作符：map（同步转换）、flatMap（异步转换）、thenReturn（无输入转换）、.next()（Flux→Mono）
+  - 响应式生命周期信号：onSubscribe → onNext(N次) → onComplete/onError + Cancel
+  - doOn* 操作符全家桶：doOnNext/doOnSuccess/doOnComplete/doOnError/doOnTerminate/doFinally/doOnCancel
+  - 关键陷阱：Mono<Void) 不发 onNext，doOnNext 永远不触发；应用 doOnSuccess/doOnTerminate
+- **数据倾斜解决方案** 🔄
+  - 问题本质：Redis 槽位预分配导致热点 key 落在同一节点
+  - 分层防御架构：Nginx限流(拒绝) → 前端削峰(延时) → Caffeine缓存(近似) → Redis+Lua(串行)
+  - 本地缓存限制：只能解决读热点，写操作必须穿透到 Redis 保证一致性
+  - 写操作后主动失效缓存策略
+- **秒杀系统架构设计** 📚
+  - 可预知流量场景：多级缓存预热、弹性扩容(K8s HPA)、队列预热(MQ)、脉冲式放流
+  - 自适应动态优化：限流阈值自适应(Sentinel)、缓存TTL动态调整、队列消费背压、批次粒度调整
+  - 安全挑战：客户端不可信原则、防刷方案设计
+  - 数据倾斜测试用例：T-050~T-055（单热点高并发/部分失败/补偿完整性/混合场景）
+
 ### 2026-04-11
 - **并发编程** ✅
   - 线程池：核心参数、执行流程、拒绝策略、性能调优
@@ -124,6 +142,12 @@
 ### Spring 框架
 - Spring Core 🔄
 - Spring Boot 🔄
+- **Spring WebFlux** 🔄
+  - 响应式编程模型：Publisher-Subscriber
+  - Reactor 核心：Mono、Flux
+  - 操作符链：map/flatMap/thenReturn/switchIfEmpty/collectList
+  - 生命周期管理：doOn* 操作符、错误处理
+  - 非阻塞 I/O：与 NIO Selector 的关联
 - Spring MVC ⏳
 - Spring Security ⏳
 
@@ -148,6 +172,17 @@
 
 ### Redis
 - 数据结构 🔄
+- **Lua 脚本** ✅
+  - 原子操作：防止超卖
+  - 库存扣减脚本：GET + DECRBY 条件判断
+- **本地缓存集成** 🔄
+  - Caffeine LRU 缓存：吸收读热点
+  - 缓存失效策略：写操作后主动 invalidate
+  - 分层架构：L1(Caffeine) → L2(Redis)
+- **数据倾斜解决方案** 🔄
+  - 问题本质：槽位预分配导致单点瓶颈
+  - 分层防御：限流/削峰/缓存/Lua原子操作
+  - 写操作必须穿透 Redis 保证一致性
 - 持久化 ⏳
 - 高可用 ⏳
 
@@ -169,9 +204,15 @@
 
 ### 分布式系统
 - 分布式理论 ⏳
-- 分布式事务 ⏳
+- **分布式事务** 🔄
+  - Saga 补偿模式：多SKU订单场景
+  - 补偿链完整性：失败回滚 + 重试
 - 分布式锁 ⏳
-- 高并发架构 ⏳
+- **高并发架构** 🔄
+  - 数据倾斜问题与解决方案
+  - 分层防御策略：限流/削峰/缓存/原子操作
+  - 秒杀系统设计：可预知流量预热 + 自适应动态优化
+  - 安全防护：客户端不可信原则、防刷方案
 
 ## 学习路径
 

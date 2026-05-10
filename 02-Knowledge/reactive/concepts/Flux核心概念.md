@@ -2,11 +2,12 @@
 type: atomic-note
 id: CONCEPT-flux-mono-core
 created: 2026-05-07
-tags: [reactor, publisher]
+updated: 2026-05-09
+tags: [reactor, publisher, 操作符, 生命周期]
 related_emrg: [EMRG-Spring性能优化]
 related_goal: [GOAL-Java核心深化]
-mastery: 50
-source: "[[03-Practice/reflections/2026-05-07-webflux-deep-dive-dialogue.md]]"
+mastery: 70
+source: "[[03-Practice/reflections/2026-05-09-webflux-operators-dialogue.md]]"
 ---
 
 # Flux/Mono 核心概念
@@ -194,12 +195,85 @@ stockService.getStock(sku)
     .subscribe(resp -> sendToClient(resp));           // 订阅
 ```
 
+---
+
+## 核心操作符详解
+
+### 三大转换操作符
+
+| 操作符 | 类型 | 特点 | 适用场景 |
+|--------|------|------|----------|
+| **`map`** | 同步 1:1 | 需要 onNext 触发 | 数据格式转换 |
+| **`flatMap`** | 异步 1:N | 合并子流，返回 Publisher | IO操作、并行处理 |
+| **`thenReturn`** | 无输入转换 | 不依赖上游值 | Mono<Void) 后返回结果 |
+
+#### map vs flatMap 的本质区别
+
+```java
+// map：同步转换（输入1个→输出1个）
+.map(result -> {
+    long remaining = result.longValue();
+    if (remaining == -1) {
+        failedMap.get().put(sku, qty);
+    } else {
+        successMap.get().put(sku, remaining);
+    }
+    return result;  // 返回普通对象
+})
+
+// flatMap：异步转换（输入1个→输出Publisher）
+.flatMap(item -> {
+    return redisTemplate.execute(decrementScript, ...)  // 返回 Mono/Flux
+        .next()
+        .map(result -> { ... });
+})
+```
+
+**关键理解**：
+- `map` = "给我苹果，我削皮"（需要输入，同步执行）
+- `flatMap` = "给我苹果，我去果园再摘几个"（异步，可能返回多个）
+- `thenReturn` = "不管你给不给我，我都自己拿一个"（不需要输入）
+
+### Flux → Mono 转换
+
+```java
+// .next()：取第一个元素
+redisTemplate.execute(...)   // 返回 Flux<Long>
+    .next()                  // → Mono<Long>（取第一个）
+    .map(result -> ...);     // 有值才执行
+
+// 边界情况：
+// - Flux.just(1).next() → Mono(1)
+// - Flux.empty().next() → Mono.empty()（后续 map 不执行！）
+```
+
+### 空值传播机制
+
+```java
+// 空信号会一直传递下去
+Flux.empty()
+    .next()           // Mono.empty()
+    .map(x -> x * 2)  // ❌ 永远不执行（短路）
+    .subscribe();     // 直接 onComplete
+
+// 类似 Optional 的行为
+Optional.empty().map(x -> x * 2)  // Optional.empty()
+```
+
+---
+
 ## 掌握度评估
 
-- 当前等级：🌿 理解
+- 当前等级：🍎 应用
+- 更新记录：
+  - 2026-05-07: mastery=50 (初建笔记，了解基本概念)
+  - 2026-05-09: mastery=70 (+20, 深入学习操作符、空值传播、实际项目应用)
 - 已理解：
   - ✅ Flux/Mono 的基本概念和区别
   - ✅ 三种信号（onNext/onError/onComplete）
   - ✅ 惰性求值的原理和好处
   - ✅ 基本的创建和订阅操作
-- 下一步：深入学习操作符（map/flatMap/zip/merge）、背压机制、错误处理策略
+  - ✅ **核心操作符**：map/flatMap/thenReturn/.next() 的区别和使用场景
+  - ✅ **空值传播机制**：Mono.empty() 导致后续操作符短路
+  - ✅ **实际应用**：redis-counter-service-webflux 项目中的使用
+- 下一步：深入学习 doOn* 生命周期操作符、背压机制、错误处理策略
