@@ -2,6 +2,17 @@
 
 ## 今日学习
 
+### 2026-05-11
+- **Sentinel 流量治理框架** 🔄
+  - 架构定位：本地优先（纳秒级决策）/ 分层防护（漏斗式过滤）/ 优雅降级（故障时回退）
+  - 部署模式：应用层嵌入（SDK）vs 接入层网关（独立进程）
+  - 集群限流：Token Server 模式（集中管控 + 本地执行），降级策略为回退到本地独立限流
+  - Cache Line 优化：伪共享问题 / @Contended 注解（128字节padding）/ LongAdder vs AtomicLong trade-off
+  - LeapArray 滑动窗口：环形数组 + 时间映射（timeId = time/windowLength, idx = timeId % sampleCount）+ 窗口复用 + 时钟回退处理
+  - 限流算法：滑动窗口计数器（LeapArray 统计 + if 判断），非令牌桶/漏桶
+  - 熔断机制：慢调用比例 / 异常比例 / 异常数三种策略；悬挂请求的分代桶方案（新生代→老年代→回收）
+  - 热点参数限流：Doorkeeper(布隆过滤器) → Count-Min Sketch(概率统计) → Precise Counter(Top-K精确)，长尾参数不存储
+
 ### 2026-05-09
 - **WebFlux 响应式编程** 🔄
   - Reactor 核心类型：Mono (0~1) vs Flux (0~N)
@@ -213,6 +224,12 @@
   - 分层防御策略：限流/削峰/缓存/原子操作
   - 秒杀系统设计：可预知流量预热 + 自适应动态优化
   - 安全防护：客户端不可信原则、防刷方案
+- **流量治理 (Sentinel)** 🔄
+  - 核心架构：本地优先 / 分层防护 / 优雅降级
+  - 数据结构：LeapArray 滑动窗口 / Cache Line 优化
+  - 限流算法：滑动窗口计数器
+  - 熔断机制：慢调用比例 / 异常比例 / 分代悬挂请求方案
+  - 热点参数限流：Doorkeeper + CMS + Top-K 三层混合
 
 ## 学习路径
 
