@@ -17,7 +17,7 @@ server:
 # 日志配置
 logging:
   level:
-    com.example.counter: DEBUG
+    com.example.counter: INFO
     org.springframework.data.redis: INFO
     reactor.netty: INFO
 
@@ -25,3 +25,24 @@ logging:
 stock:
   decrement:
     strategy: atomic  # atomic | raw
+
+# Sentinel 限流配置
+sentinel:
+  enabled: true
+  spike:
+    resource-name: spike
+    qps-threshold: 10000          # 单用户 QPS 阈值
+    cluster-threshold: 200000    # 集群总 QPS 阈值
+
+# RabbitMQ 削峰配置
+rabbitmq:
+  host: ${RABBITMQ_HOST:localhost}
+  port: ${RABBITMQ_PORT:5672}
+  username: ${RABBITMQ_USERNAME:guest}
+  password: ${RABBITMQ_PASSWORD:guest}
+  spike:
+    exchange: spike-exchange
+    queue: spike-order-queue
+    routing-key: spike.order.create
+    prefetch: 100
+    concurrent-consumers: 5

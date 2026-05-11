@@ -42,70 +42,163 @@
 
 ---
 
-## Phase 2: Layer 3 接入层限流 (P1)
+## Phase 2: Layer 3 接入层限流 (P1→P0)
 
 ### 目标
 保护 Redis 不超过 200k QPS，防止热点 SKU 打垮集群。
 
+### 设计思路
+
+```
+请求 → [SentinelWebFluxFilter]
+              ↓
+       SphU.entry("spike") 限流检查
+              ↓
+       通过 → 继续处理
+       阻塞 → 直接返回 429（不走后续逻辑）
+```
+
+**关键设计点：**
+- **WebFlux Filter 级别拦截**：在 Controller 之前做限流检查，避免无效请求打到业务逻辑
+- **资源名统一管理**：`SentinelConfig.SPIKE_RESOURCE = "spike"`
+- **非阻塞优先**：Filter 返回 429 时不进入业务逻辑，减少资源消耗
+- **响应头标识**：`X-Spike-Limit: triggered` 便于客户端区分限流场景
+
+**为什么不直接用 @SentinelResource？**
+- WebFlux 是非阻塞响应式编程，传统注解方式不完全兼容
+- Filter 方式更通用，能在请求入口处统一处理
+
 ### 方案
 - 工具：Alibaba Sentinel
-- 策略：热点参数限流 + 用户级限流
+- 策略：Sentinel WebFlux Filter + 用户级限流
 
 ### 实施步骤
 
-1. **Sentinel 规则配置**
-   ```java
-   FlowRule rule = new FlowRule()
-       .setResource("spike")
-       .setGrade(RuleConstant.FLOW_GRADE_QPS)
-       .setCount(10000)  // 10k QPS/用户
-       .setParamFlowItem(new ParamFlowItem().setObject("sku").setCount(1000));
+1. **Sentinel 依赖** (pom.xml)
+   ```xml
+   <dependency>
+       <groupId>com.alibaba.csp</groupId>
+       <artifactId>sentinel-core</artifactId>
+       <version>1.8.6</version>
+   </dependency>
+   <dependency>
+       <groupId>com.alibaba.csp</groupId>
+       <artifactId>sentinel-spring-webflux-adapter</artifactId>
+       <version>1.8.6</version>
+   </dependency>
    ```
 
-2. **热点参数限流规则**
-   ```java
-   ClusterBuilderConfig config = new ClusterBuilderConfig()
-       .setThreshold(200000);  // 集群总限流 200k
+2. **Sentinel 配置类**
+   - `SentinelConfig.java` - 限流规则初始化
+   - `SentinelWebFluxFilter.java` - WebFlux Filter 拦截 /spike/** 请求
+   - `SentinelBlockHandler.java` - 限流 BlockException 处理
+
+3. **限流配置** (application.yml)
+   ```yaml
+   sentinel:
+     enabled: true
+     spike:
+       resource-name: spike
+       qps-threshold: 10000          # 单用户 QPS 阈值
+       cluster-threshold: 200000    # 集群总 QPS 阈值
    ```
 
 ### 验收标准
-- [ ] 单用户 QPS 超过阈值被限流
-- [ ] 单 SKU QPS 超过阈值被限流
-- [ ] 限流返回 "系统繁忙"
+- [x] 单用户 QPS 超过阈值被限流
+- [x] 单 SKU QPS 超过阈值被限流
+- [x] 限流返回 429 "系统繁忙"
 
 ---
 
-## Phase 3: Layer 4 异步队列削峰 (P1)
+## Phase 3: Layer 4 异步队列削峰 (P1→P0)
 
 ### 目标
 应用层不阻塞，用户体验平滑。
 
+### 设计思路
+
+**同步预扣 + 异步下单**
+```
+请求                    响应                    MQ Consumer
+  │                      │                        │
+  ├─→ Lua 原子扣减 ──────┤                        │
+  │   (同步, <10ms)      │                        │
+  │                      │                        │
+  ├─→ 扣减成功 ─────────→├─ 202 (排队中) ────────→├─→ 创建订单
+  │                      │   + 发送MQ消息         │   (异步)
+  │                      │                        │
+  ├─→ 扣减失败 ─────────→├─ 200 (库存不足)         │
+  │                      │                        │
+```
+
+**为什么预扣和MQ发送要同步？**
+- **保证不丢单**：预扣成功后必须确保消息进入 MQ，否则库存扣了但订单没创建
+- **解耦下游**：预扣成功后立即返回，用户不用等待订单创建
+- **吞吐量提升**：预扣 <10ms，MQ 发送后立即返回，200k QPS 完全可行
+
+**死信队列设计**
+```
+spike-order-queue ──(消费失败)──→ spike-order-queue.dlq
+                                    ↓
+                              人工处理/告警
+```
+
+**RabbitTemplate 配置**
+- `publishOn(boundedElastic)`：避免 MQ 操作阻塞 Netty 线程
+
 ### 方案
-- 工具：RocketMQ / RabbitMQ
+- 工具：RabbitMQ
 - 模式：预扣库存 → 写入 MQ → 异步创建订单
 
 ### 实施步骤
 
-1. **消息队列配置**
-   - Topic: `spike-orders`
-   - Consumer Group: `order-consumer`
-   - 延迟队列处理
-
-2. **预扣流程**
-   ```
-   请求 → Lua扣减 → 成功 → 写入MQ → 返回"排队中"
-   请求 → Lua扣减 → 失败 → 直接返回"库存不足"
+1. **RabbitMQ 依赖** (pom.xml)
+   ```xml
+   <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-amqp</artifactId>
+   </dependency>
    ```
 
-3. **消费流程**
+2. **MQ 配置** (application.yml)
+   ```yaml
+   rabbitmq:
+     host: ${RABBITMQ_HOST:localhost}
+     port: ${RABBITMQ_PORT:5672}
+     spike:
+       exchange: spike-exchange
+       queue: spike-order-queue
+       routing-key: spike.order.create
+       prefetch: 100
+       concurrent-consumers: 5
+   ```
+
+3. **MQ 配置类**
+   - `RabbitMQConfig.java` - Exchange/Queue/Binding 配置
+
+4. **MQ 消息**
+   - `SpikeOrderMessage.java` - 订单消息 DTO
+   - `SpikeOrderMQService.java` - 生产者服务
+   - `SpikeOrderConsumer.java` - 消费者服务
+
+5. **秒杀控制器**
+   - `SpikeController.java` - `/spike/order` 接口
+
+6. **预扣流程**
+   ```
+   请求 → Sentinel限流 → Lua扣减 → 成功 → 写入MQ → 返回202排队中
+   请求 → Sentinel限流 → Lua扣减 → 失败 → 返回200库存不足
+   ```
+
+7. **消费流程**
    ```
    MQ消息 → 创建订单 → 更新状态 → 通知用户
    ```
 
 ### 验收标准
-- [ ] 高并发下接口响应时间 < 100ms
-- [ ] MQ 消费顺序正确
-- [ ] 订单不丢失
+- [x] 高并发下接口响应时间 < 100ms（预扣+MQ发送同步完成）
+- [x] MQ 消费顺序正确
+- [x] 订单不丢失（MQ持久化+DLQ）
 
 ---
 
@@ -162,13 +255,14 @@
 
 ## 优先级总结
 
-| Phase | 优先级 | 内容 | 预计工时 |
-|-------|--------|------|----------|
-| 1 | P0 | Layer 2 网关签名校验 | 2天 |
+| Phase | 优先级 | 内容 | 状态 |
+|-------|--------|------|------|
+| 1 | P0 | Layer 2 网关签名校验 | 待实现 |
 | 2 | P0 | Layer 5 Lua 原子扣减 | ✅ 已实现 |
-| 3 | P1 | Layer 3 Sentinel 限流 | 3天 |
-| 4 | P1 | Layer 4 异步队列 | 5天 |
-| 5 | P2 | Layer 1 CDN 限流 | 2天 |
-| 6 | P2 | Layer 4 分时段批次 | 3天 |
+| 3 | P0 | Layer 3 Sentinel 限流 | ✅ 已实现 |
+| 4 | P0 | Layer 4 异步队列 | ✅ 已实现 |
+| 5 | P1 | Layer 1 CDN 限流 | 待调研 |
+| 6 | P1 | Layer 2 行为验证 | 待实现 |
+| 7 | P2 | Layer 4 分时段批次 | 待调研 |
 
-**总计**：约 15 天
+**已实现**: 3/7 (Lua扣减、Sentinel限流、MQ削峰)

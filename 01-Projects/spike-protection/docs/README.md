@@ -23,19 +23,22 @@
 ```
 spike-protection/
 ├── docs/
-│   ├── README.md              # 本文件
-│   ├── architecture.md        # 架构设计概述
-│   ├── implementation-plan.md # 实施计划
-│   ├── layer1-cdn.md          # CDN边缘限流
-│   ├── layer2-gateway.md      # 网关层设计（签名校验 + 限流）
-│   ├── layer3-access.md       # 接入层设计（Sentinel限流）
-│   ├── layer4-application.md  # 应用层设计（异步队列 + 批次）
-│   └── layer5-data.md          # 数据层设计（Lua原子扣减）
-├── layer1-cdn/                # Layer 1 配置
-├── layer2-gateway/           # Layer 2 代码
-├── layer3-access/            # Layer 3 代码
-├── layer4-application/       # Layer 4 代码
-└── layer5-data/              # Layer 5 配置
+│   ├── README.md                    # 本文件
+│   ├── architecture.md             # 架构设计概述
+│   ├── implementation-plan.md      # 实施计划（含设计思路）
+│   ├── testing-guide.md            # 测试指南汇总
+│   ├── phase2-sentinel-tests.md    # Sentinel 限流测试
+│   ├── phase3-mq-spike-tests.md    # MQ 异步队列测试
+│   ├── layer1-cdn.md               # CDN边缘限流
+│   ├── layer2-gateway.md           # 网关层设计（签名校验 + 限流）
+│   ├── layer3-access.md            # 接入层设计（Sentinel限流）
+│   ├── layer4-application.md       # 应用层设计（异步队列 + 批次）
+│   └── layer5-data.md              # 数据层设计（Lua原子扣减）
+├── layer1-cdn/                     # Layer 1 配置
+├── layer2-gateway/                 # Layer 2 代码
+├── layer3-access/                  # Layer 3 代码
+├── layer4-application/             # Layer 4 代码
+└── layer5-data/                   # Layer 5 配置
 ```
 
 ## 优先级与进度
@@ -44,15 +47,15 @@ spike-protection/
 |--------|------|--------|------|
 | P0 | L2 | 网关层加签名校验 | ⏳ 待实现 |
 | P0 | L5 | Redis Lua原子扣减 | ✅ 已实现 |
-| P1 | L3 | 接入层Sentinel限流 | ⏳ 待实现 |
-| P1 | L4 | 异步队列削峰 | ⏳ 待实现 |
-| P2 | L1 | CDN边缘限流 | ⏳ 待调研 |
-| P2 | L2 | 行为验证接入 | ⏳ 待调研 |
+| P0 | L3 | Sentinel自适应限流 | ✅ 已实现 |
+| P0 | L4 | MQ异步队列削峰 | ✅ 已实现 |
+| P1 | L1 | CDN边缘限流 | ⏳ 待调研 |
+| P1 | L2 | 行为验证接入 | ⏳ 待实现 |
 | P2 | L4 | 分时段批次设计 | ⏳ 待实现 |
 
 ## 已实现组件
 
-### Layer 5: Redis Lua 原子扣减
+### Layer 5: Redis Lua 原子扣减 ✅
 
 **项目位置**：`../redis-counter-service-webflux`
 
@@ -75,6 +78,43 @@ else
     return -1
 end
 ```
+
+---
+
+### Layer 3: Sentinel 自适应限流 ✅
+
+**项目位置**：`../redis-counter-service-webflux`
+
+**功能**：
+- WebFlux Filter 级别限流
+- QPS 阈值保护（默认 10k QPS/用户）
+- 限流返回 429 + 友好提示
+
+**关键文件**：
+- `src/main/java/com/example/counter/config/SentinelConfig.java` — 限流规则配置
+- `src/main/java/com/example/counter/config/SentinelWebFluxFilter.java` — Filter 拦截器
+- `src/main/java/com/example/counter/config/SentinelBlockHandler.java` — BlockException 处理
+
+**测试文档**：[phase2-sentinel-tests.md](./phase2-sentinel-tests.md)
+
+---
+
+### Layer 4: MQ 异步队列削峰 ✅
+
+**项目位置**：`../redis-counter-service-webflux`
+
+**功能**：
+- 预扣库存成功后写入 RabbitMQ
+- 异步创建订单
+- 死信队列（DLQ）保障
+
+**关键文件**：
+- `src/main/java/com/example/counter/config/RabbitMQConfig.java` — MQ 配置
+- `src/main/java/com/example/counter/service/SpikeOrderMQService.java` — 生产者
+- `src/main/java/com/example/counter/service/SpikeOrderConsumer.java` — 消费者
+- `src/main/java/com/example/counter/controller/SpikeController.java` — 秒杀接口
+
+**测试文档**：[phase3-mq-spike-tests.md](./phase3-mq-spike-tests.md)
 
 ## 快速开始
 
@@ -99,9 +139,20 @@ curl -X POST http://localhost:8080/order/multi-sku \
 
 ## 后续计划
 
-1. **Layer 2 网关签名校验**：使用 OpenResty + HMAC-SHA256
-2. **Layer 3 Sentinel 限流**：接入阿里 Sentinel 保护 Redis
-3. **Layer 4 异步队列**：引入 RocketMQ 削峰
+1. **Layer 2 网关签名校验**：使用 OpenResty + HMAC-SHA256（P0 待实现）
+2. **Layer 1 CDN 边缘限流**：边缘节点配置（P1 待调研）
+3. **Layer 2 行为验证**：无感风控/验证码（P1 待实现）
+4. **Layer 4 分时段批次**：业务逻辑改造（P2 待实现）
+
+---
+
+## 测试指南
+
+详细测试方法请参考：
+
+- [测试指南汇总](./testing-guide.md) — 快速测试流程、CI/CD 集成
+- [Sentinel 限流测试](./phase2-sentinel-tests.md) — P0/P1/P2 测试用例
+- [MQ 异步队列测试](./phase3-mq-spike-tests.md) — 预扣、MQ、DLQ 测试
 
 ## 参考资料
 

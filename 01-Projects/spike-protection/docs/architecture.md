@@ -32,10 +32,10 @@
 |--------|------|--------|-----------|------|
 | P0 | L2 | 网关层加签名校验 | OpenResty + HMAC | 待实现 |
 | P0 | L5 | Redis Lua原子扣减 | `EVALSHA` | ✅ 已实现 (redis-counter-service-webflux) |
-| P1 | L3 | 接入层Sentinel限流 | 热点参数限流 | 待实现 |
-| P1 | L4 | 异步队列削峰 | RocketMQ/RabbitMQ | 待实现 |
-| P2 | L1 | CDN边缘限流 | 边缘节点配置 | 待调研 |
-| P2 | L2 | 行为验证接入 | 无感风控/验证码 | 待实现 |
+| P0 | L3 | Sentinel自适应限流 | Alibaba Sentinel + WebFlux Filter | ✅ 已实现 (redis-counter-service-webflux) |
+| P0 | L4 | MQ削峰队列 | RabbitMQ + 异步订单创建 | ✅ 已实现 (redis-counter-service-webflux) |
+| P1 | L1 | CDN边缘限流 | 边缘节点配置 | 待调研 |
+| P1 | L2 | 行为验证接入 | 无感风控/验证码 | 待实现 |
 | P2 | L4 | 分时段批次设计 | 业务逻辑改造 | 待调研 |
 
 ## 项目结构
