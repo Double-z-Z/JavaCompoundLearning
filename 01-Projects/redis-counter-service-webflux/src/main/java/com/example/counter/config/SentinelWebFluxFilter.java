@@ -38,7 +38,6 @@ public class SentinelWebFluxFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
 
-        // 只对 /spike 路径进行限流
         if (!path.startsWith(SPIKE_PATH_PATTERN) || !sentinelEnabled) {
             return chain.filter(exchange);
         }
@@ -47,28 +46,21 @@ public class SentinelWebFluxFilter implements WebFilter {
     }
 
     private Mono<Void> doSentinelFilter(ServerWebExchange exchange, WebFilterChain chain) {
-        final Entry[] entryHolder = new Entry[1];
+        Entry entry = null;
         try {
-            // 进行 Sentinel 限流检查
-            entryHolder[0] = SphU.entry(SentinelConfig.SPIKE_RESOURCE, EntryType.IN);
-            // 通过限流，继续处理请求
-            return chain.filter(exchange)
-                    .doFinally(signalType -> {
-                        if (entryHolder[0] != null) {
-                            entryHolder[0].exit();
-                        }
-                    });
+            entry = SphU.entry(SentinelConfig.SPIKE_RESOURCE, EntryType.IN);
         } catch (BlockException e) {
-            log.warn("请求被限流: resource={}, ex={}", SentinelConfig.SPIKE_RESOURCE, e.getClass().getSimpleName());
+            log.debug("请求被限流: resource={}", SentinelConfig.SPIKE_RESOURCE);
             return handleBlocked(exchange);
         } catch (Exception e) {
-            // 其他异常，记录并放行（避免影响正常请求）
-            log.error("Sentinel 限流检查异常: resource={}", SentinelConfig.SPIKE_RESOURCE, e);
-            if (entryHolder[0] != null) {
-                entryHolder[0].exit();
-            }
+            log.debug("Sentinel 限流检查异常: resource={}", SentinelConfig.SPIKE_RESOURCE, e);
             return chain.filter(exchange);
         }
+
+        if (entry != null) {
+            entry.exit();
+        }
+        return chain.filter(exchange);
     }
 
     private Mono<Void> handleBlocked(ServerWebExchange exchange) {

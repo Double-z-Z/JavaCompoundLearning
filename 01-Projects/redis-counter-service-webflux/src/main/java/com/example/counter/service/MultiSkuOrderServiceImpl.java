@@ -76,13 +76,13 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
                         if (remaining == -1) {
                             hasFailure.set(true);
                             failedMap.get().put(sku, qty);
-                            log.info("SKU {} decrement failed: insufficient stock, requested {}", sku, qty);
+                            log.debug("SKU {} decrement failed: insufficient stock, requested {}", sku, qty);
                         } else {
                             // successMap: 存储剩余库存（用于返回给调用方）
                             successMap.get().put(sku, remaining);
                             // 补偿map: 存储扣减量（用于补偿回滚）
                             compensateMap.get().put(sku, (long) qty);
-                            log.info("SKU {} decremented to {}", sku, remaining);
+                            log.debug("SKU {} decremented to {}", sku, remaining);
                         }
                         return result;
                     });
@@ -115,7 +115,7 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
                     // Rollback by incrementing back
                     return redisTemplate.opsForValue()
                             .increment(key, decrementedQty)
-                            .doOnNext(newVal -> log.info("Compensated: {} +{} = {}", sku, decrementedQty, newVal));
+                            .doOnNext(newVal -> log.debug("Compensated: {} +{} = {}", sku, decrementedQty, newVal));
                 })
                 .then();
     }

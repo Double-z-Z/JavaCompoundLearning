@@ -53,7 +53,7 @@ public class SpikeOrderMQService {
                 );
 
                 rabbitTemplate.convertAndSend(exchange, routingKey, message);
-                log.info("订单消息已发送到MQ: orderId={}, exchange={}, routingKey={}",
+                log.debug("订单消息已发送到MQ: orderId={}, exchange={}, routingKey={}",
                         deductResult.getOrderId(), exchange, routingKey);
             } catch (Exception e) {
                 log.error("发送订单消息到MQ失败: orderId={}", deductResult.getOrderId(), e);

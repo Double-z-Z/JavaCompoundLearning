@@ -30,14 +30,14 @@ public class SpikeOrderConsumer {
      */
     @RabbitListener(queues = "${rabbitmq.spike.queue:spike-order-queue}")
     public void consumeOrderMessage(SpikeOrderMessage message) {
-        log.info("收到订单消息: orderId={}, userId={}, requestId={}",
+        log.debug("收到订单消息: orderId={}, userId={}, requestId={}",
                 message.getOrderId(), message.getUserId(), message.getRequestId());
 
         try {
             // TODO: 实际的订单创建逻辑（调用订单服务/入库）
             createOrder(message);
 
-            log.info("订单创建完成: orderId={}", message.getOrderId());
+            log.debug("订单创建完成: orderId={}", message.getOrderId());
         } catch (Exception e) {
             log.error("订单创建失败: orderId={}", message.getOrderId(), e);
             // MQ 会自动重试，这里可以记录失败日志
@@ -54,7 +54,7 @@ public class SpikeOrderConsumer {
      */
     private void createOrder(SpikeOrderMessage message) {
         // Simulate order creation
-        log.info("[OrderService] 创建订单: orderId={}, userId={}, items={}, timestamp={}",
+        log.debug("[OrderService] 创建订单: orderId={}, userId={}, items={}, timestamp={}",
                 message.getOrderId(),
                 message.getUserId(),
                 message.getItems(),
