@@ -5,7 +5,7 @@ created: 2026-05-02
 tags: [cache, caffeine]
 mastery: 55
 source: "[[03-Practice/reflections/2026-05-02-本地缓存-Caffeine-对话.md]]"
-related_emrg: []
+related_emrg: [[EMRG-Sentinel]]
 related_goal: [GOAL-ORM与缓存]
 ---
 

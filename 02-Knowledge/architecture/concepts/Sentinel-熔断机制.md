@@ -10,7 +10,7 @@ tags:
 - 容错
   mastery: 55
   source: "\[\[03-Practice/reflections/2026-05-11-Sentinel-对话.md]]"
-  related\_emrg: \[]
+  related_emrg: [[EMRG-Sentinel]]
   related\_goal: \[]
 
 ***

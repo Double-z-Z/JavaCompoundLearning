@@ -6,9 +6,9 @@ tags:
   - sentinel
   - 流量治理
   - 高并发
-mastery: 65
+mastery: 80
 source: "[[03-Practice/reflections/2026-05-11-Sentinel-对话.md]]"
-related_emrg: []
+related_emrg: [[EMRG-Sentinel]]
 related_goal: []
 ---
 
@@ -85,6 +85,7 @@ Sentinel 是面向分布式服务架构的流量控制组件，以"本地优先�
 - [[缓存行伪共享]] - 关联原因：LeapArray MetricBucket 的性能优化，@Contended vs 数组间隔法的选择
 - [[W-TinyLFU]] - 关联原因：同样的分层思想——Window/Main 双区 = Doorkeeper/CMS/Precise 三层
 - [[数据倾斜解决方案]] - 关联原因：Sentinel 是数据倾斜解决方案中"限流"层的具体实现
+- [[Sentinel-Entry生命周期与WebFlux集成]] - 关联原因：从源码角度理解 Entry 在响应式架构中的生命周期管理、统计失真问题及分层监控策略
 
 
 ## 我的误区与疑问
@@ -103,9 +104,10 @@ Sentinel 是面向分布式服务架构的流量控制组件，以"本地优先�
 ## 🤖 AI评价
 
 ### 掌握度评估
-- 当前等级：🍎 应用
+- 当前等级：🌳 掌握
 - 更新记录：
   - 2026-05-11: mastery=65 (理解架构设计哲学、部署模式、监控机制，能解释 trade-off)
+  - 2026-05-13: mastery=80 (通过源码验证 Entry 异步生命周期，能分析 CANCEL 统计失真并做出工程决策)
 ---
 
 ## 来源

@@ -6,7 +6,8 @@ updated: 2026-05-09
 tags: [reactor, publisher, 操作符, 生命周期]
 related_emrg: [EMRG-Spring性能优化]
 related_goal: [GOAL-Java核心深化]
-mastery: 70
+updated: 2026-05-14
+mastery: 80
 source: "[[03-Practice/reflections/2026-05-09-webflux-operators-dialogue.md]]"
 ---
 
@@ -149,6 +150,8 @@ public Mono<DecrementResult> decrementStock(String sku, long quantity) {
 - [[Spring-MVC性能瓶颈]]: 从同步阻塞到异步非阻塞的关键转变点
 - [[JVM预热效应]]: 响应式编程的冷热流概念与 JVM 预热相关
 - [[Redis性能压测]]: 在高并发 Redis 场景中应用 Flux/Mono
+- [[WebFlux-生命周期与多线程时序]]: Assembly 阶段创建的操作符链是 Flux/Mono 的实例化过程，理解操作符的惰性求值是理解生命周期的前提
+- [[Reactor-背压与Netty协调]]: 冷流 "订阅后才生产" 的特性是背压生效的前提
 
 **为什么需要这些关联**：
 - WebFlux：Flux/Mono 是 WebFlax 的基础，不理解它们就无法使用 WebFlux
@@ -206,6 +209,8 @@ stockService.getStock(sku)
 | **`map`** | 同步 1:1 | 需要 onNext 触发 | 数据格式转换 |
 | **`flatMap`** | 异步 1:N | 合并子流，返回 Publisher | IO操作、并行处理 |
 | **`thenReturn`** | 无输入转换 | 不依赖上游值 | Mono<Void) 后返回结果 |
+| **`transform`** | 管道级 1:1 | Assembly Time 立即执行 | 静态管道改装 |
+| **`transformDeferred`** | 管道级 1:1 | Subscription Time 延迟执行 | 动态管道改装 |
 
 #### map vs flatMap 的本质区别
 
@@ -233,6 +238,35 @@ stockService.getStock(sku)
 - `map` = "给我苹果，我削皮"（需要输入，同步执行）
 - `flatMap` = "给我苹果，我去果园再摘几个"（异步，可能返回多个）
 - `thenReturn` = "不管你给不给我，我都自己拿一个"（不需要输入）
+
+#### transform vs transformDeferred：管道级改装
+
+```java
+// transform: Assembly Time 立即执行，所有订阅者共享结果
+Mono<String> transformed = source.transform(mono -> {
+    int c = counter.incrementAndGet();  // 只执行一次！
+    return mono.map(x -> x + "-" + c);
+});
+transformed.subscribe(System.out::println); // data-1
+transformed.subscribe(System.out::println); // data-1（共享同一个结果）
+
+// transformDeferred: Subscription Time 每次订阅才执行
+Mono<String> deferred = source.transformDeferred(mono -> {
+    int c = counter.incrementAndGet();  // 每次订阅都执行
+    return mono.map(x -> x + "-" + c);
+});
+deferred.subscribe(System.out::println); // data-2
+deferred.subscribe(System.out::println); // data-3（每次都重新执行函数）
+```
+
+| 操作符 | 执行时机 | 类比 |
+|--------|----------|------|
+| **`transform`** | Assembly Time（组装流水线时） | 编译期宏替换，一次成型，人人共享 |
+| **`transformDeferred`** | Subscription Time（每次订阅时） | 运行时动态代理，按需构造，各取所需 |
+
+**适用场景**：
+- `transform`：静态策略封装（固定超时、固定重试次数）
+- `transformDeferred`：动态参数注入（每次请求重新读取当前配置的超时时间）、有状态中间操作（每次订阅创建新的 Retry 实例）
 
 ### Flux → Mono 转换
 
@@ -264,10 +298,11 @@ Optional.empty().map(x -> x * 2)  // Optional.empty()
 
 ## 掌握度评估
 
-- 当前等级：🍎 应用
+- 当前等级：🌳 掌握
 - 更新记录：
   - 2026-05-07: mastery=50 (初建笔记，了解基本概念)
   - 2026-05-09: mastery=70 (+20, 深入学习操作符、空值传播、实际项目应用)
+  - 2026-05-14: mastery=80 (+10, 深入理解 transform/transformDeferred 的管道级改装语义，能区分 Assembly Time 与 Subscription Time)
 - 已理解：
   - ✅ Flux/Mono 的基本概念和区别
   - ✅ 三种信号（onNext/onError/onComplete）
@@ -276,4 +311,5 @@ Optional.empty().map(x -> x * 2)  // Optional.empty()
   - ✅ **核心操作符**：map/flatMap/thenReturn/.next() 的区别和使用场景
   - ✅ **空值传播机制**：Mono.empty() 导致后续操作符短路
   - ✅ **实际应用**：redis-counter-service-webflux 项目中的使用
-- 下一步：深入学习 doOn* 生命周期操作符、背压机制、错误处理策略
+  - ✅ **管道级改装**：transform（编译期宏替换）vs transformDeferred（运行时动态代理）
+- 下一步：深入学习 Scheduler 线程调度、Project Reactor 内部实现（如 MonoCreate.subscribeActual）
