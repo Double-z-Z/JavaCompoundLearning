@@ -100,4 +100,85 @@ Phase 2: 多 SKU Saga 补偿
 
 Phase 3: 热点商品本地缓存
   └─ Caffeine 吸收热点请求
+
+Phase 4: 三级熔断保护
+  └─ L1 入口 / L2 Redis / L3 MQ 分级熔断
+```
+
+---
+
+## Phase 4: 三级熔断保护
+
+### 架构设计
+
+```
+请求 → L1 入口熔断 (spike)
+         ├─ 正常 → L2 Redis 熔断 (redis_decrement)
+         │            ├─ 正常 → 执行 Lua 扣减
+         │            └─ 熔断 → 降级：拒绝下单
+         │
+         └─ 正常 → L3 MQ 熔断 (mq_send_order)
+                      ├─ 正常 → 发送 MQ 消息
+                      └─ 熔断 → 降级：本地暂存
+```
+
+### 熔断规则
+
+| 层级 | 资源名 | 熔断策略 | 时间窗口 | 降级策略 |
+|------|--------|----------|----------|----------|
+| L1 | `spike` | 慢调用比例 50% | 30s | 返回 429 |
+| L2 | `redis_decrement` | 异常比例 50% | 30s | 拒绝下单 |
+| L3 | `mq_send_order` | 异常比例 40% | 60s | 本地暂存 |
+
+### 关键实现
+
+**L1 UrlCleaner**：将 `/spike/*` 归一化为 `spike`，统一资源名
+
+```java
+// SentinelAdapterConfig.java
+WebFluxCallbackManager.setUrlCleaner((exchange, url) -> {
+    if (url.startsWith("/spike")) return "spike";
+    return url;
+});
+```
+
+**L2 熔断埋点**：使用 `SentinelReactorTransformer`
+
+```java
+// MultiSkuOrderServiceImpl.java
+return doPlaceOrder(request)
+    .transform(new SentinelReactorTransformer<>("redis_decrement"))
+    .onErrorResume(Exception.class, e -> fallbackToLocalCache(request));
+```
+
+**L3 降级**：本地暂存 + 补偿重发
+
+```java
+// SpikeOrderMQService.java
+private final Queue<SpikeOrderMessage> localMessageQueue = new ConcurrentLinkedQueue<>();
+
+public Mono<Integer> resendPendingMessages() {
+    // 从队列取出消息重新发送
+}
+```
+
+### 配置中心适配
+
+所有熔断参数通过 `application.yml` 管理，支持后续迁移到 Nacos/Apollo：
+
+```yaml
+sentinel:
+  spike:
+    qps-threshold: 10000
+    degrade:
+      slow-ratio-threshold: 0.5
+      time-window: 30
+  redis:
+    degrade:
+      exception-ratio-threshold: 0.5
+      time-window: 30
+  mq:
+    degrade:
+      exception-ratio-threshold: 0.4
+      time-window: 60
 ```

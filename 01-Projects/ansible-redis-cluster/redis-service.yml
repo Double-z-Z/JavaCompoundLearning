@@ -1,0 +1,27 @@
+---
+# Redis 服务启停 playbook
+# 用法：
+#   启动：ansible-playbook redis-service.yml -e cmd=start
+#   停止：ansible-playbook redis-service.yml -e cmd=stop
+
+- name: Redis Service Control
+  hosts: redis_cluster
+  become: yes
+  vars:
+    redis_service_name: redis-server
+  tasks:
+    - name: Start Redis
+      systemd:
+        name: "{{ redis_service_name }}"
+        state: started
+      when: cmd | default('start') == 'start'
+
+    - name: Stop Redis
+      systemd:
+        name: "{{ redis_service_name }}"
+        state: stopped
+      when: cmd | default('start') == 'stop'
+
+    - name: Report status
+      debug:
+        msg: "Redis service {{ redis_service_name }} is {{ 'running' if cmd | default('start') == 'start' else 'stopped' }} on {{ inventory_hostname }}"

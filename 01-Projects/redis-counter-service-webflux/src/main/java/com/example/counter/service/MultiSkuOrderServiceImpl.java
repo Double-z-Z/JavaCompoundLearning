@@ -1,5 +1,8 @@
 package com.example.counter.service;
 
+import com.alibaba.csp.sentinel.Tracer;
+import com.alibaba.csp.sentinel.adapter.reactor.SentinelReactorTransformer;
+import com.example.counter.config.SentinelConfig;
 import com.example.counter.dto.MultiSkuOrderRequest;
 import com.example.counter.dto.OrderItem;
 import com.example.counter.dto.OrderResult;
@@ -21,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * 多SKU下单服务实现
  * Saga补偿模式：每个SKU的检查+扣减在Lua脚本原子完成，跨SKU失败时补偿
+ * L2 熔断保护：Redis 不可用时拒绝下单（写操作不支持降级）
  */
 @Service
 public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
@@ -44,19 +48,31 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
             return Mono.just(OrderResult.failure("Empty order", Map.of()));
         }
 
-        // AtomicReference to collect results across async operations
+        // 使用 Sentinel Reactor Transformer 埋点 L2 资源
+        return doPlaceOrder(request)
+                .transform(new SentinelReactorTransformer<>(SentinelConfig.REDIS_DECREMENT_RESOURCE))
+                .onErrorResume(Exception.class, e -> {
+                    // 熔断/异常触发降级
+                    Tracer.trace(e);
+                    log.warn("Redis 熔断降级，拒绝下单（写操作不支持本地缓存降级）");
+                    return Mono.just(OrderResult.failure("Service degraded, please retry later", Map.of(), Map.of()));
+                });
+    }
+
+    /**
+     * 实际下单逻辑（Lua 原子扣减）
+     */
+    private Mono<OrderResult> doPlaceOrder(MultiSkuOrderRequest request) {
         AtomicReference<Map<String, Long>> successMap = new AtomicReference<>(new HashMap<>());
         AtomicReference<Map<String, Integer>> failedMap = new AtomicReference<>(new HashMap<>());
         AtomicReference<Map<String, Long>> compensateMap = new AtomicReference<>(new HashMap<>());
         AtomicBoolean hasFailure = new AtomicBoolean(false);
 
-        // Execute all SKU decrements in parallel
-        return Flux.fromIterable(items)
+        return Flux.fromIterable(request.getItems())
                 .flatMap(item -> {
                     String sku = item.getSku();
                     int qty = item.getQty();
 
-                    // 应用层校验：qty 必须大于 0
                     if (qty <= 0) {
                         hasFailure.set(true);
                         failedMap.get().put(sku, qty);
@@ -78,9 +94,7 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
                             failedMap.get().put(sku, qty);
                             log.debug("SKU {} decrement failed: insufficient stock, requested {}", sku, qty);
                         } else {
-                            // successMap: 存储剩余库存（用于返回给调用方）
                             successMap.get().put(sku, remaining);
-                            // 补偿map: 存储扣减量（用于补偿回滚）
                             compensateMap.get().put(sku, (long) qty);
                             log.debug("SKU {} decremented to {}", sku, remaining);
                         }
@@ -90,7 +104,6 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
                 .collectList()
                 .flatMap(results -> {
                     if (hasFailure.get()) {
-                        // Compensate: rollback successful decrements
                         return compensate(compensateMap.get())
                                 .thenReturn(OrderResult.failure("Partial failure, compensated", successMap.get(), failedMap.get()));
                     }
@@ -112,7 +125,6 @@ public class MultiSkuOrderServiceImpl implements MultiSkuOrderService {
                     Long decrementedQty = entry.getValue();
                     String key = "stock:" + sku;
 
-                    // Rollback by incrementing back
                     return redisTemplate.opsForValue()
                             .increment(key, decrementedQty)
                             .doOnNext(newVal -> log.debug("Compensated: {} +{} = {}", sku, decrementedQty, newVal));

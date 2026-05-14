@@ -26,13 +26,32 @@ stock:
   decrement:
     strategy: atomic  # atomic | raw
 
-# Sentinel 限流配置
+# Sentinel 限流+熔断配置
 sentinel:
   enabled: true
   spike:
     resource-name: spike
-    qps-threshold: 10000          # 单用户 QPS 阈值
-    cluster-threshold: 200000    # 集群总 QPS 阈值
+    qps-threshold: 10000          # QPS 限流阈值
+    # L1 熔断配置（慢调用比例）
+    degrade:
+      slow-ratio-threshold: 0.5   # 慢调用比例阈值 50%
+      min-request-amount: 5       # 最小请求数
+      max-processing-time: 3000   # 最大响应时间 3000ms
+      time-window: 30             # 熔断窗口 30s
+  redis:
+    resource-name: redis_decrement
+    # L2 熔断配置（异常比例）
+    degrade:
+      exception-ratio-threshold: 0.5  # 异常比例阈值 50%
+      min-request-amount: 10          # 最小请求数
+      time-window: 30                # 熔断窗口 30s
+  mq:
+    resource-name: mq_send_order
+    # L3 熔断配置（异常比例）
+    degrade:
+      exception-ratio-threshold: 0.4  # 异常比例阈值 40%
+      min-request-amount: 10          # 最小请求数
+      time-window: 60                 # 熔断窗口 60s（MQ恢复较慢）
 
 # RabbitMQ 削峰配置
 rabbitmq:

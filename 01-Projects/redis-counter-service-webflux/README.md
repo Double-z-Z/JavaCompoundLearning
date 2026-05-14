@@ -9,8 +9,23 @@
 - Spring Boot 3.2.0
 - Spring WebFlux（响应式）
 - Spring Data Redis Reactive
+- Alibaba Sentinel（熔断保护）
 - Netty（嵌入式服务器，默认端口 8081）
 - Lettuce 响应式客户端
+
+## 功能模块
+
+| 模块 | 说明 |
+|------|------|
+| 库存扣减 | Lua 脚本原子操作，防超卖 |
+| 多 SKU 下单 | Saga 补偿模式 |
+| 本地缓存 | Caffeine 热点商品缓存 |
+| 三级熔断 | L1 入口 / L2 Redis / L3 MQ |
+
+## 文档
+
+- [设计文档](docs/design.md)
+- 测试报告：[Phase1](docs/test/Phase1-Functional-Boundary-Tests.md) | [Phase2](docs/test/Phase2-DataSkew-Tests.md) | [Phase3](docs/test/Phase3-CircuitBreaker-Tests.md)
 
 ## 运行
 
