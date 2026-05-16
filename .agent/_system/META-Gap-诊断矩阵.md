@@ -48,7 +48,7 @@ Gap  = 差距分析
 | G-RED-01 | 数据结构底层实现 | [[EMRG-Redis]] 数据类型与编码有笔记，SDS/Ziplist/QuickList源码级不足 | 🟡 进行中 | 源码阅读，2周专项 | ✅ 执行 |
 | G-RED-02 | 持久化机制 | [[EMRG-Redis]] 持久化笔记 mastery=70 | 🟢 已达标 | 巩固，关闭缺口 | ✅ 执行 |
 | G-RED-03 | 高可用架构 | [[EMRG-Redis]] Cluster=85/主从复制/哨兵均有笔记 | 🟢 已达标 | 深入Sentinel选举机制 | ✅ 执行 |
-| G-RED-04 | 缓存策略最佳实践 | [[EMRG-Redis]] 数据倾斜/多级缓存/Caffeine有笔记，缺系统化策略 | 🟡 进行中 | 项目实战中沉淀 | ✅ 执行 |
+| G-RED-04 | 缓存策略最佳实践 | [[EMRG-Redis]] 数据倾斜/多级缓存/Caffeine有笔记，redis-counter-service-webflux 项目已实战验证 | 🟢 已达标 | 巩固，关闭缺口 | ✅ 执行 |
 
 ### GOAL-SpringCloud微服务（deadline: 2026-08-06 | priority: high）
 
@@ -56,7 +56,7 @@ Gap  = 差距分析
 |---------|---------|---------------|------|---------|---------|
 | G-SPR-01 | Spring Boot自动配置原理 | 无 EMRG 证据 | 🔴 高 | 项目+源码，2周专项 | ⏳ 待定 |
 | G-SPR-02 | Spring Cloud核心组件 | 无 EMRG 证据 | 🔴 高 | 组件逐一攻克 | ⏳ 待定 |
-| G-SPR-03 | 服务注册/发现/熔断/网关 | 无 EMRG 证据，有项目使用经验但原理空白 | 🔴 高 | 架构学习 + 源码 | ⏳ 待定 |
+| G-SPR-03 | 服务注册/发现/熔断/网关 | [[EMRG-Sentinel-高级特性与生态]] Sentinel 熔断已实战验证，缺网关/注册发现 | 🟡 进行中 | 补齐网关与注册发现原理 | ⏳ 待定 |
 | G-SPR-04 | 微服务架构设计 | 无 EMRG 证据，有项目使用经验但原理空白 | 🔴 高 | 从秒杀系统切入微服务拆分 | ⏳ 待定 |
 
 ### GOAL-ORM与缓存（deadline: 2026-09-06 | priority: medium）

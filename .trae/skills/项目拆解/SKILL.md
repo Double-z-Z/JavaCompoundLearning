@@ -74,8 +74,12 @@ description: 选择一个项目作为学习项目时，帮助插接所需知识�
 ---
 created: YYYY-MM-DD
 type: project
+id: PROJECT-<项目简述>
 tags: [<主题>]
 status: planning
+mastery: 0
+related_emrg: []
+related_goal: []
 ---
 
 # <项目名称>

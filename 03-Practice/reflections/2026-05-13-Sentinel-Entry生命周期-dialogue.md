@@ -2,6 +2,7 @@
 type: reflection
 date: 2026-05-13
 topic: Sentinel Entry 生命周期与 WebFlux 集成
+insights_extracted: true
 ---
 
 # 对话反思

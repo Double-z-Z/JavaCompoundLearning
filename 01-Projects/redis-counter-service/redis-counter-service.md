@@ -1,3 +1,16 @@
+---
+type: project
+id: PROJECT-redis-counter
+created: 2026-05-05
+tags: [redis, spring-boot, seckill, lua, cluster]
+status: active
+mastery: 75
+related_emrg:
+  - [[EMRG-Redis]]
+related_goal:
+  - [[GOAL-Redis深入]]
+---
+
 # Redis 高并发计数器服务
 
 基于 Redis 实现的高性能分布式计数器服务，支持 Redis Cluster 模式，适用于秒杀库存扣减、限流计数、统计计数等场景。
@@ -228,7 +241,7 @@ redis-counter-service/
 │   ├── pipeline压测指南.md                  # 压测指南
 │   └── 压测记录.md                          # 压测报告
 ├── pom.xml
-└── README.md
+└── redis-counter-service.md
 ```
 
 ---

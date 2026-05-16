@@ -9,16 +9,16 @@
     "nextReviewDate": "2026-07-14"
   },
   "version": "1.0.0",
-  "assessmentDate": "2026-04-14T00:00:00Z",
+  "assessmentDate": "2026-05-15T00:00:00Z",
   "maturity": {
     "overallLevel": "L2",
-    "overallScore": 52,
+    "overallScore": 56,
     "dimensions": [
       {
         "id": "core-tech",
         "name": "核心技术知识深度",
         "level": "L2",
-        "score": 65,
+        "score": 70,
         "weight": 0.25,
         "indicators": [
           {
@@ -72,27 +72,53 @@
           {
             "id": "nio",
             "name": "NIO/网络编程",
-            "score": 50,
-            "level": "L1",
-            "confidence": "low",
-            "evidence": [],
+            "score": 60,
+            "level": "L2",
+            "confidence": "medium",
+            "evidence": [
+              {
+                "type": "project",
+                "path": "01-Projects/redis-counter-service-webflux/",
+                "description": "基于Netty的WebFlux响应式库存服务"
+              },
+              {
+                "type": "note",
+                "path": "02-Knowledge/reactive/concepts/WebFlux响应式编程.md",
+                "description": "WebFlux响应式编程原理"
+              }
+            ],
             "gaps": [
-              "Buffer/Channel/Selector",
+              "epoll机制源码",
               "零拷贝机制",
-              "Reactor模式"
+              "Reactor模式源码"
             ]
           },
           {
             "id": "distributed",
             "name": "分布式系统",
-            "score": 30,
-            "level": "L1",
-            "confidence": "low",
-            "evidence": [],
+            "score": 55,
+            "level": "L2",
+            "confidence": "medium",
+            "evidence": [
+              {
+                "type": "note",
+                "path": "02-Knowledge/architecture/concepts/Saga模式.md",
+                "description": "Saga编排式与协调式分布式事务"
+              },
+              {
+                "type": "project",
+                "path": "01-Projects/ansible-redis-cluster/",
+                "description": "Redis Cluster 6节点部署与故障转移"
+              },
+              {
+                "type": "note",
+                "path": "02-Knowledge/redis/concepts/Redis-Cluster模式.md",
+                "description": "Redis Cluster数据分片与Gossip协议"
+              }
+            ],
             "gaps": [
-              "CAP定理",
-              "分布式事务",
-              "一致性协议"
+              "一致性协议源码",
+              "分布式共识算法"
             ]
           }
         ]
@@ -145,38 +171,54 @@
       {
         "id": "architecture",
         "name": "架构设计与权衡能力",
-        "level": "L1",
-        "score": 45,
+        "level": "L2",
+        "score": 55,
         "weight": 0.2,
         "indicators": [
           {
             "id": "high-concurrency-design",
             "name": "高并发设计",
-            "score": 50,
-            "level": "L2",
-            "confidence": "medium",
+            "score": 65,
+            "level": "L3",
+            "confidence": "high",
             "evidence": [
               {
                 "type": "project",
-                "path": "01-Projects/project-concurrency-test/",
-                "description": "并发测试项目"
+                "path": "01-Projects/redis-counter-service-webflux/",
+                "description": "三级熔断保护架构(L1/L2/L3)，Saga补偿模式"
+              },
+              {
+                "type": "project",
+                "path": "01-Projects/redis-counter-service/",
+                "description": "多级缓存设计，Lua原子扣减，35K QPS压测"
+              },
+              {
+                "type": "note",
+                "path": "02-Knowledge/architecture/concepts/秒杀超卖与库存一致性.md",
+                "description": "超卖容忍度三层级框架"
               }
             ],
             "gaps": [
-              "完整架构设计文档",
-              "容量规划"
+              "容量规划生产实践",
+              "全链路压测"
             ]
           },
           {
             "id": "cap-tradeoff",
             "name": "CAP权衡",
-            "score": 30,
-            "level": "L1",
-            "confidence": "low",
-            "evidence": [],
+            "score": 50,
+            "level": "L2",
+            "confidence": "medium",
+            "evidence": [
+              {
+                "type": "note",
+                "path": "02-Knowledge/architecture/concepts/秒杀超卖与库存一致性.md",
+                "description": "CAP定理在高并发秒杀场景下的权衡实践"
+              }
+            ],
             "gaps": [
-              "CAP理论应用",
-              "一致性模型选择"
+              "一致性模型源码级理解",
+              "分布式共识算法实践"
             ]
           },
           {
@@ -196,8 +238,8 @@
       {
         "id": "engineering",
         "name": "工程素养与实践能力",
-        "level": "L1",
-        "score": 35,
+        "level": "L2",
+        "score": 40,
         "weight": 0.2,
         "indicators": [
           {
@@ -227,13 +269,20 @@
           {
             "id": "cicd",
             "name": "CI/CD",
-            "score": 35,
-            "level": "L1",
-            "confidence": "low",
-            "evidence": [],
+            "score": 50,
+            "level": "L2",
+            "confidence": "medium",
+            "evidence": [
+              {
+                "type": "project",
+                "path": "01-Projects/ansible-redis-cluster/",
+                "description": "Ansible自动化部署：Bootstrap→Deploy→Check三阶段流水线"
+              }
+            ],
             "gaps": [
-              "流水线设计",
-              "质量门禁"
+              "GitLab CI/Jenkins流水线",
+              "质量门禁",
+              "蓝绿部署"
             ]
           },
           {
@@ -308,13 +357,20 @@
         "level": "L2",
         "score": 52,
         "file": "baseline-2026-04.json"
+      },
+      {
+        "date": "2026-05-15",
+        "level": "L2",
+        "score": 56,
+        "file": "current.json",
+        "trigger": "Redis项目评估"
       }
     ],
     "trends": {
       "core-tech": "improving",
       "problem-solving": "stable",
       "architecture": "improving",
-      "engineering": "stable",
+      "engineering": "improving",
       "learning": "improving"
     }
   },

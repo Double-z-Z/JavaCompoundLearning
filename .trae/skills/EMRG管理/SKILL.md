@@ -85,15 +85,21 @@ description: 知识图谱的生命周期管理：创建、分裂、归档EMRG。
    - 如有 ≥1 篇含 GitHub Commit 链接或 Incident 编号 → maturity: verified
    - 如全部仅为理论笔记 → maturity: theoretical
 
-2. 设置初始成熟度并记录原因
+2. 在 EMRG 正文末尾添加「## 成熟度说明」章节，记录原因
 ```
 
 **成熟度标记**:
 ```yaml
 ---
 maturity: verified | theoretical
-maturity_evidence: "[[笔记 A]] 含生产验证 Commit: xxx"
 ---
+```
+
+**成熟度说明示例**:
+```markdown
+## 成熟度说明
+
+架构/滑动窗口/限流/熔断/热点/流量效果/自适应/恢复/上下文均已通过 redis-counter-service-webflux 和 spike-protection 项目实战验证。
 ```
 
 ### Step 3: 关联 GOAL（双向链接）
@@ -122,9 +128,11 @@ maturity_evidence: "[[笔记 A]] 含生产验证 Commit: xxx"
 - `type: emrg` — 标识文件类型
 - `id: EMRG-{主题}` — 唯一标识
 - `maturity: verified | theoretical` — 成熟度
-- `maturity_evidence` — 验证证据
 - `related_goals: []` — 关联 GOAL（双向链接）
 - `subtopics: []` — 用于裂变检测
+
+**正文必填章节**:
+- `## 成熟度说明` — 验证证据（为什么是这个成熟度？涉及哪些笔记/项目/实战经验？）
 
 ### Step 5: 更新涌现日志
 

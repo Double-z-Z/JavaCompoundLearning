@@ -8,7 +8,7 @@ deadline: {{date:YYYY-MM-DD}}
 status: active | completed | archived
 created: {{date:YYYY-MM-DD}}
 updated: {{date:YYYY-MM-DD}}
-evidence: "[[{{驱动事件链接}}]]"
+evidence: "[{{驱动事件}}]"
 ---
 
 # GOAL-{{主题}}-{{季度}}

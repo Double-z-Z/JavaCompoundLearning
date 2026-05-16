@@ -1,3 +1,18 @@
+---
+type: project
+id: PROJECT-redis-counter-webflux
+created: 2026-05-09
+tags: [redis, webflux, reactive, sentinel, seckill]
+status: active
+mastery: 70
+related_emrg:
+  - [[EMRG-Redis]]
+  - [[EMRG-Sentinel-高级特性与生态]]
+related_goal:
+  - [[GOAL-Redis深入]]
+  - [[GOAL-Java核心深化]]
+---
+
 # Redis Counter Service WebFlux 版本
 
 基于 Spring WebFlux 的响应式版本，与 Spring MVC 版本对比学习。

@@ -216,14 +216,14 @@ AI 追问 + 引导反思
 | `05-Templates/原子笔记模板.md` | 核心概念笔记    | `02-Knowledge/<主题>/concepts/` |
 | `05-Templates/练习记录模板.md` | 练习代码记录    | `03-Practice/drills/`         |
 | `05-Templates/反思记录模板.md` | 思维误区与对话感悟 | `03-Practice/reflections/`    |
+| `05-Templates/项目笔记模板.md` | 项目实战记录    | `01-Projects/<项目名>/{项目名}.md` |
 
 **原子笔记 frontmatter 要求**：
 - `type: atomic-note`
 - `id: CONCEPT-<简述>`
 - `related_goal: []`
 - `related_emrg: []`
-**`related_emrg` 由涌现创建流程统一回填（不在笔记创建时处理）**：
-
+**`related_emrg` 由涌现创建流程统一回填（不在笔记创建时处理）**
 ### 6. 涌现检测规则库（只读参考）
 
 > 本节为规则详细说明，**实际执行入口在** **`4.1`**。

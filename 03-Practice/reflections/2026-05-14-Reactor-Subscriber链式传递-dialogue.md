@@ -8,8 +8,9 @@ tags:
   - publisher
   - sentinel
   - webflux
-related_emrg: [[EMRG-Spring性能优化]]
+related_emrg: [EMRG-Spring性能优化]
 related_goal: [GOAL-Java核心深化]
+insights_extracted: true
 ---
 
 # Reactor Subscriber 链式传递机制对话记录

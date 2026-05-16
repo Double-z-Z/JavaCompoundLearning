@@ -42,7 +42,19 @@ created: 2026-05-06
 
 | 触发源    | 触发类型   | 检测时间   | 状态     |
 | ------ | ------ | ------ | ------ |
+| EMRG-Sentinel | 概念裂变 | 2026-05-14 | ✅ 已执行 |
 | <br /> | <br /> | <br /> | <br /> |
+
+### 2026-05-14: EMRG-Sentinel 概念裂变
+
+| 字段 | 值 |
+|------|-----|
+| 触发类型 | 概念裂变 |
+| 涉及笔记 | [[Sentinel-核心架构]], [[LeapArray-滑动窗口]], [[Sentinel-熔断机制]], [[Sentinel-热点参数限流]], [[Sentinel-流量控制效果]], [[Sentinel-自适应限流]], [[Sentinel-上下文传播]], [[Sentinel-Entry生命周期与WebFlux集成]] |
+| 涉及MOC | [[EMRG-Sentinel]] → [[EMRG-Sentinel-核心机制]] + [[EMRG-Sentinel-高级特性与生态]] |
+| LLM建议 | 分裂为 EMRG-Sentinel-核心机制（10 个子主题）与 EMRG-Sentinel-高级特性与生态（4 个子主题） |
+| 最终决策 | ✅ 已执行 |
+| 原因 | 子主题 13 个超过阈值 7；基础机制已通过项目验证，高级特性待探索；Sentinel-Entry生命周期与WebFlux集成 标题过长、粒度太细，降级为高级特性 EMRG 下的深度文档 |
 
 ***
 

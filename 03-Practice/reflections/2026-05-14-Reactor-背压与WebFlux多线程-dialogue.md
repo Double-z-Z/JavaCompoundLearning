@@ -2,6 +2,7 @@
 type: reflection
 date: 2026-05-14
 topic: Reactor 背压机制、WebFlux 多线程生命周期、transform 操作符本质
+insights_extracted: true
 ---
 
 # 对话反思
