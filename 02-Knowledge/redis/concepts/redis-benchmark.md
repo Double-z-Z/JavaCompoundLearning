@@ -1,9 +1,13 @@
 ---
+type: atomic-note
+id: CONCEPT-redis-benchmark
 created: 2026-05-04
 updated: 2026-05-04
 topic: Redis性能基准测试
 tags: [redis, benchmark, performance]
 mastery: 45
+related_emrg: [EMRG-Redis]
+related_goal: [GOAL-Redis深入]
 ---
 
 # Redis性能基准测试

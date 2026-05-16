@@ -8,7 +8,7 @@ tags:
   - probabilistic-data-structure
 mastery: 50
 source: "[[03-Practice/reflections/2026-05-02-本地缓存-Caffeine-对话.md]]"
-related_emrg: [[EMRG-Sentinel]]
+related_emrg: [EMRG-Cache]
 related_goal:
   - GOAL-ORM与缓存
 ---

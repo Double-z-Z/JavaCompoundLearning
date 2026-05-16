@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-Redis主从复制
 created: 2026-05-01
 tags: [redis, 主从复制, 高可用]
 status: 🌿
 mastery: 60
+related_emrg: [EMRG-Redis]
+related_goal: [GOAL-Redis深入]
 ---
 
 # Redis 主从复制

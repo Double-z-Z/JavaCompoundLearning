@@ -3,7 +3,7 @@ type: atomic-note
 id: CONCEPT-redis-pipeline-in-seckill
 created: 2026-05-07
 tags: [redis, pipeline, seckill, lua, atomic-operation, batch]
-related_emrg: []
+related_emrg: [EMRG-Redis]
 related_goal: [GOAL-Java核心深化]
 mastery: 50
 ---

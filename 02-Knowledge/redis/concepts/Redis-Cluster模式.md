@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-RedisCluster模式
 created: 2026-05-01
 tags: [redis, cluster, 分布式, 数据分片]
 status: 🌿
 mastery: 60
+related_emrg: [EMRG-Redis]
+related_goal: [GOAL-Redis深入]
 ---
 
 # Redis Cluster 模式

@@ -3,8 +3,8 @@ type: atomic-note
 id: CONCEPT-redis-benchmark-layered-analysis
 created: 2026-05-07
 tags: [redis, benchmark, performance, bottleneck-analysis]
-related_emrg: [EMRG-Redis高性能实践]
-related_goal: [GOAL-Redis核心深化]
+related_emrg: [EMRG-Redis]
+related_goal: [GOAL-Redis深入]
 mastery: 60
 ---
 

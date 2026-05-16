@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-Redis持久化
 created: 2026-05-01
 tags: [redis, 持久化, 高可用]
 status: 🌿
 mastery: 65
+related_emrg: [EMRG-Redis]
+related_goal: [GOAL-Redis深入]
 ---
 
 # Redis 持久化机制

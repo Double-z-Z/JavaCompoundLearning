@@ -8,7 +8,7 @@ tags:
   - Count-Min-Sketch
 mastery: 55
 source: "[[03-Practice/reflections/2026-05-11-Sentinel-对话.md]]"
-related_emrg: [[EMRG-Sentinel]]
+related_emrg: [EMRG-Sentinel-核心机制]
 related_goal: []
 ---
 

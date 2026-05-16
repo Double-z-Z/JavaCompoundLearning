@@ -3,6 +3,7 @@ created: 2026-04-15
 tags: [nio, 网络编程, IO模型]
 status: 🌿
 mastery: 40
+related_emrg: [EMRG-NIO网络编程]
 ---
 
 # BIO模型（Blocking IO）

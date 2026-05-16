@@ -3,7 +3,7 @@ type: atomic-note
 id: CONCEPT-saga-pattern
 created: 2026-05-08
 tags: [分布式, 一致性, 架构]
-related_emrg: []
+related_emrg: [EMRG-Redis]
 related_goal: [GOAL-Java核心深化]
 mastery: 50
 ---

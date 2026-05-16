@@ -2,7 +2,7 @@
 title: Sentinel 系统自适应限流
 tags: [Sentinel, 自适应, 系统保护]
 mastery: 60
-related_emrg: [[EMRG-Sentinel]]
+related_emrg: [EMRG-Sentinel-核心机制]
 related:
   - "[[Sentinel-熔断机制|Sentinel 熔断机制]]"
   - "[[Sentinel-流量控制效果|Sentinel 流量控制效果]]"

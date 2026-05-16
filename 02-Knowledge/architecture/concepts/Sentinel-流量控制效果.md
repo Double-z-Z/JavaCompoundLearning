@@ -2,7 +2,7 @@
 title: Sentinel 流量控制效果
 tags: [Sentinel, 限流, Warm Up, 排队]
 mastery: 60
-related_emrg: [[EMRG-Sentinel]]
+related_emrg: [EMRG-Sentinel-核心机制]
 related:
   - "[[Sentinel-核心架构|Sentinel 核心架构]]"
   - "[[LeapArray-滑动窗口|LeapArray 滑动窗口]]"

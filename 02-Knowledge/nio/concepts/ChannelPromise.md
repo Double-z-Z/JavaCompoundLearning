@@ -3,6 +3,7 @@ created: 2026-04-25
 tags: [nio, netty, async]
 status: 🌿
 mastery: 50
+related_emrg: [EMRG-NIO网络编程]
 ---
 
 # ChannelPromise

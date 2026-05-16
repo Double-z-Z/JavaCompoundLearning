@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-Redis数据类型与编码
 created: 2026-04-29
 tags: [redis, 数据结构]
 status: 🌿
 mastery: 55
+related_emrg: [EMRG-Redis]
+related_goal: [GOAL-Redis深入]
 ---
 
 # Redis 数据类型与内部编码
@@ -105,15 +109,10 @@ HSET hash field1 value1  # ziplist
 - 更新记录：
   - 2026-04-29: mastery=55 (深入理解5种数据类型编码原理和跳表算法)
 
-### 建议下一步
-1. 实践Jedis操作5种数据类型
-2. 学习Redis持久化机制（RDB/AOF）
-3. 阅读Redis源码中的ziplist/skiplist实现
-
 ---
 
 ```dataview
 TABLE status, mastery, length(file.inlinks) as "入链", length(file.outlinks) as "出链"
-FROM #redis
+FROM #redis and #数据结构 
 SORT mastery DESC
 ```

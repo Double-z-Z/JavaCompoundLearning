@@ -5,7 +5,7 @@ created: 2026-05-02
 tags: [cache, caffeine]
 mastery: 55
 source: "[[03-Practice/reflections/2026-05-02-本地缓存-Caffeine-对话.md]]"
-related_emrg: [[EMRG-Sentinel]]
+related_emrg: [EMRG-Cache]
 related_goal: [GOAL-ORM与缓存]
 ---
 
@@ -98,11 +98,6 @@ Caffeine.newBuilder()
 - 当前等级：🌿理解
 - 更新记录：
   - 2026-05-02: mastery=55 (深入理解算法原理，能解释 Window/Main 双区设计、晋升机制、衰减策略)
-
-### 建议下一步
-1. 阅读 Caffeine 源码，理解具体实现细节
-2. 在实际项目中应用，观察命中率变化
-3. 对比纯 LRU 和 W-TinyLFU 在不同访问模式下的表现
 
 ---
 

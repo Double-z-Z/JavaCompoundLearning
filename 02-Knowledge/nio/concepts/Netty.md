@@ -3,6 +3,7 @@ created: 2026-04-24
 tags: [nio, netty, framework]
 status: 🌿
 mastery: 55
+related_emrg: [EMRG-NIO网络编程]
 ---
 
 # Netty

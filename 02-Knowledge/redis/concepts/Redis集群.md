@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-Redis集群
 created: 2026-04-28
 tags: [redis, cluster, 分布式]
 status: 🌿
 mastery: 55
+related_emrg: [EMRG-Redis]
+related_goal: [GOAL-Redis深入]
 ---
 
 # Redis 集群

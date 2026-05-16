@@ -3,6 +3,7 @@ created: 2026-04-19
 tags: [nio, 资源管理]
 status: 🌿
 mastery: 60
+related_emrg: [EMRG-NIO网络编程]
 ---
 
 # NIO优雅关闭模式

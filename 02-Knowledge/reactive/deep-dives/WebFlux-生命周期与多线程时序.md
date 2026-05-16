@@ -10,7 +10,7 @@ tags:
   - 生命周期
 mastery: 75
 source: "[[03-Practice/reflections/2026-05-14-Reactor-背压与WebFlux多线程-dialogue.md]]"
-related_emrg: [[EMRG-Spring性能优化]]
+related_emrg: [EMRG-Reactive响应式编程]
 related_goal: [GOAL-Java核心深化]
 ---
 
@@ -161,7 +161,18 @@ sequenceDiagram
 ### 2. `DefaultMonoSink` 的双重身份
 在 `MonoCreate.subscribeActual()` 中，Reactor 创建 `DefaultMonoSink` 实例。它**既是 `Subscription`（供下游 request/cancel），也是信号发射器（`sink.success()`）**。
 
-### 3. 多线程切换的精确位置
+### 3. transform vs transformDeferred 的本质区别
+
+| 维度 | `transform` | `transformDeferred` |
+|------|-------------|---------------------|
+| **执行时机** | Assembly Time（立即执行） | Subscription Time（延迟执行） |
+| **共享性** | 所有订阅者共享结果 Publisher | 每次订阅动态生成新 Publisher |
+| **类比** | 编译期宏替换 | 运行时动态代理 |
+| **输入** | `Function<Mono<T>, Publisher<V>>` — **整条管道** | 同上 |
+
+> 💡 核心陷阱：`transform` 的输入是整条管道，不是管道里的数据。如果在 `transform` 内部有副作用（如创建随机 ID），所有订阅者会共享同一个副作用结果。
+
+### 4. 多线程切换的精确位置
 - **`.publishOn(Scheduler)`**：从此操作符开始，**下游的 `onNext` / `onComplete`** 在 Scheduler 线程执行
 - **`.subscribeOn(Scheduler)`**：将**最上游的数据源订阅与发射**切换到 Scheduler 线程
 - 只有通过上述操作符或阻塞外包时，才会出现第二张线程卡

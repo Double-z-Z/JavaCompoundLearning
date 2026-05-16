@@ -2,11 +2,10 @@
 type: atomic-note
 id: CONCEPT-flux-mono-core
 created: 2026-05-07
-updated: 2026-05-09
-tags: [reactor, publisher, 操作符, 生命周期]
-related_emrg: [EMRG-Spring性能优化]
-related_goal: [GOAL-Java核心深化]
 updated: 2026-05-14
+tags: [reactor, publisher, 操作符, 生命周期]
+related_emrg: [EMRG-Reactive响应式编程]
+related_goal: [GOAL-Java核心深化]
 mastery: 80
 source: "[[03-Practice/reflections/2026-05-09-webflux-operators-dialogue.md]]"
 ---

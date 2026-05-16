@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-跳表
 created: 2026-04-29
 tags: [redis, 数据结构, 算法]
 status: 🌿
 mastery: 60
+related_emrg: [EMRG-Redis]
+related_goal: [GOAL-Redis深入]
 ---
 
 # 跳表（Skip List）

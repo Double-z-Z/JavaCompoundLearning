@@ -3,6 +3,7 @@ created: 2026-04-16
 tags: [nio, 网络编程]
 status: 🌿
 mastery: 35
+related_emrg: [EMRG-NIO网络编程]
 ---
 
 # Socket流关闭语义

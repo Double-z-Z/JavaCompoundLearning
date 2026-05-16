@@ -3,6 +3,7 @@ created: 2026-04-17
 tags: [nio, IO模型]
 status: 🌿
 mastery: 70
+related_emrg: [EMRG-NIO网络编程]
 ---
 
 # NIO Buffer

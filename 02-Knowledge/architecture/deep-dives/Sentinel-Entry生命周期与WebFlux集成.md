@@ -7,10 +7,10 @@ tags:
   - webflux
   - entry
   - reactor
-mastery: 80
+mastery: 85
 source: "[[03-Practice/reflections/2026-05-13-Sentinel-Entry生命周期-dialogue.md]]"
-related_emrg: [[EMRG-Sentinel]]
-related_goal: []
+related_emrg: [EMRG-Sentinel-高级特性与生态]
+related_goal: [GOAL-Java核心深化, GOAL-SpringCloud微服务]
 ---
 
 # Sentinel Entry 生命周期与 WebFlux 集成

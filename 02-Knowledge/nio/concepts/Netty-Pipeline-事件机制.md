@@ -3,6 +3,7 @@ created: 2026-04-25
 tags: [nio, netty]
 status: 🌿
 mastery: 55
+related_emrg: [EMRG-NIO网络编程]
 ---
 
 # Netty Pipeline 事件机制

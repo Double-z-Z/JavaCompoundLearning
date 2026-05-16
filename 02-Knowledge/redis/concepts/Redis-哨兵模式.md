@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-Redis哨兵模式
 created: 2026-05-01
 tags: [redis, 哨兵, 高可用, raft]
 status: 🌿
 mastery: 65
+related_emrg: [EMRG-Redis]
+related_goal: [GOAL-Redis深入]
 ---
 
 # Redis 哨兵模式（Sentinel）

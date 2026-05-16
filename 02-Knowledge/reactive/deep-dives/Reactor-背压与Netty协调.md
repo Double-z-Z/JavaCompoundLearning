@@ -10,7 +10,7 @@ tags:
   - backpressure
 mastery: 75
 source: "[[03-Practice/reflections/2026-05-14-Reactor-背压与WebFlux多线程-dialogue.md]]"
-related_emrg: [[EMRG-Spring性能优化]]
+related_emrg: [EMRG-Reactive响应式编程]
 related_goal: [GOAL-Java核心深化]
 ---
 

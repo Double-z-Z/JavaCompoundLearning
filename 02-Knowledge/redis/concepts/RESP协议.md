@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-RESP协议
 created: 2026-04-28
 tags: [redis, protocol, 网络编程]
 status: 🌿
 mastery: 60
+related_emrg: [EMRG-Redis]
+related_goal: [GOAL-Redis深入]
 ---
 
 # RESP 协议
