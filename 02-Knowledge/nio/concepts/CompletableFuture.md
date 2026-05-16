@@ -1,8 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-CompletableFuture
 created: 2026-04-25
+updated: 2026-05-16
 tags: [nio, 并发, async]
-status: 🌿
 mastery: 55
+related_emrg: [EMRG-并发编程, EMRG-NIO网络编程]
+related_goal: [GOAL-Java核心深化]
 ---
 
 # CompletableFuture

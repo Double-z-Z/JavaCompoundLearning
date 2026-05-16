@@ -1,7 +1,12 @@
 ---
+type: atomic-note
+id: CONCEPT-Parker
 created: 2026-04-12
+updated: 2026-05-16
 tags: [并发, jvm]
-status: 🌱
+mastery: 25
+related_emrg: [EMRG-并发编程]
+related_goal: [GOAL-Java核心深化]
 ---
 
 # Parker
