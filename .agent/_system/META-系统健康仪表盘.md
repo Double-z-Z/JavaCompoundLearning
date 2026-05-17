@@ -2,7 +2,7 @@
 type: meta_health
 description: 系统健康仪表盘 - 知识图谱健康度监控
 created: 2026-05-06
-updated: {{date:YYYY-MM-DD}}
+updated: 2026-05-16
 ---
 
 # META-系统健康仪表盘
@@ -18,8 +18,8 @@ updated: {{date:YYYY-MM-DD}}
 
 | 指标 | 值 | 状态 | 说明 |
 |------|-----|------|------|
-| EMRG数量 | 3 | ✅ | 结构清晰 |
-| GOAL完成率 | 2/8 | 🟡 | 需加速 |
+| EMRG数量 | 6 | ✅ | 结构清晰（+Reactive +Sentinel裂变 +Cache） |
+| GOAL完成率 | 0/8 | 🟡 | 全部active，需加速 |
 | 孤儿笔记 | 待统计 | - | 需检查 |
 | 僵尸MOC | 0 | ✅ | 无 |
 
@@ -102,3 +102,7 @@ SORT length(file.outlinks) + length(file.inlinks) DESC
 | 日期 | 事件 | 影响 |
 |------|------|------|
 | 2026-05-06 | 完成三层架构重构 | 🟢 正面 |
+| 2026-05-14 | EMRG-Sentinel 概念裂变（核心机制+高级特性） | 🟢 正面 |
+| 2026-05-15 | 三项目评估卡片生成，current.json 52→56 | 🟢 正面 |
+| 2026-05-16 | 新建 EMRG-Reactive（6篇笔记）、EMRG-Cache（3篇笔记） | 🟢 正面 |
+| 2026-05-16 | 本周回顾完成，AI判断层全面更新 | 🟢 正面 |

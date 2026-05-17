@@ -2,7 +2,7 @@
 type: meta_gap
 description: Gap诊断矩阵 - GOAL与EMRG对比分析
 created: 2026-05-06
-updated: 2026-05-11
+updated: 2026-05-16
 ---
 
 # META-Gap-诊断矩阵
@@ -39,7 +39,7 @@ Gap  = 差距分析
 | G-JAV-03 | 反射与注解 | 无 EMRG 证据 | 🔴 高 | 框架原理切入，2周专项 | ⏸️ 暂缓 |
 | G-JAV-04 | Netty深入 | [[EMRG-NIO网络编程]] Netty概念笔记 mastery=65，源码级理解不足 | 🟡 进行中 | 源码阅读：EventLoop/ByteBuf | ⏸️ 暂缓 |
 | G-JAV-05 | 手写线程池 | [[EMRG-并发编程]] 线程池理论有笔记，缺"徒手实现"交付物 | 🟡 进行中 | 项目驱动，1周交付 | ⏸️ 暂缓 |
-| G-JAV-06 | Java内存模型与volatile/CAS | [[EMRG-并发编程]] futex/CAS底层有笔记，JMM体系化不足 | 🟡 进行中 | 补齐JMM + volatile内存屏障 | ⏸️ 暂缓 |
+| G-JAV-06 | Java内存模型与volatile/CAS | [[EMRG-并发编程]] futex/CAS底层有原子笔记，JMM体系化仍不足 | 🟡 进行中 | 补齐JMM + volatile内存屏障 | ⏸️ 暂缓 |
 
 ### GOAL-Redis深入（deadline: 2026-07-06 | priority: high）
 
@@ -47,16 +47,16 @@ Gap  = 差距分析
 |---------|---------|---------------|------|---------|---------|
 | G-RED-01 | 数据结构底层实现 | [[EMRG-Redis]] 数据类型与编码有笔记，SDS/Ziplist/QuickList源码级不足 | 🟡 进行中 | 源码阅读，2周专项 | ✅ 执行 |
 | G-RED-02 | 持久化机制 | [[EMRG-Redis]] 持久化笔记 mastery=70 | 🟢 已达标 | 巩固，关闭缺口 | ✅ 执行 |
-| G-RED-03 | 高可用架构 | [[EMRG-Redis]] Cluster=85/主从复制/哨兵均有笔记 | 🟢 已达标 | 深入Sentinel选举机制 | ✅ 执行 |
+| G-RED-03 | 高可用架构 | [[EMRG-Redis]] Cluster=85/主从复制/哨兵均有笔记，[[EMRG-Sentinel-核心机制]] 已verified | 🟢 已达标 | 巩固，关注Sentinel高级特性 | ✅ 执行 |
 | G-RED-04 | 缓存策略最佳实践 | [[EMRG-Redis]] 数据倾斜/多级缓存/Caffeine有笔记，redis-counter-service-webflux 项目已实战验证 | 🟢 已达标 | 巩固，关闭缺口 | ✅ 执行 |
 
 ### GOAL-SpringCloud微服务（deadline: 2026-08-06 | priority: high）
 
 | 缺口 ID | 目标能力 | 当前 EMRG 证据 | 差距 | 建议策略 | 你的决策 |
 |---------|---------|---------------|------|---------|---------|
-| G-SPR-01 | Spring Boot自动配置原理 | 无 EMRG 证据 | 🔴 高 | 项目+源码，2周专项 | ⏳ 待定 |
+| G-SPR-01 | Spring Boot自动配置原理 | 无 EMRG 证据，有 2026-05-15 对话反思（自动配置与Starter） | 🟡 进行中 | 项目+源码，2周专项 | ⏳ 待定 |
 | G-SPR-02 | Spring Cloud核心组件 | 无 EMRG 证据 | 🔴 高 | 组件逐一攻克 | ⏳ 待定 |
-| G-SPR-03 | 服务注册/发现/熔断/网关 | [[EMRG-Sentinel-高级特性与生态]] Sentinel 熔断已实战验证，缺网关/注册发现 | 🟡 进行中 | 补齐网关与注册发现原理 | ⏳ 待定 |
+| G-SPR-03 | 服务注册/发现/熔断/网关 | [[EMRG-Sentinel-核心机制]] 熔断限流已verified，[[EMRG-Sentinel-高级特性与生态]] 待探索，缺网关/注册发现 | 🟡 进行中 | 补齐网关与注册发现原理 | ⏳ 待定 |
 | G-SPR-04 | 微服务架构设计 | 无 EMRG 证据，有项目使用经验但原理空白 | 🔴 高 | 从秒杀系统切入微服务拆分 | ⏳ 待定 |
 
 ### GOAL-ORM与缓存（deadline: 2026-09-06 | priority: medium）
@@ -105,21 +105,21 @@ Gap  = 差距分析
 | 类型 | 数量 |
 |------|------|
 | 🟢 已达标（可关闭） | 4 |
-| 🟡 进行中（需持续推进） | 9 |
-| 🔴 高（需新建EMRG/专项突破） | 19 |
+| 🟡 进行中（需持续推进） | 10 |
+| 🔴 高（需新建EMRG/专项突破） | 18 |
 | **总计缺口** | **32** |
 
 ### 按优先级分布
 
 | 优先级 | GOAL数 | 🔴 高缺口数 | 🟡 进行中缺口数 | 🟢 已达标缺口数 |
 |--------|--------|------------|----------------|----------------|
-| high | 3 | 10 | 6 | 3 |
+| high | 3 | 9 | 7 | 3 |
 | medium | 4 | 9 | 3 | 1 |
 | low | 1 | 0 | 2 | 0 |
 
 ### 最紧迫的Top 5缺口（按deadline + 差距等级排序）
 
-1. **G-SPR-01/02/03/04** SpringCloud全家桶（deadline 08-06，4个🔴高缺口）— **最大风险域**
+1. **G-SPR-02/04** SpringCloud核心组件+架构设计（deadline 08-06，2个🔴高缺口）— **最大风险域**
 2. **G-RED-01** Redis数据结构底层（deadline 07-06，🔴高/🟡进行中）
 3. **G-JAV-03** 反射与注解（deadline 08-06，🔴高）
 4. **G-JAV-02** NIO epoll/零拷贝（deadline 08-06，🟡进行中但核心要求）

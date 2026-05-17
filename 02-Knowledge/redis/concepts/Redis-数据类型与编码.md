@@ -62,6 +62,8 @@ entry: <prevlen><encoding><content>
 - [[HashMap]] - 关联原因：Redis hashtable与Java HashMap设计对比
 - [[时间复杂度分析]] - 关联原因：不同编码的操作复杂度差异
 - [[内存管理]] - 关联原因：编码切换的内存权衡
+- [[Redis-SDS设计]] - 关联原因：String 类型的 int/embstr/raw 编码底层都是 SDS 实现，embstr 的 44 字节阈值是对 jemalloc 的精确适配
+- [[Redis-渐进式rehash]] - 关联原因：Hash 类型从 ziplist 切换为 hashtable 后，数据量继续增长会触发渐进式 rehash 扩容
 
 
 ## 我的误区与疑问

@@ -2,6 +2,7 @@
 type: atomic-note
 id: CONCEPT-Redis持久化
 created: 2026-05-01
+updated: 2026-05-17
 tags: [redis, 持久化, 高可用]
 status: 🌿
 mastery: 65
@@ -85,6 +86,8 @@ AOF 文件结构：
 - [[Redis-数据类型与编码]] - 关联原因：RDB 持久化时保留数据的内部编码（ziplist/intset 等），加载时直接还原
 - [[Redis-主从复制]] - 关联原因：全量同步使用 BGSAVE 生成 RDB 传输给 Slave
 - [[fork-系统调用]] - 关联原因：BGSAVE 和 AOF 重写都依赖 fork() + COW 机制
+- [[Redis-Copy-On-Write]] - 关联原因：BGSAVE 期间 Redis 使用 COW 避免阻塞，COW 期间的内存变化与 rehash 阈值调整相关
+- [[Redis-渐进式rehash]] - 关联原因：Redis 在 BGSAVE 期间提高 rehash 阈值（从 1 到 5），减少 COW 期间的内存页复制
 - [[NIO-Buffer]] - 关联原因：AOF 的 `everysec` 策略类似于批量刷盘的权衡思想
 
 
@@ -134,6 +137,7 @@ BGREWRITEAOF
 - 当前等级：🌿理解
 - 更新记录：
   - 2026-05-01: mastery=65 (深入理解 RDB/AOF/混合持久化原理，掌握 fork+COW 机制)
+  - 2026-05-17: 关联 [[Redis-Copy-On-Write]]、[[Redis-渐进式rehash]]，补充 COW 与 rehash 阈值的关系
 
 ### 建议下一步
 1. 实践 Jedis 操作并观察 AOF 文件变化

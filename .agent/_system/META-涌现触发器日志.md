@@ -1,9 +1,9 @@
-***
-
-type: meta\_emergence
+---
+type: meta_emergence
 description: 涌现触发器日志 - 记录MOC相变事件
 created: 2026-05-06
--------------------
+updated: 2026-05-16
+---
 
 # META-涌现触发器日志
 
@@ -34,17 +34,6 @@ created: 2026-05-06
 | EMRG-NIO创建   | 密度阈值 | ✅ 保留 | 基于NIO学习专题   |
 | EMRG-并发编程创建  | 密度阈值 | ✅ 保留 | 基于并发学习专题    |
 
-***
-
-## 待评估触发器
-
-> 以下是当前检测到但尚未决策的触发事件
-
-| 触发源    | 触发类型   | 检测时间   | 状态     |
-| ------ | ------ | ------ | ------ |
-| EMRG-Sentinel | 概念裂变 | 2026-05-14 | ✅ 已执行 |
-| <br /> | <br /> | <br /> | <br /> |
-
 ### 2026-05-14: EMRG-Sentinel 概念裂变
 
 | 字段 | 值 |
@@ -55,6 +44,41 @@ created: 2026-05-06
 | LLM建议 | 分裂为 EMRG-Sentinel-核心机制（10 个子主题）与 EMRG-Sentinel-高级特性与生态（4 个子主题） |
 | 最终决策 | ✅ 已执行 |
 | 原因 | 子主题 13 个超过阈值 7；基础机制已通过项目验证，高级特性待探索；Sentinel-Entry生命周期与WebFlux集成 标题过长、粒度太细，降级为高级特性 EMRG 下的深度文档 |
+
+### 2026-05-16: EMRG-Reactive 密度阈值触发
+
+| 字段 | 值 |
+|------|-----|
+| 触发类型 | 密度阈值 |
+| 涉及笔记 | [[Flux核心概念]], [[Reactor-Pattern-vs-ReactiveStreams-vs-ProjectReactor]], [[响应式生命周期信号]], [[Reactor-Subscriber链式传递机制]], [[Reactor-背压与Netty协调]], [[WebFlux-生命周期与多线程时序]] |
+| 涉及MOC | 新建 [[EMRG-Reactive响应式编程]] |
+| LLM建议 | 新建 EMRG-Reactive 响应式编程，整合 Reactor/WebFlux/Netty 关联知识 |
+| 最终决策 | ✅ 已执行 |
+| 原因 | 同一主题 6 篇原子笔记，与 EMRG-NIO 有交叉链接（Netty 协调），独立成图有助于聚焦响应式范式 |
+
+### 2026-05-16: EMRG-Cache 密度阈值触发
+
+| 字段 | 值 |
+|------|-----|
+| 触发类型 | 密度阈值 |
+| 涉及笔记 | [[Count-Min-Sketch]], [[W-TinyLFU]], [[多级缓存一致性]], [[缓存失效策略]] |
+| 涉及MOC | 新建 [[EMRG-Cache]] |
+| LLM建议 | 新建 EMRG-Cache，关联 EMRG-Redis（Caffeine/Redis 多级缓存已在项目中实战） |
+| 最终决策 | ✅ 已执行 |
+| 原因 | 缓存策略在 redis-counter-service-webflux 项目中实战验证，独立成图可支撑 GOAL-ORM与缓存 及 GOAL-Redis深入 |
+
+***
+
+## 待评估触发器
+
+> 以下是当前检测到但尚未决策的触发事件
+
+| 触发源    | 触发类型   | 检测时间   | 状态     |
+| ------ | ------ | ------ | ------ |
+| EMRG-Sentinel | 概念裂变 | 2026-05-14 | ✅ 已执行 |
+| EMRG-Reactive | 密度阈值 | 2026-05-16 | ✅ 已执行 |
+| EMRG-Cache | 密度阈值 | 2026-05-16 | ✅ 已执行 |
+| <br /> | <br /> | <br /> | <br /> |
 
 ***
 
@@ -80,4 +104,3 @@ created: 2026-05-06
 1. 当LLM检测到触发条件时，在此文件添加记录
 2. 用户决定后，更新"最终决策"列
 3. 拒绝的触发保留原因，避免重复推荐
-

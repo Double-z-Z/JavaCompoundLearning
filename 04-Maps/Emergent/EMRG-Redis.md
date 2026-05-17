@@ -4,7 +4,7 @@ id: EMRG-Redis
 title: Redis知识网络
 maturity: emerging
 created: 2026-04-28
-updated: 2026-05-15
+updated: 2026-05-17
 related_goals: [GOAL-Redis深入,GOAL-Java核心深化]
 subtopics:
   - 数据结构底层
@@ -28,15 +28,21 @@ Redis 不仅是内存缓存，更是一套围绕高性能数据结构、高可�
 Redis 核心认知
   ├─ 数据结构底层
   │   ├─ [[Redis-数据类型与编码]]
-  │   │   └─ 关联 [[跳表-SkipList]]
-  │   └─ [[跳表-SkipList]]
+  │   │   ├─ 关联 [[跳表-SkipList]]
+  │   │   ├─ 关联 [[Redis-SDS设计]]
+  │   │   └─ 关联 [[Redis-渐进式rehash]]
+  │   ├─ [[跳表-SkipList]]
+  │   ├─ [[Redis-SDS设计]]
+  │   └─ [[Redis-渐进式rehash]]
   ├─ 通信与协议
   │   └─ [[RESP协议]]
   ├─ 高可用架构
   │   ├─ [[Redis-持久化]]
+  │   │   └─ 关联 [[Redis-Copy-On-Write]]
   │   ├─ [[Redis-主从复制]]
-  │   └─ [[Redis-哨兵模式]]
-  │       └─ 关联 [[EMRG-Sentinel-核心机制]]
+  │   ├─ [[Redis-哨兵模式]]
+  │   │   └─ 关联 [[EMRG-Sentinel-核心机制]]
+  │   └─ [[Redis-Copy-On-Write]]
   ├─ 分布式与扩展
   │   ├─ [[Redis-Cluster模式]]
   │   ├─ [[Redis集群]]
@@ -51,7 +57,7 @@ Redis 核心认知
 ## 关键缺口（待补充）
 
 - [ ] Redis 单线程事件循环模型（待实际学习后创建）
-- [ ] SDS / Ziplist / QuickList 源码级理解
+- [ ] Ziplist / QuickList / Intset 源码级理解
 - [ ] 系统化的缓存策略文档（淘汰策略、预热、穿透/击穿/雪崩）
 
 ## 项目实战
@@ -102,6 +108,7 @@ dv.table(
 - **2026-04-28**: 因密度溢出创建（涉及 5 篇笔记，3 条链接）
 - **2026-05-14**: 纳入所有已学习笔记（12 篇），补充项目实战链接，更新核心成员表格
 - **2026-05-15**: 按 EMRG 模板标准化结构，更新成熟度为 emerging，补充边界声明与知识拓扑
+- **2026-05-17**: 笔记整理：从对话中萃取 [[Redis-SDS设计]]、[[Redis-渐进式rehash]]、[[Redis-Copy-On-Write]]，纳入知识拓扑，关键缺口 SDS 已补齐
 
 ### 成熟度说明
 
