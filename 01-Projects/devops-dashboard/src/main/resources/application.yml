@@ -1,0 +1,123 @@
+# DevOps Dashboard Configuration
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    
+spring:
+  application:
+    name: devops-dashboard
+    
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/devops_dashboard
+    username: devops
+    password: devops123
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      
+  # JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update  # validate | update | create | create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        
+  # WebFlux Configuration (if using reactive)
+  webflux:
+    base-path: /api/v1
+    
+  # Validation
+  validation:
+    enabled: true
+
+# DevOps Dashboard Specific Configuration
+devops:
+  
+  # Profile Mode: personal | enterprise
+  profile:
+    mode: personal
+    default-lifecycle-policy:
+      auto-destroy: false
+      max-lifetime: "24h"
+      idle-timeout: "2h"
+      
+  # Infrastructure Provider Configuration
+  infrastructure:
+    provider-type: docker-compose  # docker-compose | kubernetes | ansible
+    
+    docker-compose:
+      compose-file-dir: ./docker-compose
+      default-network: devops-bridge
+      timeout-seconds: 300
+      
+    kubernetes:  # Future support
+      config-path: ~/.kube/config
+      namespace: devops-dashboard
+      context: minikube
+      
+    ssh:  # For Ansible/Remote commands
+      user: root
+      private-key-path: ~/.ssh/dashboard_key
+      connect-timeout: 10
+      command-timeout: 300
+      
+  # Service Templates Directory
+  templates:
+    directory: ./templates/services
+    
+  # Experiment Management
+  experiment:
+    default-max-lifetime: "2h"
+    default-idle-timeout: "30m"
+    archive-directory: ./docs/spikes
+    cleanup-warning-before: "15m"
+    
+  # Pipeline Configuration
+  pipeline:
+    working-directory: ./workspace
+    maven-settings: ~/.m2/settings.xml
+    docker-registry: localhost:5000  # Local registry or Docker Hub
+    
+  # Monitoring & Observability
+  monitoring:
+    log-retention-days: 7
+    metrics-collection-interval: 30s
+    health-check-interval: 10s
+    
+  # Notification Channels (Optional)
+  notification:
+    slack:
+      webhook-url: ${SLACK_WEBHOOK_URL:}
+      enabled: false
+    email:
+      smtp-host: smtp.gmail.com
+      smtp-port: 587
+      enabled: false
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.devops.dashboard: DEBUG
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ./logs/devops-dashboard.log
+    max-size: 100MB
+    max-history: 30
+
+# OpenAPI/Swagger Documentation
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true

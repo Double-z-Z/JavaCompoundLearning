@@ -1,0 +1,418 @@
+# 设计决策记录
+
+本文档记录项目中的关键架构决策及其理由，避免未来重复讨论相同问题。
+
+---
+
+## Decision 1: 为什么选择Environment作为聚合根而非Service？
+
+**背景**: 初期可能认为Service是核心（"我要管理Nacos/RabbitMQ"）
+
+**选项**:
+- A) Service为聚合根（直接管理服务）
+- B) Environment为聚合根（管理环境，环境包含服务）
+
+**选择**: B) Environment为聚合根
+
+**理由**:
+1. **生命周期一致性**: 服务不能脱离环境独立存在
+2. **不变量保护**: 端口冲突、资源配额等约束需要在环境级别保证
+3. **原子操作**: 创建/销毁环境时，所有服务应一起操作
+4. **符合认知**: 用户思维是"启动开发环境"，不是"启动Nacos+MySQL"
+
+**影响**:
+- 所有服务操作都通过Environment进行
+- ServiceInstance没有独立的Repository
+
+**日期**: 2026-05-17
+**状态**: 已实施
+
+---
+
+## Decision 2: 为什么Experiment是独立聚合根而非Environment子类？
+
+**背景**: Experiment也需要创建环境，看起来像特殊Environment
+
+**选项**:
+- A) Experiment继承Environment（is-a关系）
+- B) Experiment组合Environment（has-a关系）
+- C) Experiment独立聚合根，内部包含专用环境
+
+**选择**: C) 独立聚合根
+
+**理由**:
+1. **职责分离**: Experiment关注"假设验证"，Environment关注"资源管理"
+2. **生命周期差异**: Experiment有明确结论状态，普通Environment没有
+3. **特殊行为**: Experiment需要自动归档、自动销毁逻辑
+4. **避免继承滥用**: 继承导致强耦合，组合更灵活
+
+**影响**:
+- Experiment有自己的Repository
+- ExperimentEnvironment复用Environment的逻辑但增加实验特有属性
+
+**日期**: 2026-05-17
+**状态**: 已实施
+
+---
+
+## Decision 3: 为什么Pipeline不是聚合根？
+
+**背景**: Pipeline也有状态和流程，看起来像领域对象
+
+**选项**:
+- A) Pipeline作为聚合根（持久化Pipeline状态）
+- B) Pipeline作为流程编排器（轻量级，不持久化核心状态）
+
+**选择**: B) 流程编排器
+
+**理由**:
+1. **Pipeline描述过程，不拥有业务数据**: 它说"怎么做"，不是"是什么"
+2. **状态短暂**: 执行完就结束，不像Environment长期存在
+3. **高可替换性**: 今天Jenkins明天GitLab CI，不影响领域模型
+4. **DDD原则**: 聚合根代表业务核心概念，Pipeline是基础设施关注点
+
+**影响**:
+- Pipeline配置可以存在YAML文件或配置中心
+- Pipeline执行历史可以单独记录（非核心领域）
+
+**日期**: 2026-05-17
+**状态**: 已实施
+
+---
+
+## Decision 4: 插件化 vs 硬编码基础设施实现？
+
+**背景**: 底层应该用Docker Compose还是K8s？还是都要支持？
+
+**选项**:
+- A) 只用Docker Compose（简单但不可扩展）
+- B) 只用K8s（强大但复杂度高）
+- C) 插件化架构（InfrastructureProvider接口）
+
+**选择**: C) 插件化架构
+
+**理由**:
+1. **渐进式演进**: 先实现ComposeProvider，后续加KubernetesProvider
+2. **多环境适配**: 个人用Compose，企业用K8s，同一套上层API
+3. **学习价值**: 理解抽象层设计的权衡
+4. **测试友好**: 可以Mock Provider进行单元测试
+
+**接口定义**:
+```java
+public interface InfrastructureProvider {
+    String providerType();           // "docker-compose" | "kubernetes"
+    ProvisionResult provision(InfrastructureSpec spec);
+    void teardown(InfrastructureId id);
+    ContainerStatus checkContainer(ContainerId id);
+    Flux<String> streamLogs(ContainerId id, LogOptions options);
+}
+```
+
+**当前实现优先级**:
+1. DockerComposeProvider (Phase 1)
+2. AnsibleProvider (Phase 2)
+3. KubernetesProvider (Phase 4, 可选)
+
+**日期**: 2026-05-17
+**状态**: 已实施
+
+---
+
+## Decision 5: Spike实验的生命周期管理策略
+
+**背景**: 如何确保实验环境不会长期占用资源？
+
+**选项**:
+- A) 纯手动（用户自己记得清理）
+- B) 定时任务扫描过期实验
+- C) 实验创建时声明最大存活时间，系统自动清理
+
+**选择**: C) 声明式生命周期
+
+**理由**:
+1. **符合云原生理念**: 声明期望状态，系统负责维持
+2. **防止资源泄漏**: 即使忘记清理，系统也会回收
+3. **灵活配置**: 不同实验可以有不同的存活时间
+4. **可观测**: 用户可以看到即将过期的实验
+
+**默认策略**:
+```yaml
+experiment_lifecycle_policy:
+  default_max_lifetime: "2小时"
+  default_idle_timeout: "30分钟"
+  warning_before_cleanup: "15分钟"  # 提前发送警告
+  cleanup_action: 
+    - 收集证据数据
+    - 生成归档报告
+    - 销毁环境
+    - 发送完成通知
+```
+
+**日期**: 2026-05-17
+**状态**: 待实施（Phase 2）
+
+---
+
+## Decision 6: 数据库选型（已确定）
+
+**背景**: 需要持久化Environment/Experiment等数据
+
+**候选方案**:
+- PostgreSQL (关系型，功能丰富)
+- MySQL (关系型，广泛使用)
+- MongoDB (文档型，灵活Schema)
+- SQLite (嵌入式，简单场景)
+
+**选择**: PostgreSQL
+
+**理由**:
+1. **JSONB支持**: 环境配置/服务规格等嵌套结构用JSONB存储最自然
+2. **复杂查询能力**: CTE、Window函数支持未来分析需求
+3. **并发控制**: MVCC机制适合多环境并行管理场景
+4. **扩展性**: PostGIS、TimescaleDB插件为未来监控功能预留空间
+5. **Spring Boot生态**: Spring Data JPA对PostgreSQL支持完善
+6. **学习价值**: PostgreSQL在企业级应用中更常见
+
+**关键应用场景**:
+```sql
+-- Environment.services 配置（动态Schema）
+CREATE TABLE environments (
+    id UUID PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    services JSONB,  -- 存储动态服务列表
+    resource_quota JSONB  -- 存储资源配额
+);
+
+-- 查询示例：找出所有运行中的Nacos实例
+SELECT * FROM environments 
+WHERE status = 'RUNNING' 
+AND services @> '[{"template": "nacos-server"}]';
+```
+
+**替代方案**: 如果用户更熟悉MySQL，可切换（只需改配置+方言）
+
+**日期**: 2026-05-17
+**状态**: ✅ 已实施（pom.xml已引入PostgreSQL依赖）
+
+---
+
+## Decision 7: WebFlux vs Spring MVC（已确定）
+
+**背景**: 选择响应式Web框架还是传统Servlet框架？
+
+**选项**:
+- A) Spring MVC (传统同步阻塞模型)
+- B) WebFlux (响应式非阻塞模型)
+- C) 混合模式（外部API用MVC，内部日志流用WebFlux）
+
+**选择**: B) WebFlux（纯响应式）
+
+**理由**:
+1. **场景匹配性高**:
+   - Ansible执行: 耗时操作(30s~5min)，需要非阻塞等待
+   - Docker日志流: 实时数据推送，WebSocket/SSE天然支持
+   - 并发部署: 可能同时管理多个环境，Event Loop效率更高
+   
+2. **性能优势**:
+   - 少量线程处理大量连接（Netty vs Tomcat线程池）
+   - 背压机制防止消费者过载
+   - 内存占用更低
+
+3. **学习价值**:
+   - 响应式编程是现代Java趋势（Spring 6默认）
+   - Project Reactor技能在面试中加分
+   - 为未来微服务架构打基础
+
+4. **生态兼容性**:
+   - Spring Data R2DBC（响应式数据库访问）
+   - Spring Cloud Gateway（基于WebFlux）
+   - WebClient（替代RestTemplate）
+
+**权衡考虑**:
+| 维度 | 风险 | 缓解措施 |
+|------|------|---------|
+| 学习曲线 | 需要理解Mono/Flux思维 | 先从简单CRUD开始，渐进式学习 |
+| 调试难度 | 异步调用链难追踪 | 使用BlockHound检测阻塞操作 |
+| 库兼容性 | 部分库不支持响应式 | 必要时用`Mono.fromFuture()`包装 |
+
+**核心代码示例**:
+```java
+// 传统MVC（同步阻塞）
+@GetMapping("/environments")
+public List<Environment> list() {
+    return environmentService.findAll(); // 阻塞当前线程
+}
+
+// WebFlux（异步非阻塞）
+@GetMapping("/environments")
+public Flux<EnvironmentVO> list() {
+    return environmentService.findAll()
+        .map(mapper::toVO); // 声明式，不阻塞
+}
+```
+
+**日期**: 2026-05-17
+**状态**: ✅ 已实施（pom.xml已引入spring-boot-starter-webflux）
+
+---
+
+## Decision 8: 前端方案选型（已确定）
+
+**背景**: 是否自研前端？用什么技术栈？
+
+**候选方案**:
+- A) Vue 3 + Element Plus（渐进式框架）
+- B) React + Ant Design（函数式编程风格）
+- C) 纯HTML + Bootstrap（零学习成本）
+- D) Grafana + Portainer组合（免开发）
+
+**选择**: 混合策略（D为主 + A最小化）
+
+**最终决策**:
+
+### Phase 1（本周）: 零前端，工具替代
+- **Swagger UI**: API测试和文档（`http://localhost:8080/swagger-ui.html`）
+- **Portainer**: 容器管理UI（启动/停止/日志/监控）
+- **目标**: 专注后端API开发，不分散精力
+
+### Phase 2（第2-3周）: 最小业务前端
+- **技术栈**: Vue 3 CDN + Element Plus CDN（无需构建工具）
+- **范围**: 仅实现Grafana/Portainer无法覆盖的核心业务
+  - Spike实验管理（创建/记录证据/归档报告）
+  - 环境编排向导（一键创建多服务环境）
+- **代码量**: <500行HTML/CSS/JS
+
+### Phase 3（第4周+）: 可视化集成
+- **Grafana**: 监控仪表盘（CPU/内存/网络图表）
+- **Prometheus**: 指标采集层
+- **集成方式**: 业务前端嵌入Grafana iframe（只读模式）
+
+**理由**:
+1. **聚焦核心业务**: Spike实验管理是差异化功能，必须自研
+2. **避免重复造轮子**: 容器管理/监控已有成熟工具
+3. **控制学习成本**: 不在前端框架上花超过2周时间
+4. **生产级体验**: Grafana/Portainer功能远超短期自研水平
+
+**架构图**:
+```
+┌─────────────────────────────────────────────┐
+│           浏览器                              │
+│  [业务前端(Vue)] [Portainer] [Grafana]       │
+└──────────────────┬──────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────┐
+│         Spring Boot后端 (WebFlux)             │
+│  ExperimentService ← 核心业务                │
+│  EnvironmentService ← 提供数据给外部工具      │
+│  InfrastructureProvider                      │
+└─────────────────────────────────────────────┘
+         │                    │
+    ┌────▼────┐        ┌──────▼──────┐
+    │ Docker  │        │ Prometheus  │
+    │  API    │        │ (指标采集)   │
+    └─────────┘        └─────────────┘
+```
+
+**日期**: 2026-05-17
+**状态**: ✅ 已确定（Phase 1立即执行）
+
+---
+
+## Decision 9: Lombok + MapStruct 使用规范（已确定）
+
+**背景**: 减少样板代码，提升开发效率
+
+**Lombok 决策**:
+- ✅ **允许使用注解**: `@Getter`, `@Setter`, `@Builder`, `@NoArgsConstructor`, `@AllArgsConstructor`
+- ❌ **禁止在实体类使用**: `@Data`（破坏封装性）
+- ⚠️ **必须安装IDE插件**: IntelliJ需安装Lombok Plugin
+- 📌 **推荐值对象使用**: `@Value`（不可变对象）
+
+**MapStruct 决策**:
+- ✅ **用于DTO转换**: Domain Object ↔ VO/DTO
+- ✅ **启用Spring组件模式**: `@Mapper(componentModel = "spring")`
+- ❌ **不用于简单对象**: 字段<5个且无特殊映射规则时手写即可
+
+**理由**:
+1. **编译时代码生成**: 无运行时反射开销（优于BeanUtils.copyProperties）
+2. **类型安全**: 编译期检查字段匹配（避免运行时错误）
+3. **声明式映射**: 复杂转换逻辑集中管理
+
+**示例**:
+```java
+// Lombok正确用法：领域实体
+public class Environment {
+    @Getter  // 只读属性
+    private EnvironmentStatus status;
+    
+    public void markAsRunning() {  // 封装行为
+        validateTransition(RUNNING);
+        this.status = RUNNING;
+    }
+}
+
+// MapStruct正确用法：DTO转换
+@Mapper(componentModel = "spring")
+public interface EnvironmentMapper {
+    @Mapping(target = "status", source = "status.name")
+    EnvironmentDTO toDTO(Environment env);
+}
+```
+
+**日期**: 2026-05-17
+**状态**: ✅ 已实施（pom.xml已引入依赖）
+
+---
+
+## Decision 10: SpringDoc OpenAPI 文档策略（已确定）
+
+**背景**: 如何管理API文档？
+
+**选项**:
+- A) 手写Word/Confluence文档
+- B) Swagger 2 (旧版 springfox)
+- C) SpringDoc OpenAPI 3.0 (新版)
+
+**选择**: C) SpringDoc OpenAPI 3.0
+
+**核心价值**:
+1. **自文档化**: 代码即文档，自动同步
+2. **在线调试**: Swagger UI的"Try it out"功能替代Postman
+3. **前后端契约**: 可导出OpenAPI JSON给前端生成TypeScript类型
+4. **面试加分**: 展示工程化素养
+
+**配置要点**:
+```yaml
+springdoc:
+  api-docs:
+    path: /api-docs  # JSON格式API定义
+  swagger-ui:
+    path: /swagger-ui.html  # 可视化界面
+    enabled: true
+```
+
+**使用场景**:
+- 开发阶段: API测试和调试
+- 联调阶段: 前后端接口确认
+- 学习阶段: 理解自己设计的RESTful API
+
+**日期**: 2026-05-17
+**状态**: ✅ 已实施（pom.xml已引入springdoc-openapi依赖）
+
+---
+
+## 决策模板
+
+新增决策时请使用此格式:
+
+```markdown
+## Decision X: [标题]
+
+**背景**: [为什么需要做这个决策]
+**选项**: [列出主要选项]
+**选择**: [最终选择的方案]
+**理由**: [详细解释]
+**影响**: [对系统其他部分的影响]
+**日期**: YYYY-MM-DD
+**状态**: 待定 | 已实施 | 已废弃
+```
