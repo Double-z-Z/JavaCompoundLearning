@@ -29,8 +29,8 @@ public class Environment {
     private EnvironmentStatus status;
     
     private LocalDateTime createdAt;
-    
-    @ElementCollection
+ // === 访问端点 ===
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "env_access_endpoints", joinColumns = @JoinColumn(name = "env_id"))
     @MapKeyColumn(name = "endpoint_name")
     @Column(name = "endpoint_url")
@@ -44,12 +44,12 @@ public class Environment {
     private LifecyclePolicy lifecyclePolicy;
     
     // === 目标节点 ===
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "env_target_nodes", joinColumns = @JoinColumn(name = "env_id"))
-    private List<TargetNode> targetNodes = new ArrayList<>();
+    private List<TargetNodeRef> targetNodes = new ArrayList<>();
     
     // === 服务实例（实体）===
-    @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ServiceInstance> services = new ArrayList<>();
     
     public static Environment create(String name, EnvironmentSpec spec) {
@@ -61,7 +61,7 @@ public class Environment {
         env.createdAt = LocalDateTime.now();
         env.resourceQuota = spec.getResourceQuota() != null ? spec.getResourceQuota() : ResourceQuota.development();
         env.lifecyclePolicy = spec.getLifecyclePolicy() != null ? spec.getLifecyclePolicy() : LifecyclePolicy.defaultForDev();
-        env.targetNodes = new ArrayList<>(spec.getTargetNodes());
+        env.targetNodes = spec.getTargetNodes() != null ? spec.getTargetNodes() : new ArrayList<>();
         
         return env;
     }

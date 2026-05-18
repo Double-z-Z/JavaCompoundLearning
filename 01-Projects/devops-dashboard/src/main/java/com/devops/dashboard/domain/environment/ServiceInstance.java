@@ -2,8 +2,15 @@ package com.devops.dashboard.domain.environment;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import com.devops.dashboard.domain.environment.valueobject.HealthCheckConfig;
 
 @Entity
 @Table(name = "service_instances", indexes = {
@@ -87,18 +94,6 @@ public class ServiceInstance {
     void setEnvironment(Environment environment) {
         this.environment = environment;
     }
-}
-
-@AllArgsConstructor
-@Getter
-enum ServiceInstanceStatus {
-    PENDING("等待中"),
-    DEPLOYING("部署中"),
-    RUNNING("运行中"),
-    STOPPED("已停止"),
-    FAILED("失败");
-    
-    private final String description;
 }
 
 @Embeddable

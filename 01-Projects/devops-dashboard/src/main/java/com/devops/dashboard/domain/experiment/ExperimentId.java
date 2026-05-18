@@ -1,18 +1,39 @@
 package com.devops.dashboard.domain.experiment;
 
-import com.devops.dashboard.domain.shared.AggregateId;
+import jakarta.persistence.Embeddable;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-public class ExperimentId extends AggregateId<ExperimentId> {
-    
-    private ExperimentId(String value) {
-        super(value);
+import java.util.UUID;
+
+@Embeddable
+@Getter
+@EqualsAndHashCode
+public class ExperimentId {
+
+    private final String value;
+
+    private ExperimentId() {
+        this.value = UUID.randomUUID().toString();
     }
-    
+
+    private ExperimentId(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Experiment ID cannot be null or blank");
+        }
+        this.value = value;
+    }
+
     public static ExperimentId of(String value) {
         return new ExperimentId(value);
     }
-    
+
     public static ExperimentId generate() {
         return new ExperimentId("exp-" + UUID.randomUUID().toString().substring(0, 8));
+    }
+
+    @Override
+    public String toString() {
+        return value;
     }
 }

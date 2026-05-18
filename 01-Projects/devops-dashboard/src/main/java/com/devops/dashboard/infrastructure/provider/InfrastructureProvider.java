@@ -5,6 +5,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -89,8 +90,6 @@ record ProvisionResult(
     Duration provisionTime
 ) {}
 
-record ContainerId(String value) {}
-
 record ContainerConfig(
     String name,
     String image,
@@ -104,25 +103,6 @@ enum ContainerStatus {
     STOPPED,
     FAILED,
     NOT_FOUND
-}
-
-record LogOptions(
-    int tailLines,
-    boolean follow,
-    String sinceTime,
-    String filterKeyword
-) {
-    public static LogOptions defaults() {
-        return new LogOptions(100, false, null, null);
-    }
-    
-    public static LogOptions tail(int lines) {
-        return new LogOptions(lines, false, null, null);
-    }
-    
-    public static LogOptions follow(int lines) {
-        return new LogOptions(lines, true, null, null);
-    }
 }
 
 record Command(

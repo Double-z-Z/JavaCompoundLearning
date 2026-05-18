@@ -19,8 +19,7 @@ public enum ExperimentStatus {
             case PLANNING -> target == RUNNING || target == CANCELLED;
             case RUNNING -> target == COMPLETED || target == CANCELLED;
             case COMPLETED -> target == ARCHIVED;
-            case ARCHIVED -> false;
-            CANCELLED -> false;
+            case ARCHIVED, CANCELLED -> false;
         };
     }
 }

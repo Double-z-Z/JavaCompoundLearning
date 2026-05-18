@@ -27,11 +27,3 @@ public class EnvironmentSpec {
         // Builder implementation with defaults
     }
 }
-
-@Getter
-@Builder
-class TargetNodeRef {
-    private final String nodeId;
-    private final String ip;
-    private final String role;
-}

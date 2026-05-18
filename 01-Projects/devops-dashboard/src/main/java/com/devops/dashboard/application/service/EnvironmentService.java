@@ -17,11 +17,12 @@ public interface EnvironmentService {
     /**
      * 从规格说明创建环境
      *
+     * @param name 环境名称（用户指定）
      * @param spec 环境规格（包含服务列表、资源配置等）
      * @return 创建的环境实例（含访问地址等信息）
      * @throws EnvironmentCreationException 创建失败时抛出
      */
-    Mono<Environment> createFromSpec(EnvironmentSpec spec);
+    Mono<Environment> createFromSpec(String name, EnvironmentSpec spec);
 
     /**
      * 销毁指定环境

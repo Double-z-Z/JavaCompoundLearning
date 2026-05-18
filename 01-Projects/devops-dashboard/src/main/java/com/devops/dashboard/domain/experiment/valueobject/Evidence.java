@@ -4,8 +4,8 @@ import jakarta.persistence.Embeddable;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Embeddable
 @Getter
@@ -13,32 +13,34 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Evidence {
-    
+
     private LocalDateTime collectedAt;
-    
-    private List<Metric> metrics;
-    
-    private List<Artifact> artifacts;
-    
-    @Embeddable
+
+    // JSON 存储指标数据（避免 JPA 嵌套集合限制）
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    private List<Metric> metrics = new ArrayList<>();
+
+    // JSON 存储制品数据
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    private List<Artifact> artifacts = new ArrayList<>();
+
     @Getter
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Metric {
-        private String name;           // throughput_qps
-        private Number value;         // 52000
-        private String unit;          // ops/sec
-        private String measurementTool;  // rabbitmq-perf-test
+        private String name;
+        private Number value;
+        private String unit;
+        private String measurementTool;
     }
-    
-    @Embeddable
+
     @Getter
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Artifact {
-        private String type;          // log | graph | raw_data
-        private String path;          // logs/rabbitmq-perf-test.log
+        private String type;
+        private String path;
     }
 }

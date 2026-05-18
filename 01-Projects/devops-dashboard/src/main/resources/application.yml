@@ -22,17 +22,13 @@ spring:
   # JPA/Hibernate
   jpa:
     hibernate:
-      ddl-auto: update  # validate | update | create | create-drop
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         
-  # WebFlux Configuration (if using reactive)
-  webflux:
-    base-path: /api/v1
-    
   # Validation
   validation:
     enabled: true
@@ -114,10 +110,13 @@ logging:
     max-size: 100MB
     max-history: 30
 
-# OpenAPI/Swagger Documentation
+# OpenAPI/Swagger Documentation (WebFlux 版本)
 springdoc:
   api-docs:
-    path: /api-docs
+    path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+
+# 注意：不设置 webflux.base-path，避免影响 SpringDoc 路由
+# Controller 使用 @RequestMapping("/api/v1/environments") 自行管理路径

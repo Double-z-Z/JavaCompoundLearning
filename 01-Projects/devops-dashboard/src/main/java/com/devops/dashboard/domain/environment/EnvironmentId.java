@@ -1,18 +1,39 @@
 package com.devops.dashboard.domain.environment;
 
-import com.devops.dashboard.domain.shared.AggregateId;
+import jakarta.persistence.Embeddable;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-public class EnvironmentId extends AggregateId<EnvironmentId> {
-    
-    private EnvironmentId(String value) {
-        super(value);
+import java.util.UUID;
+
+@Embeddable
+@Getter
+@EqualsAndHashCode
+public class EnvironmentId {
+
+    private final String value;
+
+    private EnvironmentId() {
+        this.value = UUID.randomUUID().toString();
     }
-    
+
+    private EnvironmentId(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Environment ID cannot be null or blank");
+        }
+        this.value = value;
+    }
+
     public static EnvironmentId of(String value) {
         return new EnvironmentId(value);
     }
-    
+
     public static EnvironmentId generate() {
         return new EnvironmentId("env-" + UUID.randomUUID().toString().substring(0, 8));
+    }
+
+    @Override
+    public String toString() {
+        return value;
     }
 }
