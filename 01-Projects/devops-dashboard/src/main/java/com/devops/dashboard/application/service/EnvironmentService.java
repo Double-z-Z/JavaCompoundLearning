@@ -1,7 +1,7 @@
 package com.devops.dashboard.application.service;
 
 import com.devops.dashboard.domain.environment.*;
-import com.devops.dashboard.domain.exception.*;
+import com.devops.dashboard.domain.exception.environment.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

@@ -7,11 +7,19 @@ import lombok.Getter;
 import java.util.UUID;
 
 @Embeddable
-@Getter
 @EqualsAndHashCode
 public class EnvironmentId {
 
     private final String value;
+
+    public String getValue() {
+        return value;
+    }
+
+    // For JPA/Orm tool
+    public String value() {
+        return value;
+    }
 
     private EnvironmentId() {
         this.value = UUID.randomUUID().toString();

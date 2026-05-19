@@ -73,6 +73,7 @@ devops:
     default-max-lifetime: "2h"
     default-idle-timeout: "30m"
     archive-directory: ./docs/spikes
+    archive-reports-enabled: true  # Set to false in tests to avoid file I/O
     cleanup-warning-before: "15m"
     
   # Pipeline Configuration

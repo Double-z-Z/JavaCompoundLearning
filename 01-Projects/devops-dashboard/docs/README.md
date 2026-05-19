@@ -1,77 +1,97 @@
-# DevOps Dashboard - 领域设计文档
+# DevOps Dashboard 文档中心
 
-> 本目录包含项目的核心领域设计，每个文档聚焦单一职责
+> 本目录包含项目的全部设计文档，按用途分层组织
 
-## 文档索引
+## 📁 文档结构
 
-| 文档 | 职责 | 内容概要 | 优先级 |
-|------|------|---------|--------|
-| [domain-model.md](./domain-model.md) | 领域模型总览 | 聚合根识别、实体/值对象定义、关系图 | ⭐⭐⭐ 必读 |
-| [design-decisions.md](./design-decisions.md) | 设计决策记录 | 关键架构决策及理由（含技术选型） | ⭐⭐⭐ 必读 |
-| [implementation-plan.md](./implementation-plan.md) | 实施计划 | 分阶段路线图、任务清单、工具安装 | ⭐⭐⭐ 明天必读 |
-| [data-structures.md](./data-structures.md) | 数据结构定义 | Environment/Experiment/Pipeline的完整Schema | ⭐⭐ 参考即可 |
-| [service-templates.md](./service-templates.md) | 服务模板库 | Nacos/RabbitMQ/MySQL等中间件模板 | ⭐⭐ Phase 2参考 |
-| [pipeline-design.md](./pipeline-design.md) | 流水线编排 | CI/CD阶段定义、门禁机制、自动化策略 | ⭐ Phase 4参考 |
-| [api-contracts.md](./api-contracts.md) | API接口契约 | 核心接口定义（Java） | ⭐⭐ 编码时参考 |
+```
+docs/
+├── 01-入门/                  # 新手必读
+│   └── 00-项目概览.md         # 项目全景介绍、设计原则、快速启动
+│
+├── 02-设计/                  # 架构设计
+│   ├── 领域模型.md           # 聚合根、实体、值对象、关系图
+│   └── 设计决策.md           # 关键架构决策及理由（10条）
+│
+├── 03-指南/                  # 使用指南
+│   ├── 实施计划.md           # 分阶段路线图 + 任务清单
+│   ├── API使用指南.md         # REST API 完整使用方法
+│   └── 流水线设计.md         # CI/CD 编排逻辑
+│
+├── 04-参考/                  # 详细参考
+│   ├── API契约.md            # 接口定义（Java代码）
+│   ├── 数据结构.md           # Environment/Experiment Schema
+│   └── 服务模板.md           # Nacos/RabbitMQ/MySQL 中间件模板
+│
+└── 05-总结/                  # 阶段总结
+    ├── Phase1完成报告.md     # Phase 1 执行总结
+    └── 变更日志.md           # 版本变更记录
+```
 
----
+## 📖 阅读顺序
 
-## 📖 新手阅读顺序（推荐）
+### 第一次打开项目
+1. **先读 [01-入门/00-项目概览.md](./01-入门/00-项目概览.md)** → 了解项目定位和设计原则
+2. **读 [02-设计/领域模型.md](./02-设计/领域模型.md)** → 理解核心业务概念
+3. **读 [02-设计/设计决策.md](./02-设计/设计决策.md) Decision 1-5** → 理解架构决策
 
-### 第一次打开项目时：
-1. **先读本文** → 了解项目全景和设计原则
-2. **读 [domain-model.md](./domain-model.md)** → 理解核心业务概念
-3. **读 [design-decisions.md](./design-decisions.md) Decision 1-5** → 理解架构决策
-
-### 开始编码前：
-4. **读 [design-decisions.md](./design-decisions.md) Decision 6-10** → 了解技术选型理由
-5. **读 [implementation-plan.md](./implementation-plan.md)** → 查看当前Phase的任务清单
+### 开始编码前
+4. **读 [03-指南/实施计划.md](./03-指南/实施计划.md)** → 查看当前 Phase 任务清单
+5. **读 [03-指南/API使用指南.md](./03-指南/API使用指南.md)** → 了解 API 使用方法
 6. **按任务清单开始编码**
 
----
-
-## 设计原则
-
-1. **聚合根优先**: Environment和Experiment是核心业务实体
-2. **值对象不可变**: Spec/Quota/Policy等使用值对象保证不变性
-3. **插件化基础设施**: Docker Compose/K8s/Ansible可互换
-4. **环境晋升**: local → integration → staging → prod
-5. **实验生命周期**: 创建 → 运行 → 结论 → 归档 → 清理
-6. **响应式优先**: WebFlux非阻塞模型，适合IO密集型场景
-7. **工具复用**: Grafana/Portainer替代自研通用功能，聚焦核心业务
+### 编码时参考
+- [04-参考/API契约.md](./04-参考/API契约.md) → 接口定义
+- [04-参考/数据结构.md](./04-参考/数据结构.md) → 完整 Schema
+- [04-参考/服务模板.md](./04-参考/服务模板.md) → 中间件模板
 
 ---
 
-## 🎯 当前阶段：Phase 1 基础搭建
+## 🔑 核心设计原则
 
-**时间**: 2026-05-17 ~ 2026-05-31 (2周)
+| 原则 | 说明 |
+|------|------|
+| 聚合根优先 | Environment 和 Experiment 是核心业务实体 |
+| 值对象不可变 | Spec/Quota/Policy 等使用值对象保证不变性 |
+| 插件化基础设施 | Docker Compose/K8s 可互换 |
+| 环境晋升 | local → integration → staging → prod |
+| 实验生命周期 | 创建 → 运行 → 结论 → 归档 → 清理 |
+| 响应式优先 | WebFlux 非阻塞模型，适合 IO 密集型场景 |
+| 工具复用 | Grafana/Portainer 替代自研通用功能 |
 
-**核心目标**:
-- ✅ 项目可编译运行
-- ✅ 基础CRUD API可用
-- ✅ Portainer已部署用于容器管理
+---
 
-**立即行动**:
+## 🎯 当前进度
+
+| Phase | 状态 | 说明 |
+|-------|------|------|
+| Phase 1: 基础搭建 | ✅ 已完成 | 基础设施 + 核心 API |
+| Phase 2: 核心业务 | 🔄 进行中 | Experiment Service + 前端 |
+| Phase 3: 可观测性 | ⏳ 待开始 | Prometheus + Grafana |
+| Phase 4: 进阶特性 | ⏳ 待开始 | K8s 支持（可选） |
+
+---
+
+## ⚡ 快速启动
+
 ```bash
-# 1. 启动基础设施（PostgreSQL + Portainer）
-docker-compose -f docker-compose.devtools.yml up -d postgres portainer
+# 1. 启动基础设施
+docker compose -f docker-compose.devtools.yml up -d postgres
 
-# 2. 验证环境
-浏览器访问: http://localhost:9000 (Portainer)
+# 2. 启动应用
+mvn spring-boot:run
 
-# 3. 开始编码
-详见 implementation-plan.md 的"本周目标"章节
+# 3. 访问 Swagger UI
+# http://localhost:8080/swagger-ui.html
 ```
 
 ---
 
-## 📊 项目进度总览
+## 📊 项目统计
 
-```
-Phase 1: ████████░░░░░░░░ 30% (进行中)
-Phase 2: ░░░░░░░░░░░░░░░ 0% (待开始)
-Phase 3: ░░░░░░░░░░░░░░░ 0% (待开始)
-Phase 4: ░░░░░░░░░░░░░░░ 0% (可选)
-```
-
-**预计完成时间**: 2026-07-12 (8周后)
+| 指标 | 数值 |
+|------|------|
+| 源代码文件 | 70 |
+| 测试用例 | 58（全部通过） |
+| REST API 端点 | 12 |
+| 设计决策 | 10 条 |

@@ -23,7 +23,6 @@ services:
   portainer:
     image: portainer/portainer-ce:latest
     container_name: devops-portainer
-    command: --no-auth  # 开发模式关闭认证，生产环境必须开启！
     ports:
       - "9000:9000"
       - "9443:9443"

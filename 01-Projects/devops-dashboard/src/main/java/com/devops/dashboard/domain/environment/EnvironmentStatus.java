@@ -1,26 +1,31 @@
 package com.devops.dashboard.domain.environment;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor
 public enum EnvironmentStatus {
     CREATING("创建中"),
     RUNNING("运行中"),
     STOPPED("已停止"),
     DESTROYED("已销毁"),
-    FAILED("失败");
-    
+    FAILED("失败"),
+    NOT_FOUND("未找到");
+
     private final String description;
-    
+
+    EnvironmentStatus(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
     public boolean canTransitionTo(EnvironmentStatus target) {
         return switch (this) {
             case CREATING -> target == RUNNING || target == FAILED;
             case RUNNING -> target == STOPPED || target == DESTROYED || target == FAILED;
             case STOPPED -> target == RUNNING || target == DESTROYED;
-            case DESTROYED -> false;  // 终态
-            case FAILED -> target == CREATING;  // 可以重试创建
+            case DESTROYED -> false;
+            case FAILED -> target == CREATING;
+            case NOT_FOUND -> false;
         };
     }
 }

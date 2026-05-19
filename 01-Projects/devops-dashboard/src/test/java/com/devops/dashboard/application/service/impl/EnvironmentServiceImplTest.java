@@ -4,8 +4,9 @@ import com.devops.dashboard.application.service.EnvironmentService;
 import com.devops.dashboard.domain.environment.*;
 import com.devops.dashboard.domain.environment.valueobject.LifecyclePolicy;
 import com.devops.dashboard.domain.environment.valueobject.ResourceQuota;
-import com.devops.dashboard.domain.exception.EnvironmentNotFoundException;
-import com.devops.dashboard.infrastructure.persistence.EnvironmentRepository;
+import com.devops.dashboard.domain.exception.environment.EnvironmentNotFoundException;
+import com.devops.dashboard.infrastructure.environment.EnvironmentRepository;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

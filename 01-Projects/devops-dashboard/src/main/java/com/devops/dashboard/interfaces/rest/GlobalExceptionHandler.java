@@ -1,6 +1,6 @@
 package com.devops.dashboard.interfaces.rest;
 
-import com.devops.dashboard.domain.exception.EnvironmentNotFoundException;
+import com.devops.dashboard.domain.exception.environment.EnvironmentNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

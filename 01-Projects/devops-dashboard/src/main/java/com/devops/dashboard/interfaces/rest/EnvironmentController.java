@@ -4,7 +4,7 @@ import com.devops.dashboard.application.service.EnvironmentService;
 import com.devops.dashboard.domain.environment.*;
 import com.devops.dashboard.domain.environment.valueobject.LifecyclePolicy;
 import com.devops.dashboard.domain.environment.valueobject.ResourceQuota;
-import com.devops.dashboard.domain.exception.EnvironmentNotFoundException;
+import com.devops.dashboard.domain.exception.environment.EnvironmentNotFoundException;
 import com.devops.dashboard.interfaces.dto.CreateEnvironmentRequest;
 import com.devops.dashboard.interfaces.dto.EnvironmentResponse;
 import io.swagger.v3.oas.annotations.Operation;

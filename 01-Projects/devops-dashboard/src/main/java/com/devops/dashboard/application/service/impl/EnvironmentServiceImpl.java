@@ -3,8 +3,9 @@ package com.devops.dashboard.application.service.impl;
 import com.devops.dashboard.application.service.EnvironmentService;
 import com.devops.dashboard.application.service.ServiceManifest;
 import com.devops.dashboard.domain.environment.*;
-import com.devops.dashboard.domain.exception.EnvironmentNotFoundException;
-import com.devops.dashboard.infrastructure.persistence.EnvironmentRepository;
+import com.devops.dashboard.domain.exception.environment.EnvironmentNotFoundException;
+import com.devops.dashboard.infrastructure.environment.EnvironmentRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

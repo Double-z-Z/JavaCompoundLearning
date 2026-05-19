@@ -38,11 +38,12 @@ public class Experiment {
     @Embedded
     private Conclusion conclusion;
     
-    // === 实验环境（组合关系）===
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "experiment_env_id")
-    private Environment experimentEnvironment;
-    
+    // === 实验环境（ID引用，非持有）===
+    // 根据 Decision 2: Experiment 是独立聚合根，通过 ID 引用 Environment
+    // 避免 JPA 级联破坏聚合边界，两聚合根各自独立Repository操作
+    @Column(name = "environment_id")
+    private String environmentId;
+
     // === 归档信息 ===
     private LocalDateTime archivedAt;
     private String archivePath;  // "docs/spikes/xxx.md"
@@ -59,10 +60,10 @@ public class Experiment {
         return experiment;
     }
     
-    public void start(Environment env) {
+    public void start(String environmentId) {
         validateTransition(ExperimentStatus.RUNNING);
         this.status = ExperimentStatus.RUNNING;
-        this.experimentEnvironment = env;
+        this.environmentId = environmentId;
     }
     
     public void conclude(Conclusion conclusion) {
@@ -98,11 +99,18 @@ public class Experiment {
     }
     
     public boolean isCompleted() {
-        return status == ExperimentStatus.COMPLETED || 
+        return status == ExperimentStatus.COMPLETED ||
                status == ExperimentStatus.ARCHIVED ||
                status == ExperimentStatus.CANCELLED;
     }
-    
+
+    /**
+     * 获取关联的环境ID（跨聚合引用）
+     */
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
     private void validateTransition(ExperimentStatus target) {
         if (!this.status.canTransitionTo(target)) {
             throw new IllegalStateException(
