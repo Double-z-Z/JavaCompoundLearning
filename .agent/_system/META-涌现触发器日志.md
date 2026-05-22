@@ -67,6 +67,17 @@ updated: 2026-05-16
 | 最终决策 | ✅ 已执行 |
 | 原因 | 缓存策略在 redis-counter-service-webflux 项目中实战验证，独立成图可支撑 GOAL-ORM与缓存 及 GOAL-Redis深入 |
 
+### 2026-05-22: EMRG-DDD 用户主动整理
+
+| 字段 | 值 |
+|------|-----|
+| 触发类型 | 用户主动整理 |
+| 涉及笔记 | [[领域边界-BoundedContext]], [[DDD分层架构]], [[聚合根-AggregateRoot]], [[值对象-ValueObject]], [[实体-Entity]], [[聚合根引用规则]], [[Infrastructure分包原则]], [[领域接口纯洁性]], [[异常分层设计]], [[防退化红线]] |
+| 涉及MOC | 新建 [[EMRG-DDD]] |
+| LLM建议 | 创建 EMRG-DDD，建立「战略层 → 战术层 → 实现约束层」三层拓扑 |
+| 最终决策 | ✅ 已执行 |
+| 原因 | 基于 DevOps Dashboard 设计复盘笔记（13 个知识节点），提炼出 DDD 的完整认知模型；当前为 theoretical 级别，待项目编码验证后升级为 verified |
+
 ***
 
 ## 待评估触发器
@@ -78,7 +89,7 @@ updated: 2026-05-16
 | EMRG-Sentinel | 概念裂变 | 2026-05-14 | ✅ 已执行 |
 | EMRG-Reactive | 密度阈值 | 2026-05-16 | ✅ 已执行 |
 | EMRG-Cache | 密度阈值 | 2026-05-16 | ✅ 已执行 |
-| <br /> | <br /> | <br /> | <br /> |
+| EMRG-DDD | 用户主动整理 | 2026-05-22 | ✅ 已执行 |
 
 ***
 
