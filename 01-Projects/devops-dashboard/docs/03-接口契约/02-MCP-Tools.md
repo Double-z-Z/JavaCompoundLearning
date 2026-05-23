@@ -4,6 +4,9 @@
 > **协议**: Model Context Protocol (MCP)
 > **传输方式**: SSE / HTTP
 > **依赖**: [REST API 文档](./01-REST-API.md)
+>
+> ⚠️ **V3 更新提示**: 本文档为 V2 基线版本。V3 已对 Tools 进行聚合根重构（新增 `deploy_pipeline`、`env_get_logs`，精简为 10 个 Tools，description 升级为三段式）。
+> **最新 V3 接口定义**请查阅 [V3/03-接口契约.md](../V3/03-接口契约.md) 和 [V3/tools-list.json](../V3/tools-list.json)。
 
 ---
 
@@ -1374,6 +1377,33 @@ Resources 是 MCP 的只读数据源，AI 在执行任何操作前应先查询�
 - [Java 接口定义](./03-Java-接口定义.md) — 后端实现接口
 - [迁移路线图](../04-实施计划/01-迁移路线图.md) — V1→V2 改造计划
 - [当前任务清单](../04-实施计划/02-当前任务清单.md) — Phase 1 任务拆解
+- [V3/03-接口契约.md](../V3/03-接口契约.md) — V3 最新接口定义（当前重点）
+- [V3/07-V2-V3差异对照表.md](../V3/07-V2-V3差异对照表.md) — V2→V3 变更速查
+
+---
+
+## 附录: V3 状态标注
+
+本文档定义的 Tools 在 V3 中的状态：
+
+| 本文档章节 | Tool | V3 状态 |
+|-----------|------|---------|
+| 环境类 | `env_create` | 【改造】description 三段式 + 参数约束 |
+| 环境类 | `env_deploy_service` | 【改造】增加 serviceName enum + 状态机校验 |
+| 环境类 | `env_get_access` | 【废弃】由 `deploy_pipeline` 内部处理 |
+| 环境类 | `env_destroy` | 【改造】description 三段式 |
+| 测试类 | `test_health_check` | 【改造】envId 替代 hostId，description 三段式 |
+| 测试类 | `test_functional` | 【废弃】V3 不暴露 |
+| 测试类 | `test_load` | 【改造】envId + targetPort 替代 target_url |
+| 测试类 | `test_collect_metrics` | 【废弃】由 Monitoring 自动采集 |
+| 测试类 | `test_stream_logs` | 【替代】由 `env_get_logs` 替代 |
+| 测试类 | `test_exec_command` | 【改造】hostId + 命令白名单 |
+| 诊断类 | `analyze_network_path` | 【改造】targetEnvId 替代 targetHostId |
+| 会话类 | `session_create` | 【废弃】V3 不暴露 |
+| 会话类 | `session_record_evidence` | 【废弃】V3 不暴露 |
+| 会话类 | `session_conclude` | 【废弃】V3 不暴露 |
+| — | `deploy_pipeline` | 【新增】编排聚合根 |
+| — | `env_get_logs` | 【新增】日志聚合根 |
 
 ---
 
