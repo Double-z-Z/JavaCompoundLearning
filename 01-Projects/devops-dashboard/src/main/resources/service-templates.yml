@@ -1,0 +1,98 @@
+# 服务模板定义
+# 用于 MCP Tool env_deploy_service 的模板选择，以及 DiscoveryHandler 的模板列表查询
+
+templates:
+  - id: nacos-server
+    name: Nacos 服务注册中心
+    category: service-registry
+    image: nacos/nacos-server:v2.3.0
+    defaultPorts:
+      - "8848:8848"
+      - "9848:9848"
+      - "7848:7848"
+    env:
+      MODE: standalone
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: localhost
+      MYSQL_SERVICE_PORT: "3306"
+      MYSQL_SERVICE_DB_NAME: nacos
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: root
+    healthCheck:
+      path: /nacos/v1/console/health/liveness
+      port: 8848
+    description: |
+      阿里巴巴开源的服务发现与配置管理平台。
+      支持 DNS-based 和 RPC-based 服务发现，
+      提供动态配置服务、动态 DNS 服务。
+
+  - id: mysql
+    name: MySQL 数据库
+    category: database
+    image: mysql:8.0
+    defaultPorts:
+      - "3306:3306"
+    env:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: devops
+      CHARACTER_SET_SERVER: utf8mb4
+      COLLATION_SERVER: utf8mb4_unicode_ci
+    healthCheck:
+      command: mysqladmin ping -h localhost
+    description: |
+      关系型数据库。用于存储业务数据和 Nacos 配置持久化。
+      建议与 Nacos 部署在同一环境以减少网络延迟。
+
+  - id: redis
+    name: Redis 缓存
+    category: cache
+    image: redis:7-alpine
+    defaultPorts:
+      - "6379:6379"
+    healthCheck:
+      command: redis-cli ping
+    description: |
+      高性能内存键值数据库缓存。
+      用于会话管理、分布式锁、限流计数器等场景。
+
+  - id: rabbitmq
+    name: RabbitMQ 消息队列
+    category: message-queue
+    image: rabbitmq:3.13-management
+    defaultPorts:
+      - "5672:5672"
+      - "15672:15672"
+    env:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    healthCheck:
+      path: /
+      port: 15672
+    description: |
+      AMQP 消息中间件，支持消息确认、持久化、死信队列等高级特性。
+      管理界面默认端口 15672（用户名/密码: admin/admin）。
+
+  - id: prometheus-grafana
+    name: Prometheus + Grafana 监控
+    category: monitoring
+    image: prom/prometheus:v2.51.0
+    defaultPorts:
+      - "9090:9090"
+      - "3000:3000"
+    composeOverride: |
+      services:
+        grafana:
+          image: grafana/grafana:10.3.0
+          ports:
+            - "3000:3000"
+          environment:
+            GF_SECURITY_ADMIN_USER: admin
+            GF_SECURITY_ADMIN_PASSWORD: admin
+          depends_on:
+            - prometheus
+    healthCheck:
+      path: /-/healthy
+      port: 9090
+    description: |
+      Prometheus 时序数据库 + Grafana 可视化面板组合。
+      用于收集和展示压测指标、系统资源监控数据。

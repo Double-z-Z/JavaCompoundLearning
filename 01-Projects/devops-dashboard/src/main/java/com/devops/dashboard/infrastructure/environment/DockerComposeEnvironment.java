@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,14 +38,19 @@ public class DockerComposeEnvironment implements EnvironmentProvisioner {
             Files.createDirectories(composeDir);
             Files.writeString(composeFile, generateComposeContent(spec, envIdValue));
 
-            int exitCode = new ProcessBuilder()
-                    .command("docker", "compose", "-f", composeFile.toString(), "up", "-d")
-                    .redirectErrorStream(true)
-                    .start()
-                    .waitFor();
+            try {
+                int exitCode = new ProcessBuilder()
+                        .command("docker", "compose", "-f", composeFile.toString(), "up", "-d")
+                        .redirectErrorStream(true)
+                        .start()
+                        .waitFor();
 
-            if (exitCode != 0) {
-                throw new RuntimeException("docker-compose up failed with exit code " + exitCode);
+                if (exitCode != 0) {
+                    throw new RuntimeException("docker-compose up failed with exit code " + exitCode);
+                }
+            } catch (Exception e) {
+                cleanupComposeDirectory(envIdValue);
+                throw e;
             }
 
             log.info("Environment provisioned: {}", envIdValue);
@@ -55,39 +61,69 @@ public class DockerComposeEnvironment implements EnvironmentProvisioner {
 
     @Override
     public Mono<Void> teardown(EnvironmentId id) {
-        return Mono.fromRunnable(() -> {
+        return Mono.fromCallable(() -> {
             String containerName = COMPOSE_FILE_PREFIX + id.getValue();
 
-            // 优先用compose文件
             Path composeFile = Paths.get(".docker/environments/" + id.getValue() + "/docker-compose.yml");
             if (Files.exists(composeFile)) {
                 try {
-                    int exitCode = new ProcessBuilder()
-                            .command("docker", "compose", "-f", composeFile.toString(), "down")
+                    Process process = new ProcessBuilder()
+                            .command("docker", "compose", "-f", composeFile.toString(), "down", "--timeout", "10")
                             .redirectErrorStream(true)
-                            .start()
-                            .waitFor();
+                            .start();
+
+                    boolean finished = process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS);
+                    if (!finished) {
+                        process.destroyForcibly();
+                        log.warn("[teardown] docker compose down timeout, force killing for {}", id.getValue());
+                    }
+
+                    int exitCode = process.exitValue();
                     if (exitCode == 0) {
                         log.info("Environment destroyed via compose: {}", id.getValue());
-                        return;
+                        cleanupComposeDirectory(id.getValue());
+                        return null;
                     }
                 } catch (IOException | InterruptedException e) {
                     log.warn("Compose down failed, falling back to container removal: {}", e.getMessage());
                 }
             }
 
-            // 回退：直接删除容器
             try {
-                new ProcessBuilder()
+                Process process = new ProcessBuilder()
                         .command("docker", "rm", "-f", containerName)
                         .redirectErrorStream(true)
-                        .start()
-                        .waitFor();
+                        .start();
+
+                boolean finished = process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS);
+                if (!finished) {
+                    process.destroyForcibly();
+                }
+
                 log.info("Environment destroyed via container removal: {}", id.getValue());
             } catch (IOException | InterruptedException e) {
                 log.error("Failed to destroy environment: {}", id.getValue(), e);
+                throw new RuntimeException("Failed to destroy environment " + id.getValue(), e);
             }
-        });
+            cleanupComposeDirectory(id.getValue());
+            return null;
+        }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
+
+    private void cleanupComposeDirectory(String envIdValue) {
+        try {
+            Path composeDir = Paths.get(".docker/environments/" + envIdValue);
+            if (Files.exists(composeDir)) {
+                Files.walk(composeDir)
+                        .sorted((a, b) -> b.compareTo(a))
+                        .forEach(path -> {
+                            try { Files.deleteIfExists(path); } catch (IOException ignored) {}
+                        });
+                log.debug("Cleaned up compose directory for {}", envIdValue);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to cleanup compose directory for {}: {}", envIdValue, e.getMessage());
+        }
     }
 
     @Override
@@ -99,19 +135,28 @@ public class DockerComposeEnvironment implements EnvironmentProvisioner {
                         .redirectErrorStream(true)
                         .start();
 
+                boolean finished = process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS);
+                if (!finished) {
+                    process.destroyForcibly();
+                    log.warn("[checkStatus] Timeout checking status for {}", id.getValue());
+                    return EnvironmentStatus.FAILED;
+                }
+
                 String output = new String(process.getInputStream().readAllBytes()).trim();
-                if (process.waitFor() != 0 || output.isEmpty()) {
+                if (process.waitFor() != 0 || output.isBlank()) {
                     return EnvironmentStatus.NOT_FOUND;
                 }
 
-                return switch (output.charAt(0)) {
-                    case 'U' -> EnvironmentStatus.RUNNING;
-                    case 'E' -> EnvironmentStatus.STOPPED;
-                    default -> EnvironmentStatus.NOT_FOUND;
-                };
+                if (output.contains("Up")) {
+                    return EnvironmentStatus.RUNNING;
+                }
+                if (output.contains("Exited") || output.contains("Created")) {
+                    return EnvironmentStatus.STOPPED;
+                }
+                return EnvironmentStatus.FAILED;
             } catch (IOException | InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return EnvironmentStatus.NOT_FOUND;
+                log.warn("[checkStatus] Failed to check status for {}: {}", id.getValue(), e.getMessage());
+                return EnvironmentStatus.FAILED;
             }
         });
     }

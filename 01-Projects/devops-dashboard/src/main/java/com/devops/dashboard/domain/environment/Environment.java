@@ -3,15 +3,41 @@ package com.devops.dashboard.domain.environment;
 import com.devops.dashboard.domain.environment.valueobject.HealthCheckConfig;
 import com.devops.dashboard.domain.environment.valueobject.LifecyclePolicy;
 import com.devops.dashboard.domain.environment.valueobject.ResourceQuota;
+import com.devops.dashboard.domain.host.HostId;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
+/**
+ * 环境聚合根实体（Aggregate Root）。
+ *
+ * <p>表示一个独立的运行环境（如开发环境、测试环境、实验环境），
+ * 是环境子域的核心聚合根，负责管理环境的生命周期状态、服务实例部署和访问端点。</p>
+ *
+ * <h3>聚合边界</h3>
+ * <p>本聚合包含以下实体和值对象：</p>
+ * <ul>
+ *   <li>{@link ServiceInstance} — 服务实例（一对多关联，级联全部操作）</li>
+ *   <li>{@link TargetNodeRef} — 目标节点引用列表</li>
+ *   <li>{@link ResourceQuota} — 资源配额值对象</li>
+ *   <li>{@link LifecyclePolicy} — 生命周期策略值对象</li>
+ *   <li>{@link HealthCheckConfig} — 健康检查配置值对象</li>
+ * </ul>
+ *
+ * <h3>V2 Phase 2 扩展</h3>
+ * <p>新增 {@code hostId} 和 {@code runtime} 字段，实现与 {@link Host} 聚合根的关联，
+ * 支持 MCP 环境管理工具对目标主机的校验和能力检查。</p>
+ *
+ * @see EnvironmentSpec 环境规格说明
+ * @see EnvironmentStatus 环境状态机
+ * @see HostId 主机标识符
+ */
 @Entity
 @Table(name = "environments", indexes = {
     @Index(name = "idx_env_status", columnList = "status"),
-    @Index(name = "idx_env_type", columnList = "type")
+    @Index(name = "idx_env_type", columnList = "type"),
+    @Index(name = "idx_env_host", columnList = "host_id")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -29,6 +55,14 @@ public class Environment {
     private EnvironmentStatus status;
 
     private LocalDateTime createdAt;
+
+    /** 目标主机标识符（V2 Phase 2 新增），关联 {@link Host} 聚合根 */
+    @Column(name = "host_id")
+    private String hostId;
+
+    /** 运行时类型（V2 Phase 2 新增），表示环境的执行载体 */
+    @Enumerated(EnumType.STRING)
+    private RuntimeType runtime;
 
     // === 访问端点 ===
     @ElementCollection(fetch = FetchType.EAGER)
@@ -53,6 +87,15 @@ public class Environment {
     @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ServiceInstance> services = new ArrayList<>();
 
+    /**
+     * 工厂方法：从规格说明创建新环境（初始状态为 CREATING）。
+     *
+     * <p>V2 Phase 2 扩展：支持通过 {@link EnvironmentSpec} 指定目标主机和运行时类型。</p>
+     *
+     * @param name 环境名称（用户指定或自动生成）
+     * @param spec 环境规格，包含类型、资源配置、主机信息等
+     * @return 新创建的环境实例，状态为 {@link EnvironmentStatus#CREATING}
+     */
     public static Environment create(String name, EnvironmentSpec spec) {
         var env = new Environment();
         env.id = EnvironmentId.generate();
@@ -63,6 +106,8 @@ public class Environment {
         env.resourceQuota = spec.getResourceQuota() != null ? spec.getResourceQuota() : ResourceQuota.development();
         env.lifecyclePolicy = spec.getLifecyclePolicy() != null ? spec.getLifecyclePolicy() : LifecyclePolicy.defaultForDev();
         env.targetNodes = spec.getTargetNodes() != null ? spec.getTargetNodes() : new ArrayList<>();
+        env.hostId = spec.getHostId();
+        env.runtime = spec.getRuntime() != null ? spec.getRuntime() : RuntimeType.DOCKER;
 
         if (env.services == null) env.services = new ArrayList<>();
         if (env.accessEndpoints == null) env.accessEndpoints = new HashMap<>();
@@ -70,6 +115,16 @@ public class Environment {
         return env;
     }
 
+    /**
+     * 工厂方法：创建已就绪的环境实例（状态直接为 RUNNING）。
+     *
+     * <p>用于从外部系统同步已部署环境的状态，跳过 CREATING 阶段。
+     * V2 Phase 2 扩展：支持指定目标主机和运行时类型。</p>
+     *
+     * @param idValue 环境ID字符串
+     * @param spec    环境规格
+     * @return 已就绪的环境实例，状态为 {@link EnvironmentStatus#RUNNING}
+     */
     public static Environment provisioned(String idValue, EnvironmentSpec spec) {
         var env = new Environment();
         env.id = EnvironmentId.of(idValue);
@@ -80,6 +135,8 @@ public class Environment {
         env.resourceQuota = spec.getResourceQuota() != null ? spec.getResourceQuota() : ResourceQuota.development();
         env.lifecyclePolicy = spec.getLifecyclePolicy() != null ? spec.getLifecyclePolicy() : LifecyclePolicy.defaultForDev();
         env.targetNodes = spec.getTargetNodes() != null ? spec.getTargetNodes() : new ArrayList<>();
+        env.hostId = spec.getHostId();
+        env.runtime = spec.getRuntime() != null ? spec.getRuntime() : RuntimeType.DOCKER;
         env.services = new ArrayList<>();
         env.accessEndpoints = new HashMap<>();
         return env;
@@ -135,15 +192,4 @@ public class Environment {
             );
         }
     }
-}
-
-@Embeddable
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-class TargetNode {
-    private String nodeId;
-    private String ip;
-    private String role;  // primary | secondary
 }

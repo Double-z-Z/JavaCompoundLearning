@@ -1,5 +1,6 @@
 package com.devops.dashboard.domain.environment;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import java.util.UUID;
 @EqualsAndHashCode
 public class EnvironmentId {
 
+    @Column(name = "env_id")
     private final String value;
 
     public String getValue() {

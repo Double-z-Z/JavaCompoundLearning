@@ -134,11 +134,11 @@
            <scope>runtime</scope>
        </dependency>
        
-       <!-- H2 内存数据库 (仅测试用) -->
+       <!-- H2 内存数据库 (开发/测试用) -->
        <dependency>
            <groupId>com.h2database</groupId>
            <artifactId>h2</artifactId>
-           <scope>test</scope>
+           <scope>runtime</scope>
        </dependency>
 
        <!-- Lombok: 减少样板代码 (Getter/Setter/Builder) -->
@@ -190,6 +190,40 @@
        <dependency>
            <groupId>org.apache.commons</groupId>
            <artifactId>commons-lang3</artifactId>
+       </dependency>
+
+       <!-- ============================================================
+            MCP SDK: Model Context Protocol Server (V2 新增)
+
+            为什么需要?
+            - 实现 AI-Native DevOps 的核心交互层
+            - 提供标准化 Tool/Resource 协议
+            - 支持 SSE 传输（与 WebFlux 兼容）
+
+            注意:
+            - Phase 1 暂不引入 MCP SDK（依赖不稳定）
+            - 先实现自定义 HTTP/SSE 端点
+            - Phase 2+ 再集成完整 MCP SDK
+
+            预留依赖（取消注释以启用）:
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp-spring-webflux</artifactId>
+                <version>0.7.0</version>
+            </dependency>
+            ============================================================ -->
+
+       <!-- YAML 配置解析 (V2 新增: hosts.yml 驱动) -->
+       <dependency>
+           <groupId>org.yaml</groupId>
+           <artifactId>snakeyaml</artifactId>
+           <version>2.2</version>
+       </dependency>
+
+       <!-- JSON 处理 (MCP 响应序列化) -->
+       <dependency>
+           <groupId>com.fasterxml.jackson.core</groupId>
+           <artifactId>jackson-databind</artifactId>
        </dependency>
    </dependencies>
 

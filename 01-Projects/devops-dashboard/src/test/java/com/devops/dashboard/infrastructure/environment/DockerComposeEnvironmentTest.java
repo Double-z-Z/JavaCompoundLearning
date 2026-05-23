@@ -6,6 +6,7 @@ import com.devops.dashboard.domain.environment.EnvironmentSpec;
 import com.devops.dashboard.domain.environment.EnvironmentStatus;
 import com.devops.dashboard.domain.environment.EnvironmentType;
 import com.devops.dashboard.domain.environment.valueobject.ResourceQuota;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("DockerComposeEnvironment 单元测试")
 @ExtendWith(MockitoExtension.class)
+@Slf4j
 class DockerComposeEnvironmentTest {
 
     @InjectMocks
@@ -45,6 +47,17 @@ class DockerComposeEnvironmentTest {
             } catch (Exception ignored) {}
         });
         createdContainerIds.clear();
+
+        java.nio.file.Path composeBase = java.nio.file.Paths.get(".docker/environments");
+        if (java.nio.file.Files.exists(composeBase)) {
+            try {
+                var dirs = java.nio.file.Files.list(composeBase).toList();
+                if (!dirs.isEmpty()) {
+                    log.warn("⚠️ 残留 {} 个未清理的 compose 目录，测试可能存在资源泄露: {}", 
+                            dirs.size(), dirs.stream().map(p -> p.getFileName().toString()).toList());
+                }
+            } catch (Exception ignored) {}
+        }
     }
 
     private boolean containerExists(String containerName) throws Exception {

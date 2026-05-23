@@ -1,5 +1,6 @@
 package com.devops.dashboard.domain.experiment;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @EqualsAndHashCode
 public class ExperimentId {
 
+    @Column(name = "exp_id")
     private final String value;
 
     private ExperimentId() {

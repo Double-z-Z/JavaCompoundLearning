@@ -1,0 +1,72 @@
+# MCP Server 本地开发配置
+#
+# 使用方式:
+#   mvn spring-boot:run -Dspring-boot.run.profiles=mcp
+#   或
+#   java -jar target/devops-dashboard-1.0.0-SNAPSHOT.jar --spring.profiles.active=mcp
+#
+# 配置说明:
+# - MCP Server 运行在 8081 端口（与主应用 8080 分离）
+# - 使用 SSE (Server-Sent Events) 传输协议
+# - 启用详细的 MCP 日志输出
+
+server:
+  port: 8081
+
+mcp:
+  server:
+    enabled: true
+    transport: sse
+    path: /mcp/sse
+    # 本地开发不需要认证
+    auth:
+      enabled: false
+    # SSE 超时配置
+    sse:
+      timeout: 300000ms  # 5 分钟
+      heartbeat: 15000ms  # 15 秒心跳
+
+devops:
+  hosts:
+    config-path: classpath:hosts.yml
+    refresh-interval: 60s
+  infrastructure:
+    provider-type: docker-compose
+    docker-compose:
+      compose-file-dir: .docker/environments
+      default-network: devops-bridge
+      timeout-seconds: 300
+
+spring:
+  # MCP 模式下使用 H2 内存数据库（无需外部数据库）
+  datasource:
+    url: jdbc:h2:mem:devops-mcp;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=POSTGRESQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+  # 禁用 OpenAPI（MCP 不需要）
+  springdoc:
+    api-docs:
+      enabled: false
+    swagger-ui:
+      enabled: false
+
+logging:
+  level:
+    root: INFO
+    com.devops.dashboard.mcp: DEBUG
+    com.devops.dashboard.infrastructure.host: DEBUG
+    org.springframework.web.reactive: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ./logs/mcp-server.log
