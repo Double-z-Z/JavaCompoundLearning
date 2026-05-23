@@ -52,7 +52,7 @@ java -jar target/devops-dashboard-1.0.0-SNAPSHOT.jar --spring.profiles.active=mc
 
 ```yaml
 server:
-  port: 8081  # MCP Server 端口（与主应用 8080 分离）
+  port: 8081  # MCP Server 监听端口
 
 mcp:
   server:
@@ -311,16 +311,6 @@ management:
       exposure:
         include: health,info,mcp
 ```
-
-## 🔄 与主应用的关系
-
-| 特性 | 主应用 (8080) | MCP Server (8081) |
-|------|--------------|-------------------|
-| Profile | default | mcp |
-| 数据库 | PostgreSQL | H2 内存 |
-| 协议 | REST API + Swagger | MCP (SSE) |
-| 用途 | Web UI / API 调用 | AI 客户端集成 |
-| OpenAPI | ✅ 启用 | ❌ 禁用 |
 
 ## 📝 开发注意事项
 

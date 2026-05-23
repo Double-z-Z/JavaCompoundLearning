@@ -1,393 +1,102 @@
-# DevOps Dashboard MCP Tools — 完整定义
+# MCP Tools 接口契约
 
-> **版本**: v2.0 (MCP AI-Native)
+> **版本**: 当前版本 (聚合根入口 + 反退化约束)
 > **协议**: Model Context Protocol (MCP)
 > **传输方式**: SSE / HTTP
-> **依赖**: [REST API 文档](./01-REST-API.md)
+> **前置阅读**: [00-术语表.md](../00-术语表.md)
 >
-> ⚠️ **V3 更新提示**: 本文档为 V2 基线版本。V3 已对 Tools 进行聚合根重构（新增 `deploy_pipeline`、`env_get_logs`，精简为 10 个 Tools，description 升级为三段式）。
-> **最新 V3 接口定义**请查阅 [V3/03-接口契约.md](../V3/03-接口契约.md) 和 [V3/tools-list.json](../V3/tools-list.json)。
-
----
-
-## 📖 目录
-
-1. [概述](#概述)
-2. [发现类 Resources（只读）](#发现类-resources只读)
-3. [环境类 Tools](#环境类-tools)
-4. [测试类 Tools](#测试类-tools)
-5. [诊断类 Tools](#诊断类-tools)
-6. [会话类 Tools](#会话类-tools)
-7. [使用流程](#使用流程)
-8. [错误处理](#错误处理)
+> **核心设计**: 10 个 Tools，description 三段式领域契约，参数数据源约束。
 
 ---
 
 ## 概述
 
-### MCP 协议架构
+### Tool 分类
 
-```
-┌─────────────────────────────────────────────┐
-│              AI Client (Claude/GPT/Trae)      │
-│                     │                        │
-│              MCP Protocol                    │
-│                     │                        │
-├─────────────────────┼────────────────────────┤
-│           DevOps MCP Server                  │
-│  ┌──────────────────┴──────────────────┐     │
-│  │         Tool Handler Layer          │     │
-│  │  ┌─────────┐ ┌─────────┐ ┌────────┐ │     │
-│  │  │Env Handler│ │Test Hdlr│ │Diag Hdl│ │     │
-│  │  └─────────┘ └─────────┘ └────────┘ │     │
-│  ├──────────────────┬──────────────────┤     │
-│  │    Resource Layer (Read-only)        │     │
-│  │  ┌─────────┐ ┌─────────┐ ┌────────┐ │     │
-│  │  │hosts://  │ │templates│ │envs:// │ │     │
-│  │  │topology │ │://list  │ │list   │ │     │
-│  │  └─────────┘ └─────────┘ └────────┘ │     │
-│  └──────────────────┬──────────────────┘     │
-│            Domain Service Layer               │
-│  ┌──────────┐ ┌──────────┐ ┌────────────┐   │
-│  │Environment│ │ Loadgen  │ │  Evidence   │   │
-│  │ Service   │ │ Service  │ │  Collector  │   │
-│  └──────────┘ └──────────┘ └────────────┘   │
-└─────────────────────────────────────────────┘
-```
+| 类别 | 数量 | 说明 |
+|------|------|------|
+| **编排类** | 1 | `deploy_pipeline` — 首选入口 |
+| **环境类** | 5 | `env_create`, `env_deploy_service`, `env_list`, `env_destroy`, `env_get_logs` |
+| **测试类** | 2 | `test_health_check`, `test_load` |
+| **诊断类** | 2 | `test_exec_command`, `analyze_network_path` |
+| **合计** | **10** | |
 
-### Tool 分类说明
+### 命名规范
 
-| 类别 | 类型 | 用途 | 示例 |
-|------|------|------|------|
-| **发现类** | Resource (只读) | 查询基础设施状态、可用资源 | `hosts://topology` |
-| **环境类** | Tool (写操作) | 环境生命周期管理 | `env_create`, `env_destroy` |
-| **测试类** | Tool (读写) | 健康检查、功能测试、压测 | `test_load`, `test_health_check` |
-| **诊断类** | Tool (只读) | 网络路径分析、故障定位 | `analyze_network_path` |
-| **会话类** | Tool (读写) | 实验全生命周期管理 | `session_create`, `session_conclude` |
+- 所有参数统一使用 **camelCase**
+- 可枚举字段必须列出全部 `enum` 值
+- ID 类参数描述必须包含数据源指向：`必须来自 {tool} 返回的 {field} 字段`
 
 ---
 
-## 发现类 Resources（只读）
+## 编排类 Tools
 
-Resources 是 MCP 的只读数据源，AI 在执行任何操作前应先查询这些 Resource 获取上下文。
+### `deploy_pipeline` — 执行完整部署流水线
 
-### `hosts://topology` — 主机拓扑
+**【首选入口】执行完整的部署流水线：环境创建 → 服务部署 → 健康检查 → 网络验证。**
 
-**用途**: 返回 MCP 可支配的完整主机层次拓扑。
-
-**何时调用**: 
-- 任何部署/压测操作前（必须）
-- 需要了解当前基础设施状态时
-- 选择部署目标或压测机时
+此工具内部原子化编排 `env_create`、`env_deploy_service`、`test_health_check`、`analyze_network_path`，确保依赖顺序、资源清理和监控探针被正确注入。禁止绕过此工具进行手动分步部署或本地 docker 操作。
 
 ```json
 {
-  "uri": "hosts://topology",
-  "mimeType": "application/json",
-  "name": "主机拓扑",
-  "description": "返回 MCP 可支配的完整主机层次拓扑，包括 PVE 宿主机、VM、角色、能力、资源余量。AI 必须在任何部署/压测操作前查询此 Resource。",
-  "text": {
-    "schema": {
-      "type": "object",
-      "properties": {
-        "mcp_host_id": { 
-          "type": "string", 
-          "description": "当前运行 MCP Server 的主机 ID" 
-        },
-        "hosts": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": { "type": "string" },
-              "type": { 
-                "type": "string", 
-                "enum": ["pve-hypervisor", "vm", "bare-metal", "local"] 
-              },
-              "parent": { 
-                "type": ["string", "null"], 
-                "description": "父节点 ID，PVE 宿主机为 null" 
-              },
-              "label": { "type": "string" },
-              "network_zone": { "type": "string" },
-              "capabilities": { 
-                "type": "array", 
-                "items": { 
-                  "type": "string", 
-                  "enum": ["docker", "native", "vm"] 
-                } 
-              },
-              "roles": { 
-                "type": "array", 
-                "items": { 
-                  "type": "string", 
-                  "enum": ["mcp-host", "target", "loadgen"] 
-                } 
-              },
-              "resources": {
-                "type": "object",
-                "properties": {
-                  "cpu_total": { "type": "integer" },
-                  "cpu_free": { "type": "integer" },
-                  "mem_total_mb": { "type": "integer" },
-                  "mem_free_mb": { "type": "integer" }
-                }
-              },
-              "loadgen_tools": { 
-                "type": "array", 
-                "items": { "type": "string" }, 
-                "description": "仅 loadgen 角色有效" 
-              }
-            },
-            "required": ["id", "type", "label", "roles", "capabilities"]
-          }
-        }
+  "name": "deploy_pipeline",
+  "description": "【首选入口】执行完整的部署流水线：环境创建 → 服务部署 → 健康检查 → 网络验证。此工具内部原子化编排 env_create、env_deploy_service、test_health_check、analyze_network_path，确保依赖顺序、资源清理和监控探针被正确注入。禁止绕过此工具进行手动分步部署或本地 docker 操作。",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "serviceName": {
+        "type": "string",
+        "enum": ["redis-counter-service", "devops-dashboard", "mcp-host-agent", "redis-cache"],
+        "description": "MCP 服务目录中已注册的服务名"
+      },
+      "targetHostId": {
+        "type": "string",
+        "description": "目标宿主机 ID，必须来自 env_list 返回的 availableHosts 列表中的 id 字段"
+      },
+      "version": {
+        "type": "string",
+        "description": "镜像标签或 Git tag，如 '1.0-SNAPSHOT'、'latest'、'sha-7a3f2b'"
+      },
+      "isolationType": {
+        "type": "string",
+        "enum": ["docker", "native"],
+        "description": "运行时隔离类型。docker 表示容器化隔离（推荐），native 表示宿主机进程级隔离"
+      },
+      "runtimeConstraint": {
+        "type": "string",
+        "description": "运行时版本约束，如 'openjdk:21-jre-slim' 或 'docker:26.0'"
+      },
+      "verifyEndpoints": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "部署后必须验证的 HTTP 端点路径列表，如 ['/api/health', '/api/counter']"
+      },
+      "keepOnFailure": {
+        "type": "boolean",
+        "default": false,
+        "description": "失败时是否保留环境用于排查。默认 false（自动清理）"
       }
-    }
+    },
+    "required": ["serviceName", "targetHostId", "version", "isolationType"]
   }
 }
 ```
 
 **返回示例**:
-```json
-{
-  "mcp_host_id": "vm-fedora-dev",
-  "hosts": [
-    {
-      "id": "pve-01",
-      "type": "pve-hypervisor",
-      "parent": null,
-      "label": "PVE 虚拟化宿主机",
-      "network_zone": "lan-10.0.0",
-      "capabilities": ["vm"],
-      "roles": [],
-      "resources": {
-        "cpu_total": 32,
-        "cpu_free": 20,
-        "mem_total_mb": 128000,
-        "mem_free_mb": 80000
-      }
-    },
-    {
-      "id": "vm-fedora-dev",
-      "type": "vm",
-      "parent": "pve-01",
-      "label": "Fedora 开发环境 (MCP Server 运行于此)",
-      "network_zone": "lan-10.0.0",
-      "capabilities": ["docker", "native"],
-      "roles": ["mcp-host", "target"],
-      "resources": {
-        "cpu_total": 8,
-        "cpu_free": 6,
-        "mem_total_mb": 16384,
-        "mem_free_mb": 12000
-      }
-    },
-    {
-      "id": "vm-ubuntu-test",
-      "type": "vm",
-      "parent": "pve-01",
-      "label": "Ubuntu 测试环境",
-      "network_zone": "lan-10.0.0",
-      "capabilities": ["docker", "native"],
-      "roles": ["target"],
-      "resources": {
-        "cpu_total": 4,
-        "cpu_free": 3,
-        "mem_total_mb": 8192,
-        "mem_free_mb": 6144
-      }
-    },
-    {
-      "id": "vm-loadgen-01",
-      "type": "vm",
-      "parent": "pve-01",
-      "label": "专用压测机",
-      "network_zone": "lan-10.0.0",
-      "capabilities": ["native"],
-      "roles": ["loadgen"],
-      "resources": {
-        "cpu_total": 8,
-        "cpu_free": 8,
-        "mem_total_mb": 8192,
-        "mem_free_mb": 8192
-      },
-      "loadgen_tools": ["wrk", "hey", "ab"]
-    }
-  ]
-}
-```
-
----
-
-### `templates://list` — 服务模板列表
-
-**用途**: 返回所有可用的服务模板。
-
-**何时调用**: 
-- 部署服务前（必须）
-- 查询系统支持哪些中间件时
 
 ```json
 {
-  "uri": "templates://list",
-  "mimeType": "application/json",
-  "name": "服务模板列表",
-  "description": "返回所有可用的服务模板，包含版本、默认端口、资源需求、可配置参数。",
-  "text": {
-    "schema": {
-      "type": "object",
-      "properties": {
-        "templates": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": { "type": "string" },
-              "display_name": { "type": "string" },
-              "category": { "type": "string" },
-              "versions": { "type": "array", "items": { "type": "string" } },
-              "default_ports": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "container": { "type": "integer" },
-                    "host": { "type": "integer" },
-                    "desc": { "type": "string" }
-                  }
-                }
-              },
-              "requirements": {
-                "type": "object",
-                "properties": {
-                  "min_memory_mb": { "type": "integer" },
-                  "recommend_memory_mb": { "type": "integer" }
-                }
-              },
-              "configurable_params": { "type": "array", "items": { "type": "string" } },
-              "dependencies": { "type": "array", "items": { "type": "string" } }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-```
-
----
-
-### `templates://{template_id}` — 服务模板详情
-
-**用途**: 返回指定模板的完整配置。
-
-**何时调用**: 
-- 向用户展示可覆盖的参数时
-- 需要了解服务的详细配置选项时
-
-```json
-{
-  "uri": "templates://nacos-server",
-  "mimeType": "application/json",
-  "name": "Nacos 服务模板详情",
-  "description": "返回指定模板的完整配置，用于 AI 向用户展示可覆盖的参数。",
-  "text": {
-    "id": "nacos-server",
-    "display_name": "Nacos 注册中心 & 配置中心",
-    "category": "service-discovery",
-    "versions": ["v2.2.3", "v2.3.0"],
-    "default_config": {
-      "image": "nacos/nacos-server:v2.2.3",
-      "ports": [
-        { "container": 8848, "host": 8848, "desc": "Console & OpenAPI" },
-        { "container": 9848, "host": 9848, "desc": "gRPC" },
-        { "container": 9849, "host": 9849, "desc": "gRPC" }
-      ],
-      "environment_variables": {
-        "MODE": "standalone",
-        "NACOS_AUTH_ENABLE": "true",
-        "JVM_XMS": "512m",
-        "JVM_XMX": "1024m"
-      },
-      "health_check": {
-        "endpoint": "/nacos/v1/console/health/readiness",
-        "initial_delay_seconds": 40,
-        "period_seconds": 10,
-        "timeout_seconds": 5
-      }
-    },
-    "configurable_params": ["MODE", "NACOS_AUTH_ENABLE", "JVM_XMS", "JVM_XMX", "MYSQL_HOST"],
-    "dependencies": ["mysql(optional,集群模式必需)"]
-  }
-}
-```
-
----
-
-### `envs://list` — 环境列表
-
-**用途**: 返回当前活跃的环境列表。
-
-**何时调用**: 
-- 创建新环境前（避免端口冲突、资源耗尽）
-- 查看当前有哪些环境在运行
-
-```json
-{
-  "uri": "envs://list",
-  "mimeType": "application/json",
-  "name": "环境列表",
-  "description": "返回当前活跃的环境列表，用于避免端口冲突、资源耗尽。",
-  "text": {
-    "schema": {
-      "type": "object",
-      "properties": {
-        "environments": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": { "type": "string" },
-              "name": { "type": "string" },
-              "status": { 
-                "type": "string", 
-                "enum": ["CREATING", "RUNNING", "STOPPED", "DESTROYED", "FAILED"] 
-              },
-              "target_host_id": { 
-                "type": "string", 
-                "description": "环境所在的 Target Host" 
-              },
-              "target_host_label": { "type": "string" },
-              "runtime": { 
-                "type": "string", 
-                "enum": ["docker", "native"] 
-              },
-              "services": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "name": { "type": "string" },
-                    "template_id": { "type": "string" },
-                    "status": { "type": "string" },
-                    "ports": { "type": "array", "items": { "type": "integer" } }
-                  }
-                }
-              },
-              "resource_usage": {
-                "type": "object",
-                "properties": {
-                  "cpu_percent": { "type": "number" },
-                  "mem_mb": { "type": "integer" }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  "pipelineId": "pipe-20260523-001",
+  "status": "SUCCEEDED",
+  "envId": "env-20260523-001",
+  "stages": [
+    { "name": "env_create", "status": "SUCCEEDED", "output": "环境已创建: env-20260523-001" },
+    { "name": "env_deploy_service", "status": "SUCCEEDED", "output": "服务已部署: redis-counter-service:v1.0" },
+    { "name": "test_health_check", "status": "SUCCEEDED", "output": "/api/health: 200 OK (23ms)" },
+    { "name": "analyze_network_path", "status": "SUCCEEDED", "output": "路径类型: same-lan" }
+  ],
+  "createdAt": "2026-05-23T10:00:00Z",
+  "completedAt": "2026-05-23T10:02:15Z"
 }
 ```
 
@@ -395,203 +104,245 @@ Resources 是 MCP 的只读数据源，AI 在执行任何操作前应先查询�
 
 ## 环境类 Tools
 
-环境的完整生命周期管理：创建 → 部署服务 → 获取访问信息 → 销毁。
+### `env_create` — 创建隔离环境
 
-### `env_create` — 创建环境
+**【唯一入口】在远程宿主机上创建隔离的部署环境。**
 
-**用途**: 在指定的 Target Host 上创建一个新的空环境。
-
-**前置条件**:
-1. 必须先调用 `hosts://topology` 查询可用节点
-2. 必须先调用 `envs://list` 检查资源冲突
-3. Target Host 必须具有 `target` 角色且资源充足
-
-**⚠️ 安全提示**: 此操作会分配资源，建议向用户展示参数清单后确认再执行。
+所有环境生命周期必须通过此工具管理，以确保网络策略（iptables/nftables）、资源配额（cgroups/memory）、监控探针和 DNS 记录被正确注入。
 
 ```json
 {
   "name": "env_create",
-  "description": "在指定的 Target Host 上创建一个新的空环境。Target Host 必须具有 target 角色且资源充足。创建前建议查询 hosts://topology 和 envs://list。",
+  "description": "【唯一入口】在远程宿主机上创建隔离的部署环境。所有环境生命周期必须通过此工具管理，以确保网络策略（iptables/nftables）、资源配额（cgroups/memory）、监控探针和 DNS 记录被正确注入。错误示例：❌ 禁止本地执行 'docker run -d redis'，这将绕过网络隔离，导致后续 analyze_network_path 无法追踪流量路径，且不会被服务发现注册。",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "target_host_id": {
+      "name": {
         "type": "string",
-        "description": "目标宿主机 ID。必须是 hosts://topology 中 roles 包含 'target' 的节点。"
+        "description": "环境标识符，将用于 DNS 和服务发现（如 redis-counter-tomcat）。只允许小写字母、数字和连字符"
       },
-      "env_name": {
-        "type": "string",
-        "description": "环境名称，用于标识。如 'nacos-perf-01'。"
-      },
-      "type": {
-        "type": "string",
-        "enum": ["DEV", "TEST", "STAGING", "EXPERIMENT"],
-        "description": "环境类型。实验场景建议 EXPERIMENT。"
-      },
-      "runtime": {
+      "isolationType": {
         "type": "string",
         "enum": ["docker", "native"],
-        "default": "docker",
-        "description": "运行时类型。docker=容器化部署，native=直接进程。必须与 Target Host 的 capabilities 匹配。"
+        "description": "运行时隔离类型。docker 表示容器化隔离（推荐），native 表示宿主机 systemd 进程级隔离"
       },
-      "resource_limit": {
-        "type": "object",
-        "description": "资源限制，不填则使用 Target Host 默认值。",
-        "properties": {
-          "cpu": { "type": "string", "description": "如 '2' 或 '2000m'" },
-          "memory": { "type": "string", "description": "如 '2Gi' 或 '2048Mi'" }
-        }
-      },
-      "auto_destroy_duration": {
+      "environmentType": {
         "type": "string",
-        "default": "2h",
-        "description": "自动销毁时长，如 '2h'、'30m'。到达后自动清理资源。"
+        "enum": ["DEV", "TEST", "STAGING", "PROD", "EXPERIMENT"],
+        "description": "环境业务用途分类。默认 EXPERIMENT"
+      },
+      "hostId": {
+        "type": "string",
+        "description": "目标宿主机 ID，必须来自 env_list 返回的 availableHosts 列表中的 id 字段"
+      },
+      "runtimeConstraint": {
+        "type": "string",
+        "description": "运行时版本约束，如 'openjdk:21-jre-slim'、'docker:26.0'、'podman:4.9'"
+      },
+      "resourceLimit": {
+        "type": "object",
+        "description": "资源配额，默认 cpu=1.0, memory=512m",
+        "properties": {
+          "cpu": { "type": "string", "description": "CPU 限制，如 '1.0'、'2.0'" },
+          "memory": { "type": "string", "description": "内存限制，如 '512m'、'1g'" }
+        }
       }
     },
-    "required": ["target_host_id", "env_name", "type"]
+    "required": ["name", "isolationType", "hostId"]
   }
 }
 ```
 
+> **注**: 当前代码实现中 `isolationType` 字段名为 `type`，`environmentType` 尚未在 Schema 中暴露，`runtimeConstraint` 字段名为 `runtime` 但实际解析为隔离类型。设计目标与代码实现在此处存在偏差，详见 [V3/HISTORY.md](../V3/HISTORY.md)。
+
 **返回示例**:
+
 ```json
 {
-  "env_id": "env-20260522-001",
-  "name": "nacos-perf-01",
-  "target_host_id": "vm-ubuntu-test",
-  "target_host_label": "Ubuntu 测试环境",
+  "envId": "env-20260523-001",
+  "name": "redis-counter-tomcat",
+  "hostId": "vm-ubuntu-test",
   "status": "CREATING",
-  "runtime": "docker",
-  "auto_destroy_at": "2026-05-22T19:22:00Z",
-  "created_at": "2026-05-22T17:22:00Z"
+  "isolationType": "docker",
+  "environmentType": "EXPERIMENT",
+  "createdAt": "2026-05-23T10:00:00Z"
 }
 ```
 
 ---
 
-### `env_deploy_service` — 部署服务
+### `env_deploy_service` — 部署服务到环境
 
-**用途**: 向已有环境部署一个服务实例。
+**将服务部署到已通过 env_create 初始化且状态为 READY 的环境中。**
 
-**前置条件**:
-1. 环境必须处于 `RUNNING` 或 `CREATING` 状态
-2. 必须先通过 `templates://list` 查询可用模板
-3. 建议通过 `templates://{id}` 了解可配置参数
+此操作会：1) 锁定环境状态为 DEPLOYING；2) 注入 sidecar 监控探针；3) 注册到内部服务发现；4) 配置防火墙规则。
 
 ```json
 {
   "name": "env_deploy_service",
-  "description": "向已有环境部署一个服务实例。环境必须处于 RUNNING 或 CREATING 状态。",
+  "description": "将服务部署到已通过 env_create 初始化且状态为 READY 的环境中。此操作会：1) 锁定环境状态为 DEPLOYING；2) 注入 sidecar 监控探针；3) 注册到内部服务发现；4) 配置防火墙规则。直接手动部署（如 SSH 进去 docker pull）将导致监控失效、流量黑洞和状态不一致。",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "env_id": { "type": "string" },
-      "template_id": {
+      "envId": {
         "type": "string",
-        "description": "服务模板 ID。必须先通过 templates://list 查询可用模板。"
+        "description": "目标环境 ID，必须来自 env_create 返回的 envId 字段"
+      },
+      "serviceName": {
+        "type": "string",
+        "enum": ["redis-counter-service", "devops-dashboard", "mcp-host-agent", "redis-cache"],
+        "description": "服务名，必须是 MCP 服务目录中已注册的服务"
       },
       "version": {
         "type": "string",
-        "description": "模板版本，不填则使用默认版本。"
+        "description": "镜像标签或 Git tag，如 '1.0-SNAPSHOT'、'sha-7a3f2b'。对于本地构建产物，使用 'local-build' 并确保已通过 CI 上传"
       },
-      "config_overrides": {
+      "configOverride": {
         "type": "object",
-        "description": "覆盖模板默认配置。如 {\"MODE\": \"standalone\", \"JVM_XMX\": \"2g\"}。可用覆盖项查询 templates://{id}。",
+        "description": "运行时配置覆盖，如 {'server.port': 8080, 'spring.profiles.active': 'docker'}",
         "additionalProperties": { "type": "string" }
-      },
-      "port_mapping": {
-        "type": "array",
-        "description": "显式指定端口映射，不填则使用模板默认。格式: [{\"container\": 8848, \"host\": 8848}]",
-        "items": {
-          "type": "object",
-          "properties": {
-            "container": { "type": "integer" },
-            "host": { "type": "integer" }
-          },
-          "required": ["container", "host"]
-        }
       }
     },
-    "required": ["env_id", "template_id"]
+    "required": ["envId", "serviceName", "version"]
   }
+}
+```
+
+> **注**: 当前代码实现中 DTO 字段名为 `templateName`，与 Schema 的 `serviceName` 不一致。设计目标统一为 `serviceName`，`templateName` 作为内部模板系统的兼容概念在防腐层做映射。详见 [00-术语表.md](../00-术语表.md)。
+
+**返回示例**:
+
+```json
+{
+  "envId": "env-20260523-001",
+  "serviceName": "redis-counter-service",
+  "version": "1.0-SNAPSHOT",
+  "status": "DEPLOYING",
+  "deployedAt": "2026-05-23T10:01:00Z"
 }
 ```
 
 ---
 
-### `env_get_access` — 获取访问端点
+### `env_list` — 列出所有环境
 
-**用途**: 获取环境的访问端点（控制台地址、API 地址、SSH 信息）。
+**列出所有由 MCP 管理的环境及其状态。**
 
-**何时调用**: 部署完成后**必须**调用此 Tool 告知用户如何访问。
+此列表是 `env_create` 和 `env_deploy_service` 的数据源。
 
 ```json
 {
-  "name": "env_get_access",
-  "description": "获取环境的访问端点（控制台地址、API 地址、SSH 信息）。部署完成后必须调用此 Tool 告知用户如何访问。",
+  "name": "env_list",
+  "description": "列出所有由 MCP 管理的环境及其状态（CREATING / READY / DEPLOYING / RUNNING / ERROR / DESTROYED）。此列表是 env_create 和 env_deploy_service 的数据源。如果某个环境不在此列表中，说明它未经过 MCP 管理，禁止对其执行任何 MCP 操作。",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "env_id": { "type": "string" }
-    },
-    "required": ["env_id"]
+      "hostId": {
+        "type": "string",
+        "description": "可选：筛选特定宿主机上的环境。如果不传，返回所有宿主机"
+      },
+      "statusFilter": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["CREATING", "READY", "DEPLOYING", "RUNNING", "ERROR", "DESTROYED"]
+        },
+        "description": "可选：按状态筛选"
+      }
+    }
   }
 }
 ```
 
 **返回示例**:
+
 ```json
 {
-  "env_id": "env-20260522-001",
-  "target_host_id": "vm-ubuntu-test",
-  "access_endpoints": {
-    "nacos_console": "http://10.0.0.103:8848/nacos",
-    "nacos_api": "http://10.0.0.103:8848",
-    "mysql": "tcp://10.0.0.103:3306"
-  },
-  "services": [
+  "environments": [
     {
-      "name": "nacos-server",
+      "id": "env-20260523-001",
+      "name": "redis-counter-tomcat",
+      "hostId": "vm-ubuntu-test",
       "status": "RUNNING",
-      "ports": [8848, 9848, 9849],
-      "health_check_status": "healthy"
-    },
-    {
-      "name": "mysql",
-      "status": "RUNNING",
-      "ports": [3306],
-      "health_check_status": "healthy"
+      "isolationType": "docker",
+      "environmentType": "EXPERIMENT",
+      "services": ["redis-counter-service"],
+      "createdAt": "2026-05-23T10:00:00Z"
     }
+  ],
+  "availableHosts": [
+    { "id": "vm-ubuntu-test", "label": "Ubuntu 测试环境", "roles": ["target"], "capabilities": ["docker", "native"] },
+    { "id": "vm-loadgen-01", "label": "专用压测机", "roles": ["loadgen"], "capabilities": ["native"] }
   ]
 }
 ```
+
+> **注**: 当前代码实现中 `env_list` 返回的字段名为 `type`，实际填充的是 `runtime`（隔离类型）。设计目标统一为 `isolationType`，新增 `environmentType` 字段。详见 [V3/HISTORY.md](../V3/HISTORY.md)。
 
 ---
 
 ### `env_destroy` — 销毁环境
 
-**用途**: 销毁指定环境及其中所有服务。
+**销毁由 MCP 管理的指定环境及所有关联资源。**
 
-**⚠️ 危险操作警告**:
-- 此操作**不可逆**
-- 数据将丢失
-- 建议向用户明确确认后再执行
+此操作会触发优雅停机（graceful shutdown）和资源清理。
 
 ```json
 {
   "name": "env_destroy",
-  "description": "销毁指定环境及其中所有服务。不可逆，数据将丢失。",
+  "description": "销毁由 MCP 管理的指定环境及所有关联资源（容器、网络、卷、防火墙规则、DNS 记录）。此操作会触发优雅停机（graceful shutdown）和资源清理。错误示例：❌ 禁止本地执行 'docker rm -f xxx'，这将导致 MCP 状态数据库与实际资源不一致，产生孤儿资源。",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "env_id": { "type": "string" },
+      "envId": {
+        "type": "string",
+        "description": "目标环境 ID，必须来自 env_list 返回的 id 字段"
+      },
       "force": {
         "type": "boolean",
-        "default": false,
-        "description": "是否强制销毁，即使环境状态为 RUNNING。"
+        "description": "是否强制销毁（跳过优雅停机）。默认 false",
+        "default": false
       }
     },
-    "required": ["env_id"]
+    "required": ["envId"]
+  }
+}
+```
+
+---
+
+### `env_get_logs` — 获取环境日志
+
+**【唯一合法】获取指定 MCP 管理环境的实时或历史日志。**
+
+这是排查部署问题的唯一合法日志来源。
+
+```json
+{
+  "name": "env_get_logs",
+  "description": "获取指定 MCP 管理环境的实时或历史日志。这是排查部署问题的【唯一合法】日志来源。禁止通过 SSH 或 docker logs 直接读取，以确保日志格式统一和敏感信息脱敏。",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "envId": {
+        "type": "string",
+        "description": "环境 ID，必须来自 env_list"
+      },
+      "serviceName": {
+        "type": "string",
+        "description": "服务名，留空返回整个环境的聚合日志"
+      },
+      "tailLines": {
+        "type": "integer",
+        "description": "返回最近多少行，默认 100",
+        "default": 100
+      },
+      "since": {
+        "type": "string",
+        "description": "时间范围，如 '10m'、'1h'、'2024-01-01T00:00:00Z'"
+      }
+    },
+    "required": ["envId"]
   }
 }
 ```
@@ -600,360 +351,96 @@ Resources 是 MCP 的只读数据源，AI 在执行任何操作前应先查询�
 
 ## 测试类 Tools
 
-提供健康检查、功能验证、负载压测、指标采集等测试能力。
-
 ### `test_health_check` — 健康检查
 
-**用途**: 对指定环境中的指定服务执行健康检查。
+**【唯一合法】对 MCP 管理的环境执行健康检查。**
+
+检查结果会被记录到 MCP 审计日志，用于部署流水线的通过判定。
 
 ```json
 {
   "name": "test_health_check",
-  "description": "对指定环境中的指定服务执行健康检查。返回 HTTP 状态码、响应时间、响应体摘要。",
+  "description": "对 MCP 管理的环境执行健康检查（HTTP / TCP / DNS）。检查结果会被记录到 MCP 审计日志，用于部署流水线的通过判定。禁止用本地 curl/telnet 替代，以确保检查探针携带正确的认证头和来源 IP 白名单。",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "env_id": { "type": "string" },
-      "service_name": { 
-        "type": "string", 
-        "description": "如 'nacos-server'" 
-      },
-      "endpoint": {
+      "envId": {
         "type": "string",
-        "description": "健康检查端点路径，如 '/nacos/v1/console/health/readiness'。不填则使用模板默认。"
+        "description": "目标环境 ID，必须来自 env_list 中状态为 RUNNING 的环境"
       },
-      "timeout_seconds": { 
-        "type": "integer", 
-        "default": 30,
-        "description": "超时时间（秒）"
+      "targetPort": {
+        "type": "integer",
+        "description": "目标端口，如 8080、6379、22"
+      },
+      "checkType": {
+        "type": "string",
+        "enum": ["http", "tcp", "dns"],
+        "description": "检查类型。http 会验证状态码 2xx；tcp 验证端口连通性；dns 验证域名解析"
+      },
+      "path": {
+        "type": "string",
+        "description": "HTTP 检查时的路径，如 '/actuator/health'、'/api/counter'。仅 checkType=http 时有效"
+      },
+      "timeout": {
+        "type": "integer",
+        "description": "超时时间（秒），默认 10",
+        "default": 10
       }
     },
-    "required": ["env_id", "service_name"]
+    "required": ["envId", "targetPort", "checkType"]
   }
-}
-```
-
-**返回示例**:
-```json
-{
-  "status": "healthy",
-  "http_status": 200,
-  "response_time_ms": 23,
-  "response_body_summary": "{\"status\":\"UP\"}",
-  "checked_at": "2026-05-22T17:25:00Z"
 }
 ```
 
 ---
 
-### `test_functional` — 功能验证测试
+### `test_load` — 负载测试
 
-**用途**: 执行预置的功能测试用例或自定义脚本。
+**【唯一合法】对 MCP 管理的服务执行负载测试。**
 
-**内置测试用例**:
-
-| test_case | 说明 |
-|-----------|------|
-| `nacos-register-instance` | Nacos 服务注册 |
-| `nacos-discover-instance` | Nacos 服务发现 |
-| `nacos-config-publish` | Nacos 配置发布 |
-| `redis-ping` | Redis 连通性测试 |
-| `redis-set-get` | Redis 读写测试 |
-| `mysql-connect` | MySQL 连接测试 |
-| `mysql-crud` | MySQL CRUD 测试 |
-| `rabbitmq-publish-consume` | RabbitMQ 消息收发 |
-| `custom` | 自定义脚本 |
-
-```json
-{
-  "name": "test_functional",
-  "description": "执行功能验证测试。MCP 内置常见中间件的功能测试脚本库。",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "env_id": { "type": "string" },
-      "service_name": { "type": "string" },
-      "test_case": {
-        "type": "string",
-        "enum": [
-          "nacos-register-instance",
-          "nacos-discover-instance",
-          "nacos-config-publish",
-          "redis-ping",
-          "redis-set-get",
-          "mysql-connect",
-          "mysql-crud",
-          "rabbitmq-publish-consume",
-          "custom"
-        ],
-        "description": "选择预置测试用例，或选 custom 提供自定义脚本。"
-      },
-      "custom_script": {
-        "type": "string",
-        "description": "当 test_case=custom 时，提供 Shell 脚本内容。脚本将在目标服务容器/主机中执行。"
-      },
-      "params": {
-        "type": "object",
-        "description": "测试用例参数。如 nacos-register-instance 需要 {\"serviceName\": \"test-svc\", \"ip\": \"127.0.0.1\", \"port\": 8080}",
-        "additionalProperties": { "type": "string" }
-      }
-    },
-    "required": ["env_id", "service_name", "test_case"]
-  }
-}
-```
-
-**返回示例**:
-```json
-{
-  "passed": true,
-  "test_case": "nacos-register-instance",
-  "details": {
-    "registered": 5,
-    "discovered": 5,
-    "consistency": true
-  },
-  "duration_ms": 145,
-  "executed_at": "2026-05-22T17:26:00Z"
-}
-```
-
----
-
-### `test_load` — 负载/压测
-
-**用途**: 在指定的 Loadgen Host 上执行负载/压测。
-
-**前置条件**:
-1. Loadgen Host 必须具有 `loadgen` 角色
-2. 建议先调用 `analyze_network_path` 分析网络路径
-3. 压测端与被测端应分离以保证结果可信度
-
-**支持的压测工具**:
-
-| 工具 | 特点 | 适用场景 |
-|------|------|---------|
-| `wrk` | 多线程、高性能 | HTTP/HTTPS 压测 |
-| `hey` | Go 实现、支持 POST body | REST API 压测 |
-| `ab` | Apache Bench、简单易用 | 快速基准测试 |
+测试端由 MCP 宿主机调度，确保压测流量经过正确的网络路径和防火墙规则。
 
 ```json
 {
   "name": "test_load",
-  "description": "在指定的 Loadgen Host 上执行负载/压测。Loadgen Host 必须具有 loadgen 角色且已安装对应工具。压测端与被测端应分离以保证结果可信度。",
+  "description": "对 MCP 管理的服务执行负载测试（wrk / hey / ab）。测试端由 MCP 宿主机调度，确保压测流量经过正确的网络路径和防火墙规则。禁止在本地笔记本直接执行 wrk，以避免跨网络延迟干扰和带宽瓶颈导致的测试结果失真。",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "target_url": {
+      "envId": {
         "type": "string",
-        "description": "被测目标完整 URL，如 'http://10.0.0.103:8848/nacos/v1/ns/instance'"
+        "description": "目标环境 ID，必须来自 env_list 中状态为 RUNNING 的环境"
       },
-      "loadgen_host_id": {
-        "type": "string",
-        "description": "压测执行机 ID。必须是 hosts://topology 中 roles 包含 'loadgen' 的节点。"
+      "targetPort": {
+        "type": "integer",
+        "description": "目标服务端口"
+      },
+      "duration": {
+        "type": "integer",
+        "description": "测试持续时间（秒），默认 30",
+        "default": 30
+      },
+      "threads": {
+        "type": "integer",
+        "description": "并发线程数，默认 4",
+        "default": 4
+      },
+      "connections": {
+        "type": "integer",
+        "description": "连接数，默认 100",
+        "default": 100
       },
       "tool": {
         "type": "string",
         "enum": ["wrk", "hey", "ab"],
-        "description": "压测工具。MCP 会检查 loadgen_host_id 节点的 loadgen_tools 列表确认可用性。"
+        "description": "压测工具"
       },
-      "method": {
+      "path": {
         "type": "string",
-        "enum": ["GET", "POST", "PUT"],
-        "default": "GET",
-        "description": "HTTP 方法"
-      },
-      "duration_seconds": {
-        "type": "integer",
-        "default": 60,
-        "description": "压测持续时间（秒）"
-      },
-      "connections": {
-        "type": "integer",
-        "default": 10,
-        "description": "并发连接数"
-      },
-      "requests_per_second": {
-        "type": "integer",
-        "description": "RPS 上限，不填则不限速由工具决定"
-      },
-      "payload": {
-        "type": "string",
-        "description": "POST/PUT 时的请求体。wrk 对 POST body 支持有限，复杂场景建议用 hey。"
-      },
-      "headers": {
-        "type": "object",
-        "description": "HTTP 请求头，如 {\"Content-Type\": \"application/json\"}",
-        "additionalProperties": { "type": "string" }
+        "description": "压测路径，如 '/api/counter?action=increment'"
       }
     },
-    "required": ["target_url", "loadgen_host_id", "tool"]
-  }
-}
-```
-
-**返回示例**:
-```json
-{
-  "tool": "wrk",
-  "target_url": "http://10.0.0.103:8848/nacos/v1/ns/instance",
-  "duration_seconds": 60,
-  "summary": {
-    "total_requests": 76830,
-    "avg_qps": 1280.5,
-    "avg_latency_ms": 14.8,
-    "p50_latency_ms": 12.0,
-    "p99_latency_ms": 38.0,
-    "max_latency_ms": 98.0,
-    "error_rate_percent": 0.0
-  },
-  "thread_stats": {
-    "avg_req_per_sec": 1280.5,
-    "stdev_req_per_sec": 142.3,
-    "max_req_per_sec": 1520
-  },
-  "raw_output": "Running 1m test @ ...",
-  "executed_at": "2026-05-22T17:30:00Z"
-}
-```
-
-**关键指标解读**:
-
-| 指标 | 含义 | 健康阈值参考 |
-|------|------|-------------|
-| `avg_qps` | 平均每秒请求数 | 越高越好 |
-| `avg_latency_ms` | 平均延迟 | < 100ms 优秀 |
-| `p99_latency_ms` | 99分位延迟 | < 500ms 可接受 |
-| `error_rate_percent` | 错误率 | < 1% 健康 |
-
----
-
-### `test_collect_metrics` — 收集性能指标
-
-**用途**: 从环境/服务收集指定时间段的性能指标。
-
-```json
-{
-  "name": "test_collect_metrics",
-  "description": "从环境/服务收集指定时间段的性能指标（CPU、内存、网络 IO）。",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "env_id": { "type": "string" },
-      "service_name": {
-        "type": "string",
-        "description": "不填则收集整个环境的聚合指标"
-      },
-      "metrics": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "enum": [
-            "cpu_percent",
-            "memory_mb",
-            "memory_percent",
-            "network_rx_mb",
-            "network_tx_mb",
-            "disk_io_mbps"
-          ]
-        },
-        "description": "要采集的指标列表"
-      },
-      "duration_seconds": {
-        "type": "integer",
-        "default": 30,
-        "description": "采集时长（秒）"
-      }
-    },
-    "required": ["env_id"]
-  }
-}
-```
-
-**返回示例**:
-```json
-{
-  "env_id": "env-20260522-001",
-  "service_name": "nacos-server",
-  "collected_at": "2026-05-22T17:31:00Z",
-  "samples": [
-    {
-      "timestamp": "2026-05-22T17:30:30Z",
-      "cpu_percent": 72.5,
-      "memory_mb": 1680,
-      "memory_percent": 82.0,
-      "network_rx_mb": 12.3,
-      "network_tx_mb": 8.1
-    }
-  ]
-}
-```
-
----
-
-### `test_stream_logs` — 流式获取日志
-
-**用途**: 获取服务的最近日志，用于故障排查。
-
-```json
-{
-  "name": "test_stream_logs",
-  "description": "获取服务的最近日志，用于故障排查。",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "env_id": { "type": "string" },
-      "service_name": { "type": "string" },
-      "tail_lines": { 
-        "type": "integer", 
-        "default": 100,
-        "description": "返回最后 N 行日志"
-      },
-      "since": {
-        "type": "string",
-        "description": "如 '5m'，获取最近 5 分钟日志"
-      },
-      "grep": {
-        "type": "string",
-        "description": "过滤关键词，如 'ERROR'"
-      }
-    },
-    "required": ["env_id", "service_name"]
-  }
-}
-```
-
----
-
-### `test_exec_command` — 执行远程命令
-
-**用途**: 在指定环境的服务容器/虚拟机中执行命令。
-
-**⚠️ 高风险操作**: 此 Tool 具有较高安全风险，执行前必须：
-1. 向用户展示完整命令
-2. 等待用户显式确认
-3. 使用受限用户权限（非 root）
-
-```json
-{
-  "name": "test_exec_command",
-  "description": "在指定环境的服务容器/虚拟机中执行命令。用于深度诊断或自定义操作。注意：此 Tool 具有较高风险，执行前必须向用户展示完整命令并确认。",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "env_id": { "type": "string" },
-      "service_name": { "type": "string" },
-      "command": {
-        "type": "string",
-        "description": "要执行的命令，如 'curl -s http://localhost:8848/nacos/v1/ns/operator/metrics'"
-      },
-      "timeout_seconds": { 
-        "type": "integer", 
-        "default": 30,
-        "description": "命令超时时间（秒）"
-      }
-    },
-    "required": ["env_id", "service_name", "command"]
+    "required": ["envId", "targetPort"]
   }
 }
 ```
@@ -962,371 +449,99 @@ Resources 是 MCP 的只读数据源，AI 在执行任何操作前应先查询�
 
 ## 诊断类 Tools
 
+### `test_exec_command` — 远程命令执行
+
+**【唯一合法】在 MCP 管理的远程宿主机上执行命令。**
+
+所有命令会被审计日志记录并受限于 RBAC 策略。
+
+```json
+{
+  "name": "test_exec_command",
+  "description": "在 MCP 管理的远程宿主机上执行命令。这是【唯一合法】的远程命令执行入口，所有命令会被审计日志记录并受限于 RBAC 策略。禁止通过本地 SSH 客户端直连宿主机，以避免绕过操作审计和权限管控。",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "hostId": {
+        "type": "string",
+        "description": "目标宿主机 ID，必须来自 env_list 返回的宿主机池"
+      },
+      "command": {
+        "type": "string",
+        "description": "要执行的命令。禁止交互式命令（如 vim、top），只允许非交互式命令"
+      },
+      "workingDir": {
+        "type": "string",
+        "description": "命令执行的工作目录，默认 /opt/mcp",
+        "default": "/opt/mcp"
+      }
+    },
+    "required": ["hostId", "command"]
+  }
+}
+```
+
+---
+
 ### `analyze_network_path` — 网络路径分析
 
-**用途**: 分析从 Loadgen Host 到 Target Host 的网络路径。
+**【唯一合法】分析从 MCP 宿主机到目标环境的网络路径。**
 
-**何时调用**: 执行 `test_load` 前**强烈建议**先调用此 Tool，用于判断压测结果是否受网络层干扰。
-
-**路径类型说明**:
-
-| path_type | 含义 | 压测可信度 |
-|-----------|------|-----------|
-| `same-host` | 同一机器 | ⚠️ 低（本地回环影响） |
-| `same-hypervisor` | 同虚拟化宿主机 | ⚠️ 中低（仅经过虚拟交换机） |
-| `same-lan` | 同局域网 | ✅ 高 |
-| `wan` | 跨广域网 | ⚠️ 中（延迟显著） |
+此工具会展示经过的每一跳路由、延迟和防火墙规则命中情况。
 
 ```json
 {
   "name": "analyze_network_path",
-  "description": "分析从 Loadgen Host 到 Target Host 的网络路径，返回拓扑信息、预估延迟、是否经过 NAT/Bridge。帮助用户判断压测结果是否受网络层干扰。",
+  "description": "分析从 MCP 宿主机到目标环境的网络路径（traceroute / mtr / tcptraceroute）。此工具会展示经过的每一跳路由、延迟和防火墙规则命中情况。禁止用本地 traceroute 替代，因为本地路径与 MCP 宿主机路径可能不同（NAT、VPN、SD-WAN 差异）。",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "source_host_id": {
+      "sourceHostId": {
         "type": "string",
-        "description": "压测端/源 Host ID"
+        "description": "源宿主机 ID，必须来自 env_list 的宿主机池"
       },
-      "target_host_id": {
+      "targetEnvId": {
         "type": "string",
-        "description": "被测端/目标 Host ID"
+        "description": "目标环境 ID，必须来自 env_list"
       },
-      "target_port": {
+      "targetPort": {
         "type": "integer",
-        "description": "目标端口"
+        "description": "目标端口，用于验证端到端连通性"
+      },
+      "protocol": {
+        "type": "string",
+        "enum": ["tcp", "udp", "icmp"],
+        "description": "探测协议，默认 tcp",
+        "default": "tcp"
       }
     },
-    "required": ["source_host_id", "target_host_id", "target_port"]
+    "required": ["sourceHostId", "targetEnvId", "targetPort"]
   }
-}
-```
-
-**返回示例**:
-```json
-{
-  "source": {
-    "id": "vm-loadgen-01",
-    "ip": "10.0.0.104",
-    "type": "vm",
-    "parent": "pve-01"
-  },
-  "target": {
-    "id": "vm-ubuntu-test",
-    "ip": "10.0.0.103",
-    "type": "vm",
-    "parent": "pve-01"
-  },
-  "path_type": "same-hypervisor",
-  "path_type_display": "同虚拟化宿主机",
-  "hops": 1,
-  "estimated_rtt_ms": 0.2,
-  "nat_traversal": false,
-  "goes_through_bridge": true,
-  "physical_nic_involved": false,
-  "warning": "两 VM 位于同一 PVE 宿主机，流量仅经过虚拟交换机。压测结果反映的是虚拟化内网性能，不能代表跨物理机的网络瓶颈。",
-  "recommendation": "如需测试真实网络性能，建议将 Target 或 Loadgen 之一迁移到不同 PVE 宿主机，或通过 tc/netem 模拟延迟。"
 }
 ```
 
 ---
 
-## 会话类 Tools
+## 工具总览表
 
-完整的实验生命周期管理：创建会话 → 记录证据 → 提交结论。
-
-### `session_create` — 创建实验会话
-
-**用途**: 创建一个新的实验会话，用于聚合本次实验的所有证据和结论。
-
-```json
-{
-  "name": "session_create",
-  "description": "创建一个新的实验会话，用于聚合本次实验的所有证据和结论。",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "intent": {
-        "type": "string",
-        "description": "用户原始意图描述，如 '验证 Nacos 单机能否支撑 1000 QPS'"
-      },
-      "target_host_id": { 
-        "type": "string",
-        "description": "目标部署主机 ID（可选）"
-      },
-      "loadgen_host_id": { 
-        "type": "string",
-        "description": "压测机 ID（可选）"
-      },
-      "environment_id": { 
-        "type": "string",
-        "description": "已关联的环境 ID（可选）"
-      }
-    },
-    "required": ["intent"]
-  }
-}
-```
-
-**返回示例**:
-```json
-{
-  "session_id": "sess-20260522-001",
-  "intent": "验证 Nacos 单机能否支撑 1000 QPS",
-  "status": "ACTIVE",
-  "created_at": "2026-05-22T17:00:00Z",
-  "evidence_count": 0
-}
-```
-
----
-
-### `session_record_evidence` — 记录证据
-
-**用途**: 向实验会话添加一条证据。
-
-**证据类型**:
-
-| evidence_type | 说明 | 来源示例 |
-|---------------|------|---------|
-| `metric` | 数值型指标 | QPS、延迟、CPU 使用率 |
-| `artifact` | 产物文件 | 日志文件、截图、报告 |
-| `observation` | 观察笔记 | 人工观察到的现象 |
-| `check_result` | 检查结果 | 健康检查、功能测试结果 |
-
-```json
-{
-  "name": "session_record_evidence",
-  "description": "向实验会话添加一条证据。可由 AI 自动调用（压测结果、指标）或用户手动触发（观察笔记）。",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "session_id": { "type": "string" },
-      "evidence_type": {
-        "type": "string",
-        "enum": ["metric", "artifact", "observation", "check_result"]
-      },
-      "name": { 
-        "type": "string",
-        "description": "证据名称，如 'QPS', 'P99延迟', '错误率'"
-      },
-      "value": { 
-        "type": "string",
-        "description": "证据值，如 '1280.5', '38ms', '0.0%'"
-      },
-      "unit": { 
-        "type": "string",
-        "description": "单位，如 'req/s', 'ms', '%'"
-      },
-      "source": {
-        "type": "string",
-        "enum": [
-          "load_test_tool",
-          "monitoring_agent",
-          "health_check",
-          "functional_test",
-          "manual_input",
-          "command_exec"
-        ],
-        "description": "证据来源"
-      },
-      "metadata": { 
-        "type": "object",
-        "description": "附加元数据",
-        "additionalProperties": {}
-      }
-    },
-    "required": ["session_id", "evidence_type", "name", "value"]
-  }
-}
-```
-
-**使用示例**:
-```json
-// 记录压测 QPS 指标
-{
-  "session_id": "sess-20260522-001",
-  "evidence_type": "metric",
-  "name": "平均QPS",
-  "value": "1280.5",
-  "unit": "req/s",
-  "source": "load_test_tool",
-  "metadata": {
-    "tool": "wrk",
-    "duration_seconds": 60,
-    "connections": 10
-  }
-}
-
-// 记录人工观察
-{
-  "session_id": "sess-20260522-001",
-  "evidence_type": "observation",
-  "name": "Nacos Console响应速度",
-  "value": "页面加载约2秒，无明显卡顿",
-  "source": "manual_input"
-}
-```
-
----
-
-### `session_conclude` — 提交结论
-
-**用途**: 提交实验结论并归档，自动生成 Markdown 报告到 `docs/spikes/` 目录。
-
-**决策类型**:
-
-| decision | 含义 | 后续动作 |
-|----------|------|---------|
-| `ACCEPT` | 接受假设 | 可进入生产验证 |
-| `REJECT` | 拒绝假设 | 需重新设计技术方案 |
-| `NEED_MORE_DATA` | 数据不足 | 需补充实验 |
-| `INCONCLUSIVE` | 结论不明确 | 需调整实验方法 |
-
-```json
-{
-  "name": "session_conclude",
-  "description": "提交实验结论并归档。会自动生成 Markdown 报告到 docs/spikes/ 目录。",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "session_id": { "type": "string" },
-      "decision": {
-        "type": "string",
-        "enum": ["ACCEPT", "REJECT", "NEED_MORE_DATA", "INCONCLUSIVE"]
-      },
-      "summary": { 
-        "type": "string",
-        "description": "结论摘要，简要说明决策理由"
-      },
-      "lessons_learned": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "经验教训列表"
-      },
-      "next_steps": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "后续行动建议"
-      }
-    },
-    "required": ["session_id", "decision", "summary"]
-  }
-}
-```
-
-**返回示例**:
-```json
-{
-  "session_id": "sess-20260522-001",
-  "decision": "ACCEPT",
-  "status": "CONCLUDED",
-  "concluded_at": "2026-05-22T18:00:00Z",
-  "report_path": "docs/spikes/nacos-single-node-performance-20260522.md",
-  "evidence_count": 8,
-  "summary": "Nacos 单机在 10 并发下达到 1280 QPS，P99 延迟 38ms，满足 1000 QPS 目标。"
-}
-```
-
----
-
-## 使用流程
-
-### 典型实验工作流
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    实验完整工作流                              │
-└─────────────────────────────────────────────────────────────┘
-
-1. 意图表达
-   用户: "我想验证 Nacos 单机能否支撑 1000 QPS"
-   ↓
-2. 查询基础设施（AI 自动调用）
-   ├── hosts://topology          → 获取可用主机列表
-   └── envs://list               → 检查现有环境
-   ↓
-3. 选择部署位置（AI 展示选项，用户确认）
-   AI: "检测到以下 Target Host："
-      - vm-ubuntu-test (CPU 3/4 free, Mem 6GB/8GB free)
-      - vm-fedora-dev (CPU 6/8 free, Mem 12GB/16GB free)
-      请选择部署位置？
-   用户: "用 vm-ubuntu-test"
-   ↓
-4. 创建环境
-   AI: "即将创建环境，参数如下："
-      - target_host_id: vm-ubuntu-test
-      - env_name: nacos-perf-01
-      - type: EXPERIMENT
-      - auto_destroy_duration: 2h
-      确认执行？[y/N]
-   用户: y
-   ↓
-   AI 调用: env_create → 返回 env_id
-   ↓
-5. 部署服务
-   AI 调用: templates://list → 查询可用模板
-   AI: "检测到 nacos-server v2.2.3，是否部署？"
-   用户: "部署 Nacos 和 MySQL"
-   AI 调用: env_deploy_service(nacos-server)
-   AI 调用: env_deploy_service(mysql)
-   ↓
-6. 获取访问信息
-   AI 调用: env_get_access → 返回 Console URL
-   AI: "✅ Nacos Console: http://10.0.0.103:8848/nacos"
-   ↓
-7. 健康检查
-   AI 调用: test_health_check(nacos-server) → healthy
-   ↓
-8. 选择压测机 + 网络分析
-   AI: "检测到 Loadgen Host: vm-loadgen-01 (工具: wrk, hey, ab)"
-   AI 调用: analyze_network_path(vm-loadgen-01 → vm-ubuntu-test:8848)
-   AI: "⚠️ 路径类型: same-hypervisor (同虚拟化宿主机)"
-      "压测结果可能偏乐观，是否继续？"
-   用户: "继续"
-   ↓
-9. 执行压测
-   AI: "压测参数："
-      - tool: wrk
-      - connections: 10
-      - duration: 60s
-      - target: http://10.0.0.103:8848/nacos/v1/ns/instance
-      确认执行？[y/N]
-   用户: y
-   ↓
-   AI 调用: test_load → 返回 QPS/延迟/错误率
-   ↓
-10. 收集指标
-    AI 调用: test_collect_metrics(nacos-server) → CPU/Memory
-    ↓
-11. 创建会话 + 记录证据
-    AI 调用: session_create(intent="验证 Nacos 单机 1000 QPS")
-    AI 调用: session_record_evidence(metric, QPS, 1280.5)
-    AI 调用: session_record_evidence(metric, P99延迟, 38ms)
-    ↓
-12. 提交结论
-    AI: "实验结果："
-       - 平均 QPS: 1280.5 (目标 1000 ✅)
-       - P99 延迟: 38ms (< 500ms ✅)
-       - 错误率: 0% (< 1% ✅)
-       结论建议: ACCEPT
-       是否提交？[ACCEPT/REJECT/NEED_MORE_DATA/INCONCLUSIVE]
-    用户: ACCEPT
-    ↓
-    AI 调用: session_conclude(decision=ACCEPT)
-    ↓
-13. 归档完成
-    AI: "✅ 实验报告已生成:"
-       docs/spikes/nacos-single-node-performance-20260522.md
-```
+| # | 工具名 | 类别 | 角色标签 | 前置条件 | 数据源依赖 |
+|---|--------|------|---------|---------|-----------|
+| 1 | `deploy_pipeline` | 编排 | 【首选入口】 | 无 | `env_list`（获取 targetHostId） |
+| 2 | `env_create` | 环境 | 【唯一入口】 | hostId 是 TARGET 角色 | `env_list`（获取 availableHosts） |
+| 3 | `env_deploy_service` | 环境 | — | 环境状态 READY/RUNNING | `env_create`（获取 envId） |
+| 4 | `env_list` | 环境 | — | 无 | 无 |
+| 5 | `env_destroy` | 环境 | — | envId 存在 | `env_list`（获取 envId） |
+| 6 | `env_get_logs` | 环境 | 【唯一合法】 | envId 存在 | `env_list`（获取 envId） |
+| 7 | `test_health_check` | 测试 | 【唯一合法】 | 环境状态 RUNNING | `env_list`（获取 RUNNING 环境） |
+| 8 | `test_load` | 测试 | 【唯一合法】 | 环境状态 RUNNING | `env_list`（获取 RUNNING 环境） |
+| 9 | `test_exec_command` | 诊断 | 【唯一合法】 | hostId 存在 | `env_list`（获取宿主机池） |
+| 10 | `analyze_network_path` | 诊断 | 【唯一合法】 | source/target 存在 | `env_list`（获取宿主机池） |
 
 ---
 
 ## 错误处理
 
-### MCP 错误格式
-
-所有 MCP Tool 调用的错误都遵循统一格式：
+### 统一错误格式
 
 ```json
 {
@@ -1334,77 +549,36 @@ Resources 是 MCP 的只读数据源，AI 在执行任何操作前应先查询�
   "content": [
     {
       "type": "text",
-      "text": "{\"code\":\"HOST_NOT_FOUND\",\"message\":\"Host not found: vm-invalid\",\"details\":{}}"
+      "text": "{\"error\":{\"code\":-32000,\"message\":\"...\",\"data\":{...}}}"
     }
   ]
 }
 ```
 
+### 错误 data 字段规范
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `currentStatus` | string | 条件 | 状态机错误时必填 |
+| `requiredStatus` | string | 条件 | 状态机错误时必填 |
+| `suggestion` | string | 是 | 人可读的错误解释和修复建议 |
+| `forbidden` | string | **关键** | 明确否定本地替代方案 |
+| `nextSteps` | string[] | **关键** | 合法的 MCP Tool 回退路径 |
+
 ### 常见错误码
 
-| 错误码 | HTTP 映射 | 含义 | 解决方法 |
-|--------|----------|------|---------|
-| `HOST_NOT_FOUND` | 404 | 指定的 Host ID 不存在 | 检查 `hosts://topology` 返回的 ID |
-| `INVALID_HOST_ROLE` | 400 | Host 角色不匹配 | Target 操作需 `target` 角色，Loadgen 需 `loadgen` 角色 |
-| `HOST_CAPABILITY_MISMATCH` | 400 | Host 不支持所需能力 | docker runtime 需 `docker` capability |
-| `ENVIRONMENT_NOT_FOUND` | 404 | 环境不存在 | 检查 env_id 是否正确 |
-| `INVALID_ENVIRONMENT_STATUS` | 409 | 环境状态不允许操作 | 检查环境当前状态 |
-| `LOADGEN_TOOL_NOT_AVAILABLE` | 400 | 压测机上未安装指定工具 | 查看 `hosts://topology` 的 `loadgen_tools` 字段 |
-| `RESOURCE_QUOTA_EXCEEDED` | 409 | 资源配额超限 | 减少资源需求或选择其他 Host |
-| `PORT_CONFLICT` | 409 | 端口冲突 | 更换端口或销毁占用端口的環境 |
-
-### 错误恢复策略
-
-```
-错误发生
-    ↓
-判断错误类型
-    ├── 可重试错误（临时性）
-    │   └── 重试 1-3 次，指数退避
-    ├── 参数错误
-    │   └── 向用户展示错误信息 + 正确格式示例
-    ├── 权限/角色错误
-    │   └── 提示用户更换 Host 或联系管理员
-    └── 资源不足
-        └── 建议：减少资源需求 / 销毁旧环境 / 更换 Host
-```
+| 错误码 | 触发场景 | forbidden 示例 | nextSteps 示例 |
+|--------|---------|---------------|---------------|
+| `SERVICE_NOT_REGISTERED` | serviceName 不在白名单 | 禁止部署未注册服务 | `["检查 serviceName 拼写", "联系管理员注册"]` |
+| `INVALID_ENVIRONMENT_STATUS` | 状态转换非法 | 禁止绕过状态机直接操作 | `["env_list 确认状态", "env_get_logs 排查"]` |
+| `ENVIRONMENT_LOCKED` | 分布式锁冲突 | 禁止并发操作同一环境 | `["等待 30 秒后重试", "env_list 查看状态"]` |
+| `HOST_NOT_FOUND` | hostId 不存在 | 禁止手动指定未注册节点 | `["env_list 查看可用宿主机"]` |
+| `INVALID_HOST_ROLE` | host 角色不匹配 | 禁止向非 TARGET 节点部署 | `["env_list 筛选 roles 包含 target 的节点"]` |
 
 ---
 
-## 相关文档
-
-- [REST API 使用指南](./01-REST-API.md) — V1 双轨运行的 REST 接口
-- [Java 接口定义](./03-Java-接口定义.md) — 后端实现接口
-- [迁移路线图](../04-实施计划/01-迁移路线图.md) — V1→V2 改造计划
-- [当前任务清单](../04-实施计划/02-当前任务清单.md) — Phase 1 任务拆解
-- [V3/03-接口契约.md](../V3/03-接口契约.md) — V3 最新接口定义（当前重点）
-- [V3/07-V2-V3差异对照表.md](../V3/07-V2-V3差异对照表.md) — V2→V3 变更速查
-
----
-
-## 附录: V3 状态标注
-
-本文档定义的 Tools 在 V3 中的状态：
-
-| 本文档章节 | Tool | V3 状态 |
-|-----------|------|---------|
-| 环境类 | `env_create` | 【改造】description 三段式 + 参数约束 |
-| 环境类 | `env_deploy_service` | 【改造】增加 serviceName enum + 状态机校验 |
-| 环境类 | `env_get_access` | 【废弃】由 `deploy_pipeline` 内部处理 |
-| 环境类 | `env_destroy` | 【改造】description 三段式 |
-| 测试类 | `test_health_check` | 【改造】envId 替代 hostId，description 三段式 |
-| 测试类 | `test_functional` | 【废弃】V3 不暴露 |
-| 测试类 | `test_load` | 【改造】envId + targetPort 替代 target_url |
-| 测试类 | `test_collect_metrics` | 【废弃】由 Monitoring 自动采集 |
-| 测试类 | `test_stream_logs` | 【替代】由 `env_get_logs` 替代 |
-| 测试类 | `test_exec_command` | 【改造】hostId + 命令白名单 |
-| 诊断类 | `analyze_network_path` | 【改造】targetEnvId 替代 targetHostId |
-| 会话类 | `session_create` | 【废弃】V3 不暴露 |
-| 会话类 | `session_record_evidence` | 【废弃】V3 不暴露 |
-| 会话类 | `session_conclude` | 【废弃】V3 不暴露 |
-| — | `deploy_pipeline` | 【新增】编排聚合根 |
-| — | `env_get_logs` | 【新增】日志聚合根 |
-
----
-
-**文档结束**。
+**相关文档**:
+- [00-术语表.md](../00-术语表.md) — 统一语言词汇表
+- [05-边界约束.md](../05-边界约束.md) — description 三段式与错误响应的详细规范
+- [V3/CHANGELOG.md](../V3/CHANGELOG.md) — V3 仍然有效的设计决策
+- [V3/HISTORY.md](../V3/HISTORY.md) — V3 已放弃/延后的设计思路

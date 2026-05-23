@@ -226,7 +226,7 @@ hosts:
 
 #### 方式 A：独立进程模式（推荐）
 
-MCP Server 作为独立 Spring Boot 应用运行，与主应用分离。REST API 和 MCP 各自监听不同端口，互不干扰。
+MCP Server 作为独立 Spring Boot 应用运行，专注于 MCP 协议服务。
 
 ```bash
 # 在 vm-fedora-dev 上执行
@@ -255,7 +255,6 @@ echo $! > mcp-server.pid
 
 | 服务 | 端口 | 协议 |
 |------|------|------|
-| REST API（主应用） | 8080 | HTTP |
 | MCP SSE（独立进程） | 8081 | HTTP SSE |
 
 #### 方式 B：同进程模式（简化部署）
@@ -269,9 +268,8 @@ MCP Server 与主应用共用一个 JVM，通过 `/mcp/sse` 路径暴露。适�
 # 启动主应用（自动包含 MCP）
 java -jar target/devops-dashboard-0.0.1-SNAPSHOT.jar
 
-# 此时：
-# REST API: http://10.0.0.102:8080/api/v1/*
-# MCP SSE:  http://10.0.0.102:8080/mcp/sse
+# 此时 MCP SSE 路径：
+# http://10.0.0.102:8080/mcp/sse
 ```
 
 **修改主应用 `application.yml`**：
@@ -286,7 +284,6 @@ spring:
 
 | 服务 | 端口 | 路径 |
 |------|------|------|
-| REST API | 8080 | `/api/v1/*` |
 | MCP SSE | 8080 | `/mcp/sse` |
 
 ### 2.4 停止 MCP Server
@@ -684,6 +681,5 @@ journalctl -u devops-mcp -f
 
 | 端口 | 服务 | 用途 |
 |------|------|------|
-| 8080 | REST API | 前端/外部 HTTP 接口 |
 | 8081 | MCP SSE | AI Client (Trae/Claude) 连接 |
 | 22 | SSH | 所有节点间通信基础 |
