@@ -1,5 +1,8 @@
 package com.devops.dashboard.mcp.handler;
 
+import com.devops.dashboard.application.host.HostService;
+import com.devops.dashboard.application.host.dto.HostTopology;
+import com.devops.dashboard.application.mcp.ServiceRegistry;
 import com.devops.dashboard.application.service.EnvironmentService;
 import com.devops.dashboard.application.service.ServiceManifest;
 import com.devops.dashboard.domain.environment.*;
@@ -17,7 +20,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,19 +31,35 @@ import static org.mockito.BDDMockito.*;
 
 @DisplayName("EnvironmentHandler 单元测试")
 @ExtendWith(MockitoExtension.class)
+@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class EnvironmentHandlerTest {
 
     @Mock
     private EnvironmentService environmentService;
 
     @Mock
+    private ServiceRegistry serviceRegistry;
+
+    @Mock
     private McpExceptionTranslator errorTranslator;
+
+    @Mock
+    private HostService hostService;
 
     private EnvironmentHandler environmentHandler;
 
     @BeforeEach
     void setUp() {
-        environmentHandler = new EnvironmentHandler(errorTranslator, environmentService);
+        // Default: allow all services in tests
+        given(serviceRegistry.isRegistered(anyString())).willReturn(true);
+        given(serviceRegistry.getAvailableServices()).willReturn(Set.of(
+                "redis-counter-service", "devops-dashboard", "mcp-host-agent", "redis-cache",
+                "nacos-server", "mysql", "redis", "nginx"));
+
+        // Mock HostService for availableHosts in envList
+        given(hostService.getTopology()).willReturn(new HostTopology("vm-fedora-dev-101", List.of()));
+
+        environmentHandler = new EnvironmentHandler(errorTranslator, environmentService, serviceRegistry, hostService);
     }
 
     @Nested

@@ -103,13 +103,13 @@ class DockerComposeEnvironmentTest {
     class CheckStatus {
 
         @Test
-        @DisplayName("不存在环境返回NOT_FOUND")
-        void shouldReturnNotFoundForMissingEnv() {
+        @DisplayName("不存在环境返回DESTROYED")
+        void shouldReturnDestroyedForMissingEnv() {
             EnvironmentId id = EnvironmentId.generate();
 
             dockerComposeEnvironment.checkStatus(id)
                 .as(StepVerifier::create)
-                .expectNext(EnvironmentStatus.NOT_FOUND)
+                .expectNext(EnvironmentStatus.DESTROYED)
                 .verifyComplete();
         }
     }

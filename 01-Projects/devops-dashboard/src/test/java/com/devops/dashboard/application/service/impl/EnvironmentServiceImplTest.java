@@ -62,7 +62,7 @@ class EnvironmentServiceImplTest {
 
             assertThat(result).isNotNull();
             assertThat(result.getName()).isEqualTo(name);
-            assertThat(result.getStatus()).isEqualTo(EnvironmentStatus.RUNNING);
+            assertThat(result.getStatus()).isEqualTo(EnvironmentStatus.READY);  // V3: markAsReadyFromExternal sets to READY
             verify(provisioner).provision(spec);
             verify(environmentRepository, atLeastOnce()).save(any(Environment.class));
         }
@@ -236,8 +236,7 @@ class EnvironmentServiceImplTest {
         @DisplayName("应该先调用 Teardown 再标记销毁，即使 Teardown 失败也继续标记")
         void shouldTeardownThenMarkDestroyed() {
             EnvironmentId envId = EnvironmentId.of("env-test-123");
-            Environment existingEnv = createMockEnvironment("test-env");
-            existingEnv.markAsRunning(Map.of());
+            Environment existingEnv = createMockEnvironmentRunning("test-env");
 
             when(environmentRepository.findById(envId)).thenReturn(Optional.of(existingEnv));
             when(environmentRepository.save(any(Environment.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -266,8 +265,7 @@ class EnvironmentServiceImplTest {
         @DisplayName("Teardown 失败不应阻止状态更新")
         void shouldContinueWithDbUpdateEvenIfTeardownFails() {
             EnvironmentId envId = EnvironmentId.of("env-teardown-fail");
-            Environment existingEnv = createMockEnvironment("fail-env");
-            existingEnv.markAsRunning(Map.of());
+            Environment existingEnv = createMockEnvironmentRunning("fail-env");
 
             when(environmentRepository.findById(envId)).thenReturn(Optional.of(existingEnv));
             when(environmentRepository.save(any(Environment.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -312,8 +310,7 @@ class EnvironmentServiceImplTest {
         @Test
         @DisplayName("按状态查询应返回匹配的环境列表")
         void shouldFindByStatus() {
-            Environment runningEnv = createMockEnvironment("running-env");
-            runningEnv.markAsRunning(Map.of());
+            Environment runningEnv = createMockEnvironmentRunning("running-env");
 
             when(environmentRepository.findByStatus(EnvironmentStatus.RUNNING))
                     .thenReturn(java.util.List.of(runningEnv));
@@ -335,7 +332,7 @@ class EnvironmentServiceImplTest {
         void shouldReturnAccessEndpoints() {
             EnvironmentId envId = EnvironmentId.of("env-access-123");
             Environment env = createMockEnvironment("access-env");
-            env.markAsRunning(Map.of("console", "http://10.0.0.103:8848/nacos"));
+            env.markAsReadyFromExternal(Map.of("console", "http://10.0.0.103:8848/nacos"));
 
             when(environmentRepository.findById(envId)).thenReturn(Optional.of(env));
 
@@ -364,7 +361,22 @@ class EnvironmentServiceImplTest {
                 .build();
     }
 
+    /**
+     * V3 辅助方法：通过正确的状态转换路径创建指定状态的环境
+     */
     private Environment createMockEnvironment(String name) {
-        return Environment.create(name, createDefaultSpec());
+        Environment env = Environment.create(name, createDefaultSpec());
+        return env;
+    }
+
+    /**
+     * V3 辅助方法：创建处于 RUNNING 状态的环境
+     */
+    private Environment createMockEnvironmentRunning(String name) {
+        Environment env = Environment.create(name, createDefaultSpec());
+        env.markAsReady();
+        env.markAsDeploying();
+        env.markAsRunning(Map.of("app", "http://localhost:8080"));
+        return env;
     }
 }

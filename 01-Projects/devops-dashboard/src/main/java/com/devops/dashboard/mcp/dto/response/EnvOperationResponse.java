@@ -61,6 +61,9 @@ public class EnvOperationResponse {
     /** 环境列表（仅 env_list 使用） */
     private final java.util.List<Map<String, Object>> environments;
 
+    /** 可用宿主机列表（仅 env_list 使用） */
+    private final java.util.List<Map<String, Object>> availableHosts;
+
     /** 响应生成时间 */
     private final LocalDateTime timestamp;
 

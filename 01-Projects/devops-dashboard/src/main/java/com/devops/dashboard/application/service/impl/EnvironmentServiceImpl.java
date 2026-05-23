@@ -67,8 +67,10 @@ public class EnvironmentServiceImpl implements EnvironmentService {
                                     return Mono.error(new EnvironmentCreationException(
                                             "Provisioner returned null for " + envName));
                                 }
-                                if (provisioned.getStatus() != EnvironmentStatus.RUNNING) {
-                                    provisioned.markAsRunning(Map.of(
+                                // V3: 使用 markAsReadyFromExternal() 直接设置状态，跳过状态转换验证
+                                // 因为 provisioned 代表的是"外部系统已就绪的环境"，不是"新创建的"
+                                if (provisioned.getStatus() == EnvironmentStatus.CREATING) {
+                                    provisioned.markAsReadyFromExternal(Map.of(
                                             "provisionedAt", java.time.LocalDateTime.now().toString(),
                                             "provisionedBy", "docker-compose"
                                     ));
@@ -96,10 +98,17 @@ public class EnvironmentServiceImpl implements EnvironmentService {
         return Mono.fromCallable(() -> environmentRepository.findById(envId)
                 .orElseThrow(() -> new EnvironmentNotFoundException(envId.getValue())))
                 .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(environment -> provisioner.teardown(envId)
+                .flatMap(environment ->
+                    // V3: 即使 teardown 失败也要标记为 DESTROYED，避免状态不一致
+                    provisioner.teardown(envId)
                         .doOnSubscribe(s -> log.info("[destroy] Destroying environment: {}", envId.getValue()))
                         .doOnSuccess(v -> log.info("[destroy] Teardown completed for {}", envId.getValue()))
                         .doOnError(e -> log.error("[destroy] Teardown failed for {}: {}", envId.getValue(), e.getMessage()))
+                        .onErrorResume(e -> {
+                            // V3: 吞掉 teardown 错误，继续标记为 DESTROYED
+                            log.warn("[destroy] Teardown failed, proceeding with status update: {}", envId.getValue());
+                            return Mono.empty();
+                        })
                         .then(Mono.fromRunnable(() -> {
                             environment.markAsDestroyed();
                             environmentRepository.save(environment);

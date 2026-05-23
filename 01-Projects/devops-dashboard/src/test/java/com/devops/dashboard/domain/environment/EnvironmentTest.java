@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 
-@DisplayName("Environment 实体测试")
+@DisplayName("Environment 实体测试 (V3)")
 class EnvironmentTest {
 
     @Nested
@@ -97,62 +97,85 @@ class EnvironmentTest {
     }
 
     @Nested
-    @DisplayName("状态转换")
+    @DisplayName("状态转换 (V3)")
     class StateTransitions {
 
         @Test
-        @DisplayName("CREATING -> RUNNING 应该成功")
-        void shouldTransitionFromCreatingToRunning() {
+        @DisplayName("CREATING -> READY 应该成功")
+        void shouldTransitionFromCreatingToReady() {
             // Given
             Environment env = createEnvironmentInStatus(EnvironmentStatus.CREATING);
-            Map<String, String> endpoints = Map.of("nacos", "http://localhost:8848");
 
             // When
-            env.markAsRunning(endpoints);
+            env.markAsReady();
+
+            // Then
+            assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.READY);
+        }
+
+        @Test
+        @DisplayName("READY -> DEPLOYING 应该成功")
+        void shouldTransitionFromReadyToDeploying() {
+            // Given
+            Environment env = createEnvironmentInStatus(EnvironmentStatus.READY);
+
+            // When
+            env.markAsDeploying();
+
+            // Then
+            assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.DEPLOYING);
+        }
+
+        @Test
+        @DisplayName("DEPLOYING -> RUNNING 应该成功")
+        void shouldTransitionFromDeployingToRunning() {
+            // Given
+            Environment env = createEnvironmentInStatus(EnvironmentStatus.DEPLOYING);
+
+            // When
+            env.markAsRunning(Map.of("app", "http://localhost:8080"));
 
             // Then
             assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.RUNNING);
-            assertThat(env.getAccessEndpoints()).containsEntry("nacos", "http://localhost:8848");
         }
 
         @Test
-        @DisplayName("RUNNING -> STOPPED 应该成功")
-        void shouldTransitionFromRunningToStopped() {
+        @DisplayName("CREATING -> ERROR 应该成功")
+        void shouldTransitionFromCreatingToError() {
             // Given
-            Environment env = createEnvironmentInStatus(EnvironmentStatus.RUNNING);
+            Environment env = createEnvironmentInStatus(EnvironmentStatus.CREATING);
 
             // When
-            env.markAsStopped();
+            env.markAsError();
 
             // Then
-            assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.STOPPED);
+            assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.ERROR);
         }
 
         @Test
-        @DisplayName("STOPPED -> DESTROYED 应该成功")
-        void shouldTransitionFromStoppedToDestroyed() {
+        @DisplayName("ERROR -> READY (修复后) 应该成功")
+        void shouldTransitionFromErrorToReady() {
             // Given
-            Environment env = createEnvironmentInStatus(EnvironmentStatus.STOPPED);
+            Environment env = createEnvironmentInStatus(EnvironmentStatus.ERROR);
+
+            // When
+            env.markAsReadyFromError();
+
+            // Then
+            assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.READY);
+        }
+
+        @Test
+        @DisplayName("RUNNING -> DESTROYED 应该成功")
+        void shouldTransitionFromRunningToDestroyed() {
+            // Given
+            Environment env = createEnvironmentInStatus(EnvironmentStatus.RUNNING);
 
             // When
             env.markAsDestroyed();
 
             // Then
             assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.DESTROYED);
-        }
-
-        @Test
-        @DisplayName("CREATING -> FAILED 应该成功")
-        void shouldTransitionFromCreatingToFailed() {
-            // Given
-            Environment env = createEnvironmentInStatus(EnvironmentStatus.CREATING);
-            String error = "Docker daemon not responding";
-
-            // When
-            env.markAsFailed(error);
-
-            // Then
-            assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.FAILED);
         }
 
         @Test
@@ -164,7 +187,7 @@ class EnvironmentTest {
             // When & Then
             assertThatThrownBy(() -> env.markAsRunning(Map.of()))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Cannot transition from DESTROYED to RUNNING");
+                    .hasMessageContaining("当前状态为 DESTROYED，不允许转换为 RUNNING");
         }
 
         @Test
@@ -175,8 +198,26 @@ class EnvironmentTest {
 
             // Then - 所有操作都应该失败
             assertThatThrownBy(() -> env.markAsRunning(Map.of())).isInstanceOf(IllegalStateException.class);
-            assertThatThrownBy(() -> env.markAsStopped()).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> env.markAsReady()).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> env.markAsDeploying()).isInstanceOf(IllegalStateException.class);
             assertThatThrownBy(() -> env.markAsDestroyed()).isInstanceOf(IllegalStateException.class);
+        }
+
+        @Test
+        @DisplayName("完整部署流程: CREATING -> READY -> DEPLOYING -> RUNNING")
+        void shouldFollowFullDeploymentPath() {
+            // Given
+            Environment env = createEnvironmentInStatus(EnvironmentStatus.CREATING);
+
+            // When & Then
+            env.markAsReady();
+            assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.READY);
+
+            env.markAsDeploying();
+            assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.DEPLOYING);
+
+            env.markAsRunning(Map.of("app", "http://localhost:8080"));
+            assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.RUNNING);
         }
     }
 
@@ -239,29 +280,38 @@ class EnvironmentTest {
                 .build();
     }
 
+    /**
+     * V3 辅助方法：通过正确的状态转换路径创建指定状态的环境
+     */
     private Environment createEnvironmentInStatus(EnvironmentStatus status) {
         Environment env = Environment.create("test-env", createDefaultSpec());
-        
+
         switch (status) {
             case CREATING:
                 break; // 默认就是 CREATING
+            case READY:
+                env.markAsReady();
+                break;
+            case DEPLOYING:
+                env.markAsReady();
+                env.markAsDeploying();
+                break;
             case RUNNING:
+                env.markAsReady();
+                env.markAsDeploying();
                 env.markAsRunning(Map.of("app", "http://localhost:8080"));
                 break;
-            case STOPPED:
-                env.markAsRunning(Map.of());
-                env.markAsStopped();
+            case ERROR:
+                env.markAsError();
                 break;
             case DESTROYED:
+                env.markAsReady();
+                env.markAsDeploying();
                 env.markAsRunning(Map.of());
-                env.markAsStopped();
                 env.markAsDestroyed();
                 break;
-            case FAILED:
-                env.markAsFailed("Test error");
-                break;
         }
-        
+
         return env;
     }
 }

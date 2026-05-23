@@ -1,8 +1,11 @@
 package com.devops.dashboard.mcp.handler;
 
+import com.devops.dashboard.application.host.HostService;
+import com.devops.dashboard.application.mcp.ServiceRegistry;
 import com.devops.dashboard.application.service.EnvironmentService;
 import com.devops.dashboard.application.service.ServiceManifest;
 import com.devops.dashboard.domain.environment.*;
+import com.devops.dashboard.domain.exception.mcp.ServiceNotRegisteredException;
 import com.devops.dashboard.mcp.dto.request.EnvCreateRequest;
 import com.devops.dashboard.mcp.dto.request.EnvDeployRequest;
 import com.devops.dashboard.mcp.dto.response.EnvOperationResponse;
@@ -47,10 +50,17 @@ public class EnvironmentHandler extends McpHandler {
     private static final Logger log = LoggerFactory.getLogger(EnvironmentHandler.class);
 
     private final EnvironmentService environmentService;
+    private final ServiceRegistry serviceRegistry;
+    private final HostService hostService;
 
-    public EnvironmentHandler(McpExceptionTranslator errorTranslator, EnvironmentService environmentService) {
+    public EnvironmentHandler(McpExceptionTranslator errorTranslator,
+                              EnvironmentService environmentService,
+                              ServiceRegistry serviceRegistry,
+                              HostService hostService) {
         super(errorTranslator);
         this.environmentService = environmentService;
+        this.serviceRegistry = serviceRegistry;
+        this.hostService = hostService;
     }
 
     /**
@@ -82,12 +92,28 @@ public class EnvironmentHandler extends McpHandler {
     /**
      * 向指定环境部署服务（MCP Tool: {@code env_deploy_service}）。
      *
+     * <p>部署前校验：
+     * <ul>
+     *   <li>serviceName 必须在 {@link ServiceRegistry} 中注册</li>
+     *   <li>环境必须存在且状态为 READY/RUNNING</li>
+     * </ul>
+     *
      * @param request 服务部署请求参数（envId/templateName/image）
      * @return JSON 格式的操作响应或错误信息
      */
     public reactor.core.publisher.Mono<String> envDeployService(EnvDeployRequest request) {
         log.info("MCP Tool [env_deploy_service]: envId={}, templateName={}",
                 request.getEnvId(), request.getTemplateName());
+
+        // V3: 校验 serviceName 是否在白名单中
+        if (!serviceRegistry.isRegistered(request.getTemplateName())) {
+            return handleAsync(reactor.core.publisher.Mono.error(
+                    new ServiceNotRegisteredException(
+                            request.getTemplateName(),
+                            serviceRegistry.getAvailableServices()
+                    )
+            ));
+        }
 
         return handleAsync(
                 environmentService.deployService(
@@ -160,21 +186,41 @@ public class EnvironmentHandler extends McpHandler {
         return handleAsync(
                 environmentService.listAll()
                         .collectList()
-                        .map(envs -> EnvOperationResponse.builder()
-                                .success(true)
-                                .message(envs.size() + " environment(s) found")
-                                .environments(envs.stream().map(env -> {
-                                    java.util.Map<String, Object> envMap = new java.util.LinkedHashMap<>();
-                                    envMap.put("envId", env.getIdValue());
-                                    envMap.put("name", env.getName());
-                                    envMap.put("status", env.getStatus().name());
-                                    envMap.put("hostId", env.getHostId());
-                                    envMap.put("runtime", env.getRuntime() != null ? env.getRuntime().name() : null);
-                                    return envMap;
-                                }).toList())
-                                .timestamp(java.time.LocalDateTime.now())
-                                .build()
-                        )
+                        .map(envs -> {
+                            // 获取可用宿主机列表（roles 包含 TARGET 的节点）
+                            var availableHosts = hostService.getTopology().getHosts().stream()
+                                    .filter(host -> host.isTarget())
+                                    .map(host -> {
+                                        java.util.Map<String, Object> hostMap = new java.util.LinkedHashMap<>();
+                                        hostMap.put("id", host.id());
+                                        hostMap.put("label", host.label());
+                                        hostMap.put("status", "AVAILABLE");
+                                        hostMap.put("roles", host.roles());
+                                        hostMap.put("capabilities", host.capabilities());
+                                        return hostMap;
+                                    })
+                                    .toList();
+
+                            return EnvOperationResponse.builder()
+                                    .success(true)
+                                    .message(envs.size() + " environment(s) found")
+                                    .environments(envs.stream().map(env -> {
+                                        java.util.Map<String, Object> envMap = new java.util.LinkedHashMap<>();
+                                        envMap.put("id", env.getIdValue());  // V3 一致：id
+                                        envMap.put("name", env.getName());
+                                        envMap.put("status", env.getStatus().name());
+                                        envMap.put("hostId", env.getHostId());
+                                        envMap.put("type", env.getRuntime() != null ? env.getRuntime().name() : null);
+                                        envMap.put("services", env.getServices().stream()
+                                                .map(s -> s.getServiceTemplate())
+                                                .toList());
+                                        envMap.put("createdAt", env.getCreatedAt() != null ? env.getCreatedAt().toString() : null);
+                                        return envMap;
+                                    }).toList())
+                                    .availableHosts(availableHosts)
+                                    .timestamp(java.time.LocalDateTime.now())
+                                    .build();
+                        })
         );
     }
 

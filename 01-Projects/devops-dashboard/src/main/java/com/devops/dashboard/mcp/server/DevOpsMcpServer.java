@@ -7,6 +7,8 @@ import com.devops.dashboard.mcp.dto.request.HealthCheckRequest;
 import com.devops.dashboard.mcp.dto.request.LoadTestRequest;
 import com.devops.dashboard.mcp.handler.DiagnosisHandler;
 import com.devops.dashboard.mcp.handler.EnvironmentHandler;
+import com.devops.dashboard.mcp.handler.LogHandler;
+import com.devops.dashboard.mcp.handler.PipelineHandler;
 import com.devops.dashboard.mcp.handler.TestingHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,7 +81,9 @@ public class DevOpsMcpServer {
     public RouterFunction<ServerResponse> mcpRouter(
             EnvironmentHandler environmentHandler,
             TestingHandler testingHandler,
-            DiagnosisHandler diagnosisHandler) {
+            DiagnosisHandler diagnosisHandler,
+            PipelineHandler pipelineHandler,
+            LogHandler logHandler) {
 
         log.info("Initializing MCP Server (Streamable HTTP Protocol)");
 
@@ -89,7 +93,9 @@ public class DevOpsMcpServer {
                                 jsonRpcRequest,
                                 environmentHandler,
                                 testingHandler,
-                                diagnosisHandler
+                                diagnosisHandler,
+                                pipelineHandler,
+                                logHandler
                         ))
         );
     }
@@ -98,7 +104,9 @@ public class DevOpsMcpServer {
             String rawRequest,
             EnvironmentHandler environmentHandler,
             TestingHandler testingHandler,
-            DiagnosisHandler diagnosisHandler) {
+            DiagnosisHandler diagnosisHandler,
+            PipelineHandler pipelineHandler,
+            LogHandler logHandler) {
 
         try {
             JsonNode rootNode = objectMapper.readTree(rawRequest);
@@ -145,7 +153,7 @@ public class DevOpsMcpServer {
                     JsonNode arguments = params.path("arguments");
                     log.info("MCP Tool called: {}", toolName);
 
-                    yield callToolAsync(toolName, arguments, environmentHandler, testingHandler, diagnosisHandler)
+                    yield callToolAsync(toolName, arguments, environmentHandler, testingHandler, diagnosisHandler, pipelineHandler, logHandler)
                             .map(result -> {
                                 response.set("result", result);
                                 return response;
@@ -712,11 +720,53 @@ public class DevOpsMcpServer {
     private Mono<JsonNode> callToolAsync(String toolName, JsonNode arguments,
                                           EnvironmentHandler envHandler,
                                           TestingHandler testHandler,
-                                          DiagnosisHandler diagHandler) {
+                                          DiagnosisHandler diagHandler,
+                                          PipelineHandler pipelineHandler,
+                                          LogHandler logHandler) {
 
         log.info("MCP Tool [{}] called with args: {}", toolName, arguments);
 
         return switch (toolName) {
+            case "deploy_pipeline" -> {
+                String serviceName = arguments.path("serviceName").asText();
+                String targetHostId = arguments.path("targetHostId").asText();
+                String version = arguments.path("version").asText("latest");
+                String envType = arguments.path("envType").asText("docker");
+                JsonNode verifyEndpointsNode = arguments.path("verifyEndpoints");
+                List<String> verifyEndpoints = verifyEndpointsNode.isArray()
+                    ? com.fasterxml.jackson.databind.node.TextNode.class.cast(verifyEndpointsNode).findValuesAsText("value")
+                    : List.of();
+                String runtimeConstraint = arguments.path("runtimeConstraint").asText();
+                boolean keepOnFailure = arguments.path("keepOnFailure").asBoolean(false);
+
+                yield pipelineHandler.deployPipeline(
+                    serviceName, targetHostId, version, envType,
+                    verifyEndpoints, runtimeConstraint, keepOnFailure
+                ).map(json -> {
+                    try {
+                        return objectMapper.readTree(json);
+                    } catch (Exception e) {
+                        return objectMapper.createObjectNode().put("error", e.getMessage());
+                    }
+                });
+            }
+
+            case "env_get_logs" -> {
+                String envId = arguments.path("envId").asText();
+                String serviceName = arguments.path("serviceName").asText();
+                int tailLines = arguments.path("tailLines").asInt(100);
+                String since = arguments.path("since").asText();
+
+                yield logHandler.getLogs(envId, serviceName, tailLines, since)
+                    .map(json -> {
+                        try {
+                            return objectMapper.readTree(json);
+                        } catch (Exception e) {
+                            return objectMapper.createObjectNode().put("error", e.getMessage());
+                        }
+                    });
+            }
+
             case "env_create" -> {
                 String name = arguments.path("name").asText();
                 String hostId = arguments.path("hostId").asText();

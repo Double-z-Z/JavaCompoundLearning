@@ -121,6 +121,9 @@ public class Environment {
      * <p>用于从外部系统同步已部署环境的状态，跳过 CREATING 阶段。
      * V2 Phase 2 扩展：支持指定目标主机和运行时类型。</p>
      *
+     * <p><strong>V3 变更</strong>：此工厂方法直接设置 status 为 RUNNING，
+     * 不经过状态转换验证。因为它代表的是"已存在于外部系统中的环境"，不是"新创建的"。</p>
+     *
      * @param idValue 环境ID字符串
      * @param spec    环境规格
      * @return 已就绪的环境实例，状态为 {@link EnvironmentStatus#RUNNING}
@@ -130,7 +133,7 @@ public class Environment {
         env.id = EnvironmentId.of(idValue);
         env.name = idValue;
         env.type = spec.getType();
-        env.status = EnvironmentStatus.RUNNING;
+        env.status = EnvironmentStatus.RUNNING;  // V3: 直接设置，跳过状态转换验证
         env.createdAt = LocalDateTime.now();
         env.resourceQuota = spec.getResourceQuota() != null ? spec.getResourceQuota() : ResourceQuota.development();
         env.lifecyclePolicy = spec.getLifecyclePolicy() != null ? spec.getLifecyclePolicy() : LifecyclePolicy.defaultForDev();
@@ -150,15 +153,28 @@ public class Environment {
         return id.getValue();
     }
 
+    /**
+     * 标记环境为就绪状态（V3 新增）。
+     * 环境创建完成，等待部署。
+     */
+    public void markAsReady() {
+        validateTransition(EnvironmentStatus.READY);
+        this.status = EnvironmentStatus.READY;
+    }
+
+    /**
+     * 标记环境为部署中状态（V3 新增）。
+     * 正在部署服务，状态锁定。
+     */
+    public void markAsDeploying() {
+        validateTransition(EnvironmentStatus.DEPLOYING);
+        this.status = EnvironmentStatus.DEPLOYING;
+    }
+
     public void markAsRunning(Map<String, String> endpoints) {
         validateTransition(EnvironmentStatus.RUNNING);
         this.status = EnvironmentStatus.RUNNING;
         this.accessEndpoints.putAll(endpoints);
-    }
-
-    public void markAsStopped() {
-        validateTransition(EnvironmentStatus.STOPPED);
-        this.status = EnvironmentStatus.STOPPED;
     }
 
     public void markAsDestroyed() {
@@ -166,9 +182,36 @@ public class Environment {
         this.status = EnvironmentStatus.DESTROYED;
     }
 
-    public void markAsFailed(String reason) {
-        validateTransition(EnvironmentStatus.FAILED);
-        this.status = EnvironmentStatus.FAILED;
+    /**
+     * 标记环境为异常状态（V3，替代 V2 的 FAILED）。
+     */
+    public void markAsError() {
+        validateTransition(EnvironmentStatus.ERROR);
+        this.status = EnvironmentStatus.ERROR;
+    }
+
+    /**
+     * 修复环境错误，使其回到 READY 状态以便重新部署（V3 新增）。
+     */
+    public void markAsReadyFromError() {
+        validateTransition(EnvironmentStatus.READY);
+        this.status = EnvironmentStatus.READY;
+    }
+
+    /**
+     * 标记环境为已就绪（由外部系统创建时调用）。
+     *
+     * <p>V3 专用：跳过状态转换验证，直接设置状态。
+     * 因为此方法代表的是"外部系统已完成创建，环境已就绪"的场景，不是内部状态机转换。</p>
+     *
+     * @param endpoints 访问端点映射
+     */
+    public void markAsReadyFromExternal(Map<String, String> endpoints) {
+        // V3: 直接设置状态，跳过 validateTransition，因为这是外部系统创建的环境
+        this.status = EnvironmentStatus.READY;
+        if (endpoints != null) {
+            this.accessEndpoints.putAll(endpoints);
+        }
     }
 
     public void addService(ServiceInstance service) {
@@ -188,8 +231,27 @@ public class Environment {
     private void validateTransition(EnvironmentStatus target) {
         if (!this.status.canTransitionTo(target)) {
             throw new IllegalStateException(
-                String.format("Cannot transition from %s to %s", this.status, target)
+                String.format("当前状态为 %s，不允许转换为 %s。必须先%s。",
+                    this.status.name(),
+                    target.name(),
+                    this.status.suggestPrecondition(target))
             );
         }
+    }
+
+    /**
+     * 获取状态转换错误的详细信息（用于 V3 错误响应）。
+     *
+     * @param target 目标状态
+     * @return 包含当前状态、期望状态、建议的地图
+     */
+    public Map<String, Object> getTransitionErrorData(EnvironmentStatus target) {
+        return Map.of(
+            "currentStatus", this.status.name(),
+            "requiredStatus", target.name(),
+            "suggestion", "调用 env_list 确认状态，或 env_get_logs 排查",
+            "forbidden", "禁止通过 SSH 进入容器手动部署",
+            "nextSteps", java.util.List.of("env_list", "env_get_logs")
+        );
     }
 }

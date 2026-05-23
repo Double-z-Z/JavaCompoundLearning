@@ -139,24 +139,24 @@ public class DockerComposeEnvironment implements EnvironmentProvisioner {
                 if (!finished) {
                     process.destroyForcibly();
                     log.warn("[checkStatus] Timeout checking status for {}", id.getValue());
-                    return EnvironmentStatus.FAILED;
+                    return EnvironmentStatus.ERROR;
                 }
 
                 String output = new String(process.getInputStream().readAllBytes()).trim();
                 if (process.waitFor() != 0 || output.isBlank()) {
-                    return EnvironmentStatus.NOT_FOUND;
+                    return EnvironmentStatus.DESTROYED;
                 }
 
                 if (output.contains("Up")) {
                     return EnvironmentStatus.RUNNING;
                 }
                 if (output.contains("Exited") || output.contains("Created")) {
-                    return EnvironmentStatus.STOPPED;
+                    return EnvironmentStatus.DESTROYED;
                 }
-                return EnvironmentStatus.FAILED;
+                return EnvironmentStatus.ERROR;
             } catch (IOException | InterruptedException e) {
                 log.warn("[checkStatus] Failed to check status for {}: {}", id.getValue(), e.getMessage());
-                return EnvironmentStatus.FAILED;
+                return EnvironmentStatus.ERROR;
             }
         });
     }

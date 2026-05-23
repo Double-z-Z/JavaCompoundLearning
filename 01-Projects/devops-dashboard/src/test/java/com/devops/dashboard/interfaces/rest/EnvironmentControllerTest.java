@@ -41,12 +41,12 @@ class EnvironmentControllerTest {
 
     @BeforeEach
     void setUp() {
-        testEnvironment = Environment.create("test-env", EnvironmentSpec.builder()
+        testEnvironment = Environment.provisioned("test-env", EnvironmentSpec.builder()
                 .type(EnvironmentType.DEV)
                 .resourceQuota(ResourceQuota.development())
                 .lifecyclePolicy(LifecyclePolicy.defaultForDev())
                 .build());
-        testEnvironment.markAsRunning(Map.of("app", "http://localhost:8080"));
+        testEnvironment.getAccessEndpoints().put("app", "http://localhost:8080");
     }
 
     @Nested
