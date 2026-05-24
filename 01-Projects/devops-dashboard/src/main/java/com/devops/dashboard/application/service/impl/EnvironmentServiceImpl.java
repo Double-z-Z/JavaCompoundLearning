@@ -14,12 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
-import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -45,7 +42,6 @@ import java.util.Map;
 public class EnvironmentServiceImpl implements EnvironmentService {
 
     private static final Logger log = LoggerFactory.getLogger(EnvironmentServiceImpl.class);
-    private static final String DOCKER_NOT_AVAILABLE = "Docker not available";
 
     private final EnvironmentRepository environmentRepository;
     private final HostService hostService;
@@ -56,8 +52,8 @@ public class EnvironmentServiceImpl implements EnvironmentService {
         return Mono.fromRunnable(() -> validateTargetHost(spec))
                 .then(Mono.defer(() -> {
                     String envName = (name != null && !name.isBlank())
-                            ? name : generateEnvironmentName(spec.getType());
-                    log.info("[createFromSpec] name={}, type={}, hostId={}", envName, spec.getType(), spec.getHostId());
+                            ? name : generateEnvironmentName(spec.getEnvironmentType());
+                    log.info("[createFromSpec] name={}, environmentType={}, hostId={}", envName, spec.getEnvironmentType(), spec.getHostId());
                     return provisioner.provision(spec)
                             .subscribeOn(Schedulers.boundedElastic())
                             .switchIfEmpty(Mono.error(new EnvironmentCreationException(
@@ -122,10 +118,8 @@ public class EnvironmentServiceImpl implements EnvironmentService {
         return Mono.fromCallable(() -> {
             Environment environment = environmentRepository.findById(envId)
                     .orElseThrow(() -> new EnvironmentNotFoundException(envId.getValue()));
-            ServiceInstance instance = ServiceInstance.create(
-                    manifest.getTemplateName(),
-                    manifest.getImage() != null ? manifest.getImage() : resolveDefaultImage(manifest.getTemplateName())
-            );
+            String image = manifest.getImage() != null ? manifest.getImage() : resolveDefaultImage(manifest.getServiceName());
+            ServiceInstance instance = ServiceInstance.create(manifest.getServiceName(), image);
             instance.markAsDeploying();
             environment.addService(instance);
             environmentRepository.save(environment);
@@ -136,16 +130,17 @@ public class EnvironmentServiceImpl implements EnvironmentService {
             @SuppressWarnings("unchecked")
             ServiceInstance instance = (ServiceInstance) ctx.get("instance");
 
-            return executeDockerDeploy(environment, instance)
+            return provisioner.deployService(envId, instance.getServiceTemplate(), instance.getImage(), instance.getInstanceId())
                     .map(endpoints -> {
                         if (endpoints != null && !endpoints.isEmpty()) {
                             environment.getAccessEndpoints().putAll(endpoints);
                         }
+                        instance.markAsRunning(instance.getInstanceId());
                         environmentRepository.save(environment);
                         return instance;
                     })
                     .onErrorResume(e -> {
-                        log.error("[deployService] Container deployment failed: {}", e.getMessage(), e);
+                        log.error("[deployService] Deployment failed: {}", e.getMessage(), e);
                         instance.markAsFailed(e.getMessage());
                         environmentRepository.save(environment);
                         return Mono.just(instance);
@@ -168,13 +163,13 @@ public class EnvironmentServiceImpl implements EnvironmentService {
             @SuppressWarnings("unchecked")
             ServiceInstance si = (ServiceInstance) ctx.get("si");
 
-            return executeDockerStop(envId.getValue(), si)
+            return provisioner.stopService(envId, si.getInstanceId())
                     .doOnSuccess(v -> {
                         si.markAsStopped();
                         environmentRepository.save(environment);
                     })
                     .onErrorResume(e -> {
-                        log.warn("[stopService] Error stopping container: {}", e.getMessage());
+                        log.warn("[stopService] Error: {}", e.getMessage());
                         si.markAsStopped();
                         environmentRepository.save(environment);
                         return Mono.empty();
@@ -199,8 +194,8 @@ public class EnvironmentServiceImpl implements EnvironmentService {
             instance.markAsStopped();
             instance.markAsDeploying();
 
-            return executeDockerStop(envId.getValue(), instance)
-                    .then(executeDockerStart(environment, instance))
+            return provisioner.stopService(envId, instance.getInstanceId())
+                    .then(provisioner.startService(envId, instance.getInstanceId(), instance.getImage()))
                     .map(v -> {
                         instance.markAsRunning(instance.getInstanceId());
                         environmentRepository.save(environment);
@@ -273,8 +268,8 @@ public class EnvironmentServiceImpl implements EnvironmentService {
         }
         HostId hostId = HostId.of(hostIdValue);
         hostService.validateRole(hostId, HostRole.TARGET);
-        RuntimeType runtime = spec.getRuntime();
-        if (runtime == RuntimeType.DOCKER) {
+        IsolationType isolation = spec.getIsolationType();
+        if (isolation == IsolationType.DOCKER) {
             hostService.validateCapability(hostId, Capability.DOCKER);
         }
     }
@@ -290,134 +285,13 @@ public class EnvironmentServiceImpl implements EnvironmentService {
         return prefix + "-" + System.currentTimeMillis();
     }
 
-    private String resolveDefaultImage(String templateName) {
-        return switch (templateName.toLowerCase()) {
+    private String resolveDefaultImage(String serviceName) {
+        return switch (serviceName.toLowerCase()) {
             case "nacos", "nacos-server" -> "nacos/nacos-server:v2.3.0";
             case "mysql" -> "mysql:8.0";
             case "redis" -> "redis:7-alpine";
             case "nginx" -> "nginx:alpine";
-            default -> templateName + ":latest";
+            default -> serviceName + ":latest";
         };
-    }
-
-    private Mono<Map<String, String>> executeDockerDeploy(Environment environment, ServiceInstance instance) {
-        return checkDockerAvailable()
-                .flatMap(available -> {
-                    if (!available) {
-                        return Mono.error(new RuntimeException(DOCKER_NOT_AVAILABLE));
-                    }
-                    return doDockerRun(environment, instance);
-                });
-    }
-
-    private Mono<Boolean> checkDockerAvailable() {
-        return Mono.fromCallable(() -> {
-            try {
-                Process p = new ProcessBuilder("docker", "info")
-                        .redirectErrorStream(true).start();
-                boolean finished = p.waitFor(5, java.util.concurrent.TimeUnit.SECONDS);
-                if (!finished) p.destroyForcibly();
-                return finished && p.exitValue() == 0;
-            } catch (Exception e) {
-                log.warn("[checkDockerAvailable] Docker not available: {}", e.getMessage());
-                return false;
-            }
-        }).subscribeOn(Schedulers.boundedElastic());
-    }
-
-    private Mono<Map<String, String>> doDockerRun(Environment environment, ServiceInstance instance) {
-        return Mono.fromCallable(() -> {
-            String containerName = "svc-" + environment.getIdValue() + "-" + instance.getInstanceId().substring(0, 8);
-            String image = instance.getImage();
-            log.info("[deployContainer] docker run -d --name {} {}", containerName, image);
-
-            ProcessBuilder pb = new ProcessBuilder(
-                    "docker", "run", "-d",
-                    "--name", containerName,
-                    "--label", "devops.env=" + environment.getIdValue(),
-                    "--label", "devops.service=" + instance.getServiceTemplate(),
-                    image
-            );
-            pb.redirectErrorStream(true);
-
-            try {
-                Process process = pb.start();
-                boolean finished = process.waitFor(60, java.util.concurrent.TimeUnit.SECONDS);
-                if (!finished) {
-                    process.destroyForcibly();
-                    throw new RuntimeException("docker run timed out after 60s");
-                }
-                int exitCode = process.exitValue();
-                if (exitCode != 0) {
-                    String error = new String(process.getErrorStream().readAllBytes()).trim();
-                    throw new RuntimeException("docker run failed (exit=" + exitCode + "): " + error);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Interrupted during docker run", e);
-            }
-
-            try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
-
-            return collectContainerEndpoints(containerName, image);
-        }).subscribeOn(Schedulers.boundedElastic());
-    }
-
-    private Map<String, String> collectContainerEndpoints(String containerName, String image) {
-        java.util.LinkedHashMap<String, String> endpoints = new java.util.LinkedHashMap<>();
-        try {
-            ProcessBuilder pb = new ProcessBuilder("docker", "port", containerName);
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
-            process.waitFor(10, java.util.concurrent.TimeUnit.SECONDS);
-            String portOutput = new String(process.getInputStream().readAllBytes()).trim();
-
-            if (!portOutput.isBlank() && !portOutput.contains("No ports")) {
-                for (String line : portOutput.split("\n")) {
-                    String[] parts = line.trim().split("->");
-                    if (parts.length >= 2) {
-                        String hostPort = parts[1].split("\\s+")[0];
-                        String protocol = parts[0].contains("/tcp") ? "http" : "https";
-                        String url = protocol + "://localhost:" + hostPort;
-                        String key = image.contains("nacos") ? "console"
-                                : image.contains("mysql") ? "jdbc"
-                                : image.contains("redis") ? "redis"
-                                : "service-" + parts[0].split("/")[0];
-                        endpoints.put(key, url);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.warn("[collectContainerEndpoints] Failed to get ports for {}: {}", containerName, e.getMessage());
-        }
-        return endpoints;
-    }
-
-    private Mono<Void> executeDockerStop(String envId, ServiceInstance instance) {
-        return Mono.fromCallable(() -> {
-            String containerName = "svc-" + envId + "-" + instance.getInstanceId().substring(0, 8);
-            log.info("[stopContainer] Stopping: {}", containerName);
-            ProcessBuilder pb = new ProcessBuilder("docker", "stop", containerName);
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
-            process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS);
-            return null;
-        }).subscribeOn(Schedulers.boundedElastic()).then();
-    }
-
-    private Mono<Void> executeDockerStart(Environment environment, ServiceInstance instance) {
-        return Mono.fromCallable(() -> {
-            String containerName = "svc-" + environment.getIdValue() + "-" + instance.getInstanceId().substring(0, 8);
-            log.info("[startContainer] Starting: {}", containerName);
-            ProcessBuilder pb = new ProcessBuilder("docker", "start", containerName);
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
-            boolean finished = process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS);
-            if (!finished) {
-                process.destroyForcibly();
-                throw new RuntimeException("docker start timed out for " + containerName);
-            }
-            return null;
-        }).subscribeOn(Schedulers.boundedElastic()).then();
     }
 }

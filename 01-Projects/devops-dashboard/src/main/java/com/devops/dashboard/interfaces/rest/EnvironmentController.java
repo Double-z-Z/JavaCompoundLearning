@@ -54,7 +54,7 @@ public class EnvironmentController {
                 new java.util.ArrayList<>();
 
         EnvironmentSpec spec = EnvironmentSpec.builder()
-                .type(request.getType())
+                .environmentType(request.getEnvironmentType())
                 .resourceQuota(request.getResourceQuota() != null ? request.getResourceQuota() : ResourceQuota.development())
                 .lifecyclePolicy(request.getLifecyclePolicy() != null ? request.getLifecyclePolicy() : LifecyclePolicy.defaultForDev())
                 .targetNodes(targetNodeRefs)

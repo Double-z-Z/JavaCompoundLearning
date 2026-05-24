@@ -69,12 +69,12 @@ public class EnvironmentHandler extends McpHandler {
      * <p>通过 {@link EnvironmentService#createFromSpec} 创建环境，自动校验目标主机角色和能力。
      * 异常经 {@link McpExceptionTranslator} 翻译后返回标准化错误。</p>
      *
-     * @param request 环境创建请求参数（name/hostId/type/runtime）
+     * @param request 环境创建请求参数（name/hostId/environmentType/isolationType）
      * @return JSON 格式的操作响应或错误信息
      */
     public reactor.core.publisher.Mono<String> envCreate(EnvCreateRequest request) {
-        log.info("MCP Tool [env_create]: name={}, hostId={}, type={}, runtime={}",
-                request.getName(), request.getHostId(), request.getType(), request.getRuntime());
+        log.info("MCP Tool [env_create]: name={}, hostId={}, environmentType={}, isolationType={}",
+                request.getName(), request.getHostId(), request.getEnvironmentType(), request.getIsolationType());
 
         return handleAsync(
                 environmentService.createFromSpec(request.getName(), buildSpec(request))
@@ -83,7 +83,7 @@ public class EnvironmentHandler extends McpHandler {
                                 .envName(env.getName())
                                 .status(env.getStatus().name())
                                 .hostId(env.getHostId())
-                                .runtime(env.getRuntime() != null ? env.getRuntime().name() : null)
+                                .isolationType(env.getIsolationType() != null ? env.getIsolationType().name() : null)
                                 .build()
                         )
         );
@@ -98,18 +98,18 @@ public class EnvironmentHandler extends McpHandler {
      *   <li>环境必须存在且状态为 READY/RUNNING</li>
      * </ul>
      *
-     * @param request 服务部署请求参数（envId/templateName/image）
+     * @param request 服务部署请求参数（envId/serviceName/image）
      * @return JSON 格式的操作响应或错误信息
      */
     public reactor.core.publisher.Mono<String> envDeployService(EnvDeployRequest request) {
-        log.info("MCP Tool [env_deploy_service]: envId={}, templateName={}",
-                request.getEnvId(), request.getTemplateName());
+        log.info("MCP Tool [env_deploy_service]: envId={}, serviceName={}",
+                request.getEnvId(), request.getServiceName());
 
         // V3: 校验 serviceName 是否在白名单中
-        if (!serviceRegistry.isRegistered(request.getTemplateName())) {
+        if (!serviceRegistry.isRegistered(request.getServiceName())) {
             return handleAsync(reactor.core.publisher.Mono.error(
                     new ServiceNotRegisteredException(
-                            request.getTemplateName(),
+                            request.getServiceName(),
                             serviceRegistry.getAvailableServices()
                     )
             ));
@@ -119,14 +119,14 @@ public class EnvironmentHandler extends McpHandler {
                 environmentService.deployService(
                         EnvironmentId.of(request.getEnvId()),
                         ServiceManifest.builder()
-                                .templateName(request.getTemplateName())
+                                .serviceName(request.getServiceName())
                                 .image(request.getImage())
                                 .build()
                 ).map(instance -> EnvOperationResponse.success("Service deployed successfully")
                         .envId(request.getEnvId())
                         .services(java.util.List.of(EnvOperationResponse.ServiceSummary.builder()
                                 .instanceId(instance.getInstanceId())
-                                .templateName(instance.getServiceTemplate())
+                                .serviceName(instance.getServiceTemplate())
                                 .status(instance.getStatus().name())
                                 .build()))
                         .build()
@@ -210,7 +210,8 @@ public class EnvironmentHandler extends McpHandler {
                                         envMap.put("name", env.getName());
                                         envMap.put("status", env.getStatus().name());
                                         envMap.put("hostId", env.getHostId());
-                                        envMap.put("type", env.getRuntime() != null ? env.getRuntime().name() : null);
+                                        envMap.put("environmentType", env.getEnvironmentType() != null ? env.getEnvironmentType().name() : null);
+                                        envMap.put("isolationType", env.getIsolationType() != null ? env.getIsolationType().name() : null);
                                         envMap.put("services", env.getServices().stream()
                                                 .map(s -> s.getServiceTemplate())
                                                 .toList());
@@ -226,9 +227,10 @@ public class EnvironmentHandler extends McpHandler {
 
     private EnvironmentSpec buildSpec(EnvCreateRequest request) {
         return EnvironmentSpec.builder()
-                .type(parseEnvironmentType(request.getType()))
+                .environmentType(parseEnvironmentType(request.getEnvironmentType()))
                 .hostId(request.getHostId())
-                .runtime(parseRuntimeType(request.getRuntime()))
+                .isolationType(parseIsolationType(request.getIsolationType()))
+                .runtimeConstraint(request.getRuntimeConstraint())
                 .build();
     }
 
@@ -244,15 +246,15 @@ public class EnvironmentHandler extends McpHandler {
         }
     }
 
-    private RuntimeType parseRuntimeType(String runtimeStr) {
-        if (runtimeStr == null || runtimeStr.isBlank()) {
-            return RuntimeType.DOCKER;
+    private IsolationType parseIsolationType(String isolationStr) {
+        if (isolationStr == null || isolationStr.isBlank()) {
+            return IsolationType.DOCKER;
         }
         try {
-            return RuntimeType.valueOf(runtimeStr.toUpperCase());
+            return IsolationType.valueOf(isolationStr.toUpperCase());
         } catch (IllegalArgumentException e) {
-            log.warn("Unknown runtime type: {}, defaulting to DOCKER", runtimeStr);
-            return RuntimeType.DOCKER;
+            log.warn("Unknown isolation type: {}, defaulting to DOCKER", isolationStr);
+            return IsolationType.DOCKER;
         }
     }
 }

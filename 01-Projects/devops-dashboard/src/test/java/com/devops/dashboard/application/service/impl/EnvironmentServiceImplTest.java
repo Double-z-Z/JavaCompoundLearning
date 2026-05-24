@@ -108,7 +108,7 @@ class EnvironmentServiceImplTest {
 
             assertThat(result).isNotNull();
             verify(provisioner).provision(argThat(s ->
-                s.getType() == EnvironmentType.DEV
+                s.getEnvironmentType() == EnvironmentType.DEV
             ));
         }
     }
@@ -121,9 +121,9 @@ class EnvironmentServiceImplTest {
         @DisplayName("指定有效 TARGET 主机 + DOCKER 运行时应通过校验并调用 provisioner")
         void shouldPassValidationAndCallProvisioner() {
             EnvironmentSpec spec = EnvironmentSpec.builder()
-                    .type(EnvironmentType.EXPERIMENT)
+                    .environmentType(EnvironmentType.EXPERIMENT)
                     .hostId("vm-ubuntu-test")
-                    .runtime(RuntimeType.DOCKER)
+                    .isolationType(IsolationType.DOCKER)
                     .build();
             Environment mockEnv = createMockEnvironment("test-host-valid");
 
@@ -144,9 +144,9 @@ class EnvironmentServiceImplTest {
         @DisplayName("主机角色不是 TARGET 时应抛出 InvalidHostRoleException")
         void shouldThrowOnInvalidRole() {
             EnvironmentSpec spec = EnvironmentSpec.builder()
-                    .type(EnvironmentType.EXPERIMENT)
+                    .environmentType(EnvironmentType.EXPERIMENT)
                     .hostId("vm-loadgen-01")
-                    .runtime(RuntimeType.NATIVE)
+                    .isolationType(IsolationType.NATIVE)
                     .build();
             doThrow(new InvalidHostRoleException("vm-loadgen-01",
                     com.devops.dashboard.domain.host.HostRole.TARGET, java.util.Set.of()))
@@ -160,9 +160,9 @@ class EnvironmentServiceImplTest {
         @DisplayName("主机不支持 DOCKER 能力时应抛出异常")
         void shouldThrowOnMissingCapability() {
             EnvironmentSpec spec = EnvironmentSpec.builder()
-                    .type(EnvironmentType.EXPERIMENT)
+                    .environmentType(EnvironmentType.EXPERIMENT)
                     .hostId("vm-loadgen-01")
-                    .runtime(RuntimeType.DOCKER)
+                    .isolationType(IsolationType.DOCKER)
                     .build();
             doThrow(new HostCapabilityMismatchException("vm-loadgen-01",
                     com.devops.dashboard.domain.host.Capability.DOCKER, java.util.Set.of()))
@@ -176,9 +176,9 @@ class EnvironmentServiceImplTest {
         @DisplayName("主机不存在时应抛出 HostNotFoundException")
         void shouldThrowOnHostNotFound() {
             EnvironmentSpec spec = EnvironmentSpec.builder()
-                    .type(EnvironmentType.EXPERIMENT)
+                    .environmentType(EnvironmentType.EXPERIMENT)
                     .hostId("nonexistent-host")
-                    .runtime(RuntimeType.DOCKER)
+                    .isolationType(IsolationType.DOCKER)
                     .build();
             doThrow(new HostNotFoundException("nonexistent-host"))
                     .when(hostService).validateRole(any(), any());
@@ -191,7 +191,7 @@ class EnvironmentServiceImplTest {
         @DisplayName("未指定 hostId 时应跳过主机校验")
         void shouldSkipValidationWhenNoHostId() {
             EnvironmentSpec spec = EnvironmentSpec.builder()
-                    .type(EnvironmentType.EXPERIMENT)
+                    .environmentType(EnvironmentType.EXPERIMENT)
                     .build();
             Environment mockEnv = createMockEnvironment("test-no-host");
 
@@ -210,9 +210,9 @@ class EnvironmentServiceImplTest {
         @DisplayName("NATIVE 运行时不应校验 DOCKER 能力")
         void shouldNotCheckDockerForNativeRuntime() {
             EnvironmentSpec spec = EnvironmentSpec.builder()
-                    .type(EnvironmentType.EXPERIMENT)
+                    .environmentType(EnvironmentType.EXPERIMENT)
                     .hostId("vm-ubuntu-test")
-                    .runtime(RuntimeType.NATIVE)
+                    .isolationType(IsolationType.NATIVE)
                     .build();
             Environment mockEnv = createMockEnvironment("test-native");
 
@@ -355,7 +355,7 @@ class EnvironmentServiceImplTest {
 
     private EnvironmentSpec createDefaultSpec() {
         return EnvironmentSpec.builder()
-                .type(EnvironmentType.DEV)
+                .environmentType(EnvironmentType.DEV)
                 .resourceQuota(ResourceQuota.development())
                 .lifecyclePolicy(LifecyclePolicy.defaultForDev())
                 .build();

@@ -14,7 +14,7 @@ import java.util.Map;
  * <h3>使用场景</h3>
  * <pre>
  * 用户: "部署 Nacos 到刚才的环境"
- * AI: 调用 env_deploy_service(envId="exp-xxx", templateName="nacos-server")
+ * AI: 调用 env_deploy_service(envId="exp-xxx", serviceName="nacos-server")
  * </pre>
  *
  * @see com.devops.dashboard.mcp.handler.EnvironmentHandler#envDeployService(EnvDeployRequest)
@@ -26,8 +26,8 @@ public class EnvDeployRequest {
     /** 目标环境 ID */
     private final String envId;
 
-    /** 服务模板名称（对应 service-templates.yml 中的模板 ID） */
-    private final String templateName;
+    /** 服务名称（对应 ServiceRegistry 中的注册服务名） */
+    private final String serviceName;
 
     /** 镜像名称/标签（覆盖模板默认值） */
     private final String image;

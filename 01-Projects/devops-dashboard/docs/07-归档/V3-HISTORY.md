@@ -40,4 +40,15 @@
 
 ---
 
+## 已修复的设计缺陷
+
+### 双层容器架构导致 teardown 残留
+**问题**: 环境创建时 `DockerComposeEnvironment.provision()` 通过 docker-compose 生成基础设施容器（`devops-env-*`），而 `EnvironmentServiceImpl.deployService()` 绕过 provisioner 直接用 `docker run` 创建服务容器（`svc-*`）。teardown 时 `docker compose down` 只清理基础设施容器，服务容器成为孤儿进程。
+**表现**: 对有服务部署的环境执行 destroy 后，`svc-*` 容器残留。
+**修复**: 
+1. teardown 增加 label 批量清理（`docker rm -f $(docker ps -aq --filter label=devops.env=<envId>)`）作为兜底
+2. 服务生命周期（deploy/stop/start）迁入 `EnvironmentProvisioner` 接口，容器命名统一由 `DockerComposeEnvironment.containerName()` 管理
+
+---
+
 *本文件只记录思路，具体实现细节已归档至代码历史。*

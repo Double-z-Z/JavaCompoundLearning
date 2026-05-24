@@ -171,4 +171,13 @@ public interface HostService {
      * @throws com.devops.dashboard.domain.exception.host.HostNotFoundException 主机不存在时抛出
      */
     String getHostLabel(HostId hostId);
+
+    /**
+     * 获取指定主机的 SSH 访问信息。
+     *
+     * @param hostId 目标主机标识
+     * @return 主机的 HostAccess 值对象
+     * @throws com.devops.dashboard.domain.exception.host.HostNotFoundException 主机不存在时抛出
+     */
+    HostAccess getHostAccess(HostId hostId);
 }

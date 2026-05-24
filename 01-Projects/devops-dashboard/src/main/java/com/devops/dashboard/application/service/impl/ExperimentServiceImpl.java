@@ -78,7 +78,7 @@ public class ExperimentServiceImpl implements ExperimentService {
 
         Experiment experiment = optExp.get();
         EnvironmentSpec spec = EnvironmentSpec.builder()
-                .type(EnvironmentType.EXPERIMENT)
+                .environmentType(EnvironmentType.EXPERIMENT)
                 .resourceQuota(ResourceQuota.development())
                 .lifecyclePolicy(LifecyclePolicy.forExperiment())
                 .targetNodes(List.of())

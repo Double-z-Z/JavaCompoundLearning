@@ -170,6 +170,12 @@ public class HostServiceImpl implements HostService {
         return host.getLabel();
     }
 
+    @Override
+    public HostAccess getHostAccess(HostId hostId) {
+        Host host = findHostOrThrow(hostId);
+        return host.getAccess();
+    }
+
     /**
      * 根据 HostId 查询主机，不存在时抛出 {@link HostNotFoundException}。
      *

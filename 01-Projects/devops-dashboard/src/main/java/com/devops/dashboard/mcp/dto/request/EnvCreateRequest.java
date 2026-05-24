@@ -14,8 +14,8 @@ import lombok.Getter;
  *   <tr><th>字段</th><th>必填</th><th>说明</th><th>示例</th></tr>
  *   <tr><td>{@code name}</td><td>可选</td><td>环境名称，为空时自动生成</td><td>"nacos-perf-test"</td></tr>
  *   <tr><td>{@code hostId}</td><td>推荐</td><td>目标主机ID（需在 hosts.yml 中注册）</td><td>"vm-ubuntu-test"</td></tr>
- *   <tr><td>{@code type}</td><td>必填</td><td>环境类型</td><td>"EXPERIMENT" / "TEST" / "DEV"</td></tr>
- *   <tr><td>{@code runtime}</td><td>可选</td><td>运行时类型，默认 DOCKER</td><td>"DOCKER" / "NATIVE"</td></tr>
+ *   <tr><td>{@code environmentType}</td><td>必填</td><td>环境类型</td><td>"EXPERIMENT" / "TEST" / "DEV"</td></tr>
+ *   <tr><td>{@code isolationType}</td><td>可选</td><td>隔离类型，默认 DOCKER</td><td>"DOCKER" / "NATIVE"</td></tr>
  * </table>
  *
  * @see com.devops.dashboard.mcp.handler.EnvironmentHandler#envCreate(EnvCreateRequest)
@@ -31,8 +31,11 @@ public class EnvCreateRequest {
     private final String hostId;
 
     /** 环境类型：DEV / TEST / STAGING / PROD / EXPERIMENT */
-    private final String type;
+    private final String environmentType;
 
-    /** 运行时类型：DOCKER（默认） / NATIVE */
-    private final String runtime;
+    /** 隔离类型：DOCKER（默认） / NATIVE */
+    private final String isolationType;
+
+    /** 运行时版本约束（可选），如 "docker:26.0" */
+    private final String runtimeConstraint;
 }

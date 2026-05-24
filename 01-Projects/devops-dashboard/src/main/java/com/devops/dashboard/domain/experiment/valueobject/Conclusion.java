@@ -17,11 +17,13 @@ public class Conclusion {
     private ExperimentDecision decision;
     private String summary;
 
-    // 使用 ElementCollection 存储简单字符串列表
+    // JSON 存储字符串列表（TEXT 列兼容 H2/PG）
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
     private List<String> lessonsLearned = new ArrayList<>();
 
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
     private List<String> nextSteps = new ArrayList<>();
 
     public static Conclusion accept(String summary, List<String> lessons, List<String> nextSteps) {

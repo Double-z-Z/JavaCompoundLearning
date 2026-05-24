@@ -26,7 +26,7 @@ class EnvOperationResponseTest {
                     .envName("test-env")
                     .status("RUNNING")
                     .hostId("vm-ubuntu-test")
-                    .runtime("DOCKER")
+                    .isolationType("DOCKER")
                     .accessEndpoints(Map.of("console", "http://localhost:8848"))
                     .timestamp(LocalDateTime.now())
                     .build();
@@ -37,7 +37,7 @@ class EnvOperationResponseTest {
             assertThat(response.getEnvName()).isEqualTo("test-env");
             assertThat(response.getStatus()).isEqualTo("RUNNING");
             assertThat(response.getHostId()).isEqualTo("vm-ubuntu-test");
-            assertThat(response.getRuntime()).isEqualTo("DOCKER");
+            assertThat(response.getIsolationType()).isEqualTo("DOCKER");
             assertThat(response.getAccessEndpoints()).hasSize(1);
             assertThat(response.getTimestamp()).isNotNull();
         }
@@ -93,12 +93,12 @@ class EnvOperationResponseTest {
         void shouldBuildSummary() {
             EnvOperationResponse.ServiceSummary summary = EnvOperationResponse.ServiceSummary.builder()
                     .instanceId("svc-abc123")
-                    .templateName("nacos-server")
+                    .serviceName("nacos-server")
                     .status("RUNNING")
                     .build();
 
             assertThat(summary.getInstanceId()).isEqualTo("svc-abc123");
-            assertThat(summary.getTemplateName()).isEqualTo("nacos-server");
+            assertThat(summary.getServiceName()).isEqualTo("nacos-server");
             assertThat(summary.getStatus()).isEqualTo("RUNNING");
         }
     }

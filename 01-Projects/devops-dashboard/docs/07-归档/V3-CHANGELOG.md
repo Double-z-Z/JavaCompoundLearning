@@ -31,6 +31,12 @@ Server 端维护 `ServiceRegistry` 白名单，`env_deploy_service` 的 `service
 ### ADR-028: 日志聚合根闭环
 `env_get_logs` 提供与 SSH+docker logs 完全对等的能力（实时/历史/按服务筛选/行数控制/时间范围），外加格式统一、敏感信息脱敏、审计追溯。
 
+### ADR-029: teardown label 批量清理
+`teardown()` 在 compose down 之前先按 `devops.env=<envId>` label 查询并 `docker rm -f` 所有关联容器。解决 `docker run` 直接创建的服务容器（`svc-*`）不被 compose down 覆盖的残留问题。
+
+### ADR-030: 服务生命周期迁入 EnvironmentProvisioner
+`deployService` / `stopService` / `startService` 从 `EnvironmentServiceImpl` 直接操作 Docker 命令改为通过 `EnvironmentProvisioner` 接口委托。Docker 命令移入 `DockerComposeEnvironment`，容器命名逻辑收敛为 `containerName()` 一处。为 K8s/Ansible 等未来 provisioner 提供统一扩展点。
+
 ---
 
 ## 接口演进（仍然有效）

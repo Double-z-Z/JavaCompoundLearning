@@ -72,8 +72,8 @@ class EnvironmentHandlerTest {
             EnvCreateRequest request = EnvCreateRequest.builder()
                     .name("nacos-test")
                     .hostId("vm-ubuntu-test")
-                    .type("EXPERIMENT")
-                    .runtime("DOCKER")
+                    .environmentType("EXPERIMENT")
+                    .isolationType("DOCKER")
                     .build();
 
             Environment env = createMockEnvironment("nacos-test", "vm-ubuntu-test");
@@ -95,7 +95,7 @@ class EnvironmentHandlerTest {
             EnvCreateRequest request = EnvCreateRequest.builder()
                     .name("bad-host-test")
                     .hostId("nonexistent")
-                    .type("EXPERIMENT")
+                    .environmentType("EXPERIMENT")
                     .build();
 
             given(environmentService.createFromSpec(anyString(), any(EnvironmentSpec.class)))
@@ -122,7 +122,7 @@ class EnvironmentHandlerTest {
             environmentHandler.envCreate(request).block();
 
             then(environmentService).should().createFromSpec(eq("no-type-test"),
-                    argThat(spec -> spec.getType() == EnvironmentType.EXPERIMENT));
+                    argThat(spec -> spec.getEnvironmentType() == EnvironmentType.EXPERIMENT));
         }
     }
 
@@ -135,7 +135,7 @@ class EnvironmentHandlerTest {
         void shouldReturnServiceInfoOnSuccess() {
             EnvDeployRequest request = EnvDeployRequest.builder()
                     .envId("env-deploy-001")
-                    .templateName("nacos-server")
+                    .serviceName("nacos-server")
                     .image("nacos/nacos-server:v2.3.0")
                     .build();
 
@@ -223,9 +223,9 @@ class EnvironmentHandlerTest {
 
     private Environment createMockEnvironment(String name, String hostId) {
         return Environment.create(name, EnvironmentSpec.builder()
-                .type(EnvironmentType.EXPERIMENT)
+                .environmentType(EnvironmentType.EXPERIMENT)
                 .hostId(hostId)
-                .runtime(RuntimeType.DOCKER)
+                .isolationType(IsolationType.DOCKER)
                 .build());
     }
 

@@ -26,7 +26,7 @@ import java.util.*;
  * </ul>
  *
  * <h3>V2 Phase 2 扩展</h3>
- * <p>新增 {@code hostId} 和 {@code runtime} 字段，实现与 {@link Host} 聚合根的关联，
+ * <p>新增 {@code hostId} 和 {@code isolationType} 字段，实现与 {@link Host} 聚合根的关联，
  * 支持 MCP 环境管理工具对目标主机的校验和能力检查。</p>
  *
  * @see EnvironmentSpec 环境规格说明
@@ -36,7 +36,7 @@ import java.util.*;
 @Entity
 @Table(name = "environments", indexes = {
     @Index(name = "idx_env_status", columnList = "status"),
-    @Index(name = "idx_env_type", columnList = "type"),
+    @Index(name = "idx_env_type", columnList = "environment_type"),
     @Index(name = "idx_env_host", columnList = "host_id")
 })
 @Getter
@@ -49,7 +49,7 @@ public class Environment {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private EnvironmentType type;
+    private EnvironmentType environmentType;
 
     @Enumerated(EnumType.STRING)
     private EnvironmentStatus status;
@@ -60,9 +60,13 @@ public class Environment {
     @Column(name = "host_id")
     private String hostId;
 
-    /** 运行时类型（V2 Phase 2 新增），表示环境的执行载体 */
+    /** 隔离类型（V2 Phase 2 新增），表示环境的运行隔离方式 */
     @Enumerated(EnumType.STRING)
-    private RuntimeType runtime;
+    private IsolationType isolationType;
+
+    /** 运行时版本约束（可选），如 "docker:26.0" */
+    @Column(name = "runtime_constraint")
+    private String runtimeConstraint;
 
     // === 访问端点 ===
     @ElementCollection(fetch = FetchType.EAGER)
@@ -90,7 +94,7 @@ public class Environment {
     /**
      * 工厂方法：从规格说明创建新环境（初始状态为 CREATING）。
      *
-     * <p>V2 Phase 2 扩展：支持通过 {@link EnvironmentSpec} 指定目标主机和运行时类型。</p>
+     * <p>V2 Phase 2 扩展：支持通过 {@link EnvironmentSpec} 指定目标主机和隔离类型。</p>
      *
      * @param name 环境名称（用户指定或自动生成）
      * @param spec 环境规格，包含类型、资源配置、主机信息等
@@ -100,14 +104,15 @@ public class Environment {
         var env = new Environment();
         env.id = EnvironmentId.generate();
         env.name = name;
-        env.type = spec.getType();
+        env.environmentType = spec.getEnvironmentType();
         env.status = EnvironmentStatus.CREATING;
         env.createdAt = LocalDateTime.now();
         env.resourceQuota = spec.getResourceQuota() != null ? spec.getResourceQuota() : ResourceQuota.development();
         env.lifecyclePolicy = spec.getLifecyclePolicy() != null ? spec.getLifecyclePolicy() : LifecyclePolicy.defaultForDev();
         env.targetNodes = spec.getTargetNodes() != null ? spec.getTargetNodes() : new ArrayList<>();
         env.hostId = spec.getHostId();
-        env.runtime = spec.getRuntime() != null ? spec.getRuntime() : RuntimeType.DOCKER;
+        env.isolationType = spec.getIsolationType() != null ? spec.getIsolationType() : IsolationType.DOCKER;
+        env.runtimeConstraint = spec.getRuntimeConstraint();
 
         if (env.services == null) env.services = new ArrayList<>();
         if (env.accessEndpoints == null) env.accessEndpoints = new HashMap<>();
@@ -119,7 +124,7 @@ public class Environment {
      * 工厂方法：创建已就绪的环境实例（状态直接为 RUNNING）。
      *
      * <p>用于从外部系统同步已部署环境的状态，跳过 CREATING 阶段。
-     * V2 Phase 2 扩展：支持指定目标主机和运行时类型。</p>
+     * V2 Phase 2 扩展：支持指定目标主机和隔离类型。</p>
      *
      * <p><strong>V3 变更</strong>：此工厂方法直接设置 status 为 RUNNING，
      * 不经过状态转换验证。因为它代表的是"已存在于外部系统中的环境"，不是"新创建的"。</p>
@@ -132,14 +137,15 @@ public class Environment {
         var env = new Environment();
         env.id = EnvironmentId.of(idValue);
         env.name = idValue;
-        env.type = spec.getType();
+        env.environmentType = spec.getEnvironmentType();
         env.status = EnvironmentStatus.RUNNING;  // V3: 直接设置，跳过状态转换验证
         env.createdAt = LocalDateTime.now();
         env.resourceQuota = spec.getResourceQuota() != null ? spec.getResourceQuota() : ResourceQuota.development();
         env.lifecyclePolicy = spec.getLifecyclePolicy() != null ? spec.getLifecyclePolicy() : LifecyclePolicy.defaultForDev();
         env.targetNodes = spec.getTargetNodes() != null ? spec.getTargetNodes() : new ArrayList<>();
         env.hostId = spec.getHostId();
-        env.runtime = spec.getRuntime() != null ? spec.getRuntime() : RuntimeType.DOCKER;
+        env.isolationType = spec.getIsolationType() != null ? spec.getIsolationType() : IsolationType.DOCKER;
+        env.runtimeConstraint = spec.getRuntimeConstraint();
         env.services = new ArrayList<>();
         env.accessEndpoints = new HashMap<>();
         return env;

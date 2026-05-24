@@ -41,7 +41,7 @@ public class CreateEnvironmentRequest {
         requiredMode = Schema.RequiredMode.REQUIRED,
         allowableValues = {"DEV", "TEST", "STAGING", "PROD", "EXPERIMENT"}
     )
-    private EnvironmentType type;
+    private EnvironmentType environmentType;
 
     @Schema(
         description = """

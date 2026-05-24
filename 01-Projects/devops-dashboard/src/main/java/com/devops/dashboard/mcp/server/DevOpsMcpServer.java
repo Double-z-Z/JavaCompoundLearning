@@ -9,6 +9,7 @@ import com.devops.dashboard.mcp.handler.DiagnosisHandler;
 import com.devops.dashboard.mcp.handler.EnvironmentHandler;
 import com.devops.dashboard.mcp.handler.LogHandler;
 import com.devops.dashboard.mcp.handler.PipelineHandler;
+import com.devops.dashboard.mcp.handler.RegistryHandler;
 import com.devops.dashboard.mcp.handler.TestingHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,7 +84,8 @@ public class DevOpsMcpServer {
             TestingHandler testingHandler,
             DiagnosisHandler diagnosisHandler,
             PipelineHandler pipelineHandler,
-            LogHandler logHandler) {
+            LogHandler logHandler,
+            RegistryHandler registryHandler) {
 
         log.info("Initializing MCP Server (Streamable HTTP Protocol)");
 
@@ -95,7 +97,8 @@ public class DevOpsMcpServer {
                                 testingHandler,
                                 diagnosisHandler,
                                 pipelineHandler,
-                                logHandler
+                                logHandler,
+                                registryHandler
                         ))
         );
     }
@@ -106,7 +109,8 @@ public class DevOpsMcpServer {
             TestingHandler testingHandler,
             DiagnosisHandler diagnosisHandler,
             PipelineHandler pipelineHandler,
-            LogHandler logHandler) {
+            LogHandler logHandler,
+            RegistryHandler registryHandler) {
 
         try {
             JsonNode rootNode = objectMapper.readTree(rawRequest);
@@ -153,9 +157,20 @@ public class DevOpsMcpServer {
                     JsonNode arguments = params.path("arguments");
                     log.info("MCP Tool called: {}", toolName);
 
-                    yield callToolAsync(toolName, arguments, environmentHandler, testingHandler, diagnosisHandler, pipelineHandler, logHandler)
+                    yield callToolAsync(toolName, arguments, environmentHandler, testingHandler, diagnosisHandler, pipelineHandler, logHandler, registryHandler)
                             .map(result -> {
-                                response.set("result", result);
+                                ObjectNode wrappedResult = objectMapper.createObjectNode();
+                                ArrayNode content = objectMapper.createArrayNode();
+                                ObjectNode textContent = objectMapper.createObjectNode();
+                                textContent.put("type", "text");
+                                try {
+                                    textContent.put("text", objectMapper.writeValueAsString(result));
+                                } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                                    textContent.put("text", result.toString());
+                                }
+                                content.add(textContent);
+                                wrappedResult.set("content", content);
+                                response.set("result", wrappedResult);
                                 return response;
                             })
                             .onErrorResume(e -> {
@@ -303,24 +318,36 @@ public class DevOpsMcpServer {
         nameProp.put("description", "环境标识符，将用于 DNS 和服务发现（如 redis-counter-tomcat）。只允许小写字母、数字和连字符");
         envCreateProps.set("name", nameProp);
 
-        ObjectNode typeProp = objectMapper.createObjectNode();
-        typeProp.put("type", "string");
-        ArrayNode typeEnum = objectMapper.createArrayNode();
-        typeEnum.add("docker");
-        typeEnum.add("native");
-        typeProp.set("enum", typeEnum);
-        typeProp.put("description", "运行时类型。docker 表示容器化隔离（推荐），native 表示宿主机 systemd 进程级隔离");
-        envCreateProps.set("type", typeProp);
+        ObjectNode isolationTypeProp = objectMapper.createObjectNode();
+        isolationTypeProp.put("type", "string");
+        ArrayNode isolationTypeEnum = objectMapper.createArrayNode();
+        isolationTypeEnum.add("DOCKER");
+        isolationTypeEnum.add("NATIVE");
+        isolationTypeProp.set("enum", isolationTypeEnum);
+        isolationTypeProp.put("description", "隔离类型。DOCKER 表示容器化隔离（推荐），NATIVE 表示宿主机 systemd 进程级隔离");
+        envCreateProps.set("isolationType", isolationTypeProp);
 
         ObjectNode hostIdProp = objectMapper.createObjectNode();
         hostIdProp.put("type", "string");
         hostIdProp.put("description", "目标宿主机 ID，必须来自 env_list 返回的 availableHosts 列表中的 id 字段");
         envCreateProps.set("hostId", hostIdProp);
 
-        ObjectNode runtimeProp = objectMapper.createObjectNode();
-        runtimeProp.put("type", "string");
-        runtimeProp.put("description", "运行时版本约束，如 'openjdk:21-jre-slim'、'docker:26.0'、'podman:4.9'");
-        envCreateProps.set("runtime", runtimeProp);
+        ObjectNode envTypeProp = objectMapper.createObjectNode();
+        envTypeProp.put("type", "string");
+        ArrayNode envTypeEnum = objectMapper.createArrayNode();
+        envTypeEnum.add("DEV");
+        envTypeEnum.add("TEST");
+        envTypeEnum.add("STAGING");
+        envTypeEnum.add("PROD");
+        envTypeEnum.add("EXPERIMENT");
+        envTypeProp.set("enum", envTypeEnum);
+        envTypeProp.put("description", "环境类型：DEV/TEST/STAGING/PROD/EXPERIMENT，默认 EXPERIMENT");
+        envCreateProps.set("environmentType", envTypeProp);
+
+        ObjectNode runtimeConstraintProp2 = objectMapper.createObjectNode();
+        runtimeConstraintProp2.put("type", "string");
+        runtimeConstraintProp2.put("description", "运行时版本约束，如 'openjdk:21-jre-slim'、'docker:26.0'、'podman:4.9'");
+        envCreateProps.set("runtimeConstraint", runtimeConstraintProp2);
 
         ObjectNode resourceLimitProp = objectMapper.createObjectNode();
         resourceLimitProp.put("type", "object");
@@ -340,7 +367,6 @@ public class DevOpsMcpServer {
         envCreateInput.set("properties", envCreateProps);
         ArrayNode required2 = objectMapper.createArrayNode();
         required2.add("name");
-        required2.add("type");
         required2.add("hostId");
         envCreateInput.set("required", required2);
         envCreate.set("inputSchema", envCreateInput);
@@ -666,6 +692,64 @@ public class DevOpsMcpServer {
         networkPath.set("inputSchema", networkPathInput);
         tools.add(networkPath);
 
+        // setup_registry: 部署私有 Docker Registry
+        ObjectNode setupRegistry = objectMapper.createObjectNode();
+        setupRegistry.put("name", "setup_registry");
+        setupRegistry.put("description", "【唯一入口】在远程宿主机上部署私有 Docker Registry（含自签 TLS 证书生成和防火墙规则配置）。此工具确保 Registry 的 TLS 证书、认证凭据和持久化卷被正确初始化，并返回标准格式的 CA 证书供 trust_registry 分发到所有目标主机。错误示例：❌ 禁止在宿主机上手动执行 'docker run -d registry:2'，这将导致 TLS 证书路径不一致、缺少持久化卷配置，且后续 trust_registry 无法验证 Registry 身份导致镜像拉取失败。");
+        ObjectNode setupRegInput = objectMapper.createObjectNode();
+        setupRegInput.put("type", "object");
+        ObjectNode setupRegProps = objectMapper.createObjectNode();
+
+        ObjectNode regHostIdProp = objectMapper.createObjectNode();
+        regHostIdProp.put("type", "string");
+        regHostIdProp.put("description", "部署 Registry 的主机 ID，必须是 env_list 返回的 availableHosts 中的 TARGET 主机");
+        setupRegProps.set("hostId", regHostIdProp);
+
+        ObjectNode regHostnameProp = objectMapper.createObjectNode();
+        regHostnameProp.put("type", "string");
+        regHostnameProp.put("description", "Registry 访问域名（用于 TLS 证书 SAN），如 'registry.devops.local'");
+        setupRegProps.set("hostname", regHostnameProp);
+
+        setupRegInput.set("properties", setupRegProps);
+        ArrayNode setupRegRequired = objectMapper.createArrayNode();
+        setupRegRequired.add("hostId");
+        setupRegRequired.add("hostname");
+        setupRegInput.set("required", setupRegRequired);
+        setupRegistry.set("inputSchema", setupRegInput);
+        tools.add(setupRegistry);
+
+        // trust_registry: 分发 Registry CA 证书
+        ObjectNode trustRegistry = objectMapper.createObjectNode();
+        trustRegistry.put("name", "trust_registry");
+        trustRegistry.put("description", "【唯一合法】将私有 Docker Registry 的 CA 证书安装到目标主机并配置 Docker daemon 信任链。此工具确保证书被写入正确的系统路径（/etc/docker/certs.d/）、Docker 配置被重新加载，并记录本次信任操作到 MCP 审计日志。错误示例：❌ 禁止手动将 CA 证书复制到 /etc/docker/certs.d/ 或通过 SCP 直传，这将绕过操作审计、可能导致证书路径错误或权限不正确，使 docker pull 拉取私有镜像失败。");
+        ObjectNode trustRegInput = objectMapper.createObjectNode();
+        trustRegInput.put("type", "object");
+        ObjectNode trustRegProps = objectMapper.createObjectNode();
+
+        ObjectNode trustHostIdProp = objectMapper.createObjectNode();
+        trustHostIdProp.put("type", "string");
+        trustHostIdProp.put("description", "目标主机 ID（需要信任 Registry 的主机）");
+        trustRegProps.set("hostId", trustHostIdProp);
+
+        ObjectNode trustRegUrlProp = objectMapper.createObjectNode();
+        trustRegUrlProp.put("type", "string");
+        trustRegUrlProp.put("description", "Registry 地址（host:port），如 'registry.devops.local:5000'");
+        trustRegProps.set("registryUrl", trustRegUrlProp);
+
+        ObjectNode trustCaCertProp = objectMapper.createObjectNode();
+        trustCaCertProp.put("type", "string");
+        trustCaCertProp.put("description", "CA 证书 PEM 内容，必须来自 setup_registry 返回的 caCertificate 字段");
+        trustRegProps.set("caCertificate", trustCaCertProp);
+
+        trustRegInput.set("properties", trustRegProps);
+        ArrayNode trustRegRequired = objectMapper.createArrayNode();
+        trustRegRequired.add("hostId");
+        trustRegRequired.add("registryUrl");
+        trustRegRequired.add("caCertificate");
+        trustRegInput.set("required", trustRegRequired);
+        trustRegistry.set("inputSchema", trustRegInput);
+        tools.add(trustRegistry);
+
         result.set("tools", tools);
         return result;
     }
@@ -722,7 +806,8 @@ public class DevOpsMcpServer {
                                           TestingHandler testHandler,
                                           DiagnosisHandler diagHandler,
                                           PipelineHandler pipelineHandler,
-                                          LogHandler logHandler) {
+                                          LogHandler logHandler,
+                                          RegistryHandler registryHandler) {
 
         log.info("MCP Tool [{}] called with args: {}", toolName, arguments);
 
@@ -733,9 +818,12 @@ public class DevOpsMcpServer {
                 String version = arguments.path("version").asText("latest");
                 String envType = arguments.path("envType").asText("docker");
                 JsonNode verifyEndpointsNode = arguments.path("verifyEndpoints");
-                List<String> verifyEndpoints = verifyEndpointsNode.isArray()
-                    ? com.fasterxml.jackson.databind.node.TextNode.class.cast(verifyEndpointsNode).findValuesAsText("value")
-                    : List.of();
+                List<String> verifyEndpoints = new java.util.ArrayList<>();
+                if (verifyEndpointsNode.isArray()) {
+                    for (JsonNode item : verifyEndpointsNode) {
+                        verifyEndpoints.add(item.asText());
+                    }
+                }
                 String runtimeConstraint = arguments.path("runtimeConstraint").asText();
                 boolean keepOnFailure = arguments.path("keepOnFailure").asBoolean(false);
 
@@ -770,13 +858,15 @@ public class DevOpsMcpServer {
             case "env_create" -> {
                 String name = arguments.path("name").asText();
                 String hostId = arguments.path("hostId").asText();
-                String type = arguments.path("type").asText("docker");
-                String runtime = arguments.path("runtime").asText("docker");
+                String environmentType = arguments.path("environmentType").asText("EXPERIMENT");
+                String isolationType = arguments.path("isolationType").asText("DOCKER");
+                String runtimeConstraint = arguments.path("runtimeConstraint").asText();
                 EnvCreateRequest request = EnvCreateRequest.builder()
                         .name(name)
                         .hostId(hostId)
-                        .type(type)
-                        .runtime(runtime)
+                        .environmentType(environmentType)
+                        .isolationType(isolationType)
+                        .runtimeConstraint(runtimeConstraint)
                         .build();
                 yield envHandler.envCreate(request).map(json -> {
                     try {
@@ -793,7 +883,7 @@ public class DevOpsMcpServer {
                 String version = arguments.path("version").asText("latest");
                 EnvDeployRequest request = EnvDeployRequest.builder()
                         .envId(envId)
-                        .templateName(serviceName)
+                        .serviceName(serviceName)
                         .image(version)
                         .build();
                 yield envHandler.envDeployService(request).map(json -> {
@@ -803,6 +893,33 @@ public class DevOpsMcpServer {
                         return objectMapper.createObjectNode().put("error", e.getMessage());
                     }
                 });
+            }
+
+            case "setup_registry" -> {
+                String regHostId = arguments.path("hostId").asText();
+                String regHostname = arguments.path("hostname").asText();
+                yield registryHandler.setupRegistry(regHostId, regHostname)
+                    .map(json -> {
+                        try {
+                            return objectMapper.readTree(json);
+                        } catch (Exception e) {
+                            return objectMapper.createObjectNode().put("error", e.getMessage());
+                        }
+                    });
+            }
+
+            case "trust_registry" -> {
+                String trustHostId = arguments.path("hostId").asText();
+                String registryUrl = arguments.path("registryUrl").asText();
+                String caCert = arguments.path("caCertificate").asText();
+                yield registryHandler.trustRegistry(trustHostId, registryUrl, caCert)
+                    .map(json -> {
+                        try {
+                            return objectMapper.readTree(json);
+                        } catch (Exception e) {
+                            return objectMapper.createObjectNode().put("error", e.getMessage());
+                        }
+                    });
             }
 
             case "env_list" ->

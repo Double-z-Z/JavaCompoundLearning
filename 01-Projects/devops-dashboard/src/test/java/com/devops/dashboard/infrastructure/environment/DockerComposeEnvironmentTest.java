@@ -33,7 +33,7 @@ class DockerComposeEnvironmentTest {
 
     private EnvironmentSpec createTestSpec(EnvironmentType type) {
         return EnvironmentSpec.builder()
-            .type(type)
+            .environmentType(type)
             .resourceQuota(ResourceQuota.development())
             .targetNodes(List.of())
             .build();

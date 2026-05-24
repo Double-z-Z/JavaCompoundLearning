@@ -31,7 +31,7 @@ class EnvironmentTest {
             // Then
             assertThat(env).isNotNull();
             assertThat(env.getName()).isEqualTo(name);
-            assertThat(env.getType()).isEqualTo(EnvironmentType.DEV);
+            assertThat(env.getEnvironmentType()).isEqualTo(EnvironmentType.DEV);
             assertThat(env.getStatus()).isEqualTo(EnvironmentStatus.CREATING);
             assertThat(env.getCreatedAt()).isBeforeOrEqualTo(LocalDateTime.now());
             assertThat(env.getId()).isNotNull();
@@ -50,7 +50,7 @@ class EnvironmentTest {
                     .build();
 
             EnvironmentSpec spec = EnvironmentSpec.builder()
-                    .type(EnvironmentType.TEST)
+                    .environmentType(EnvironmentType.TEST)
                     .resourceQuota(customQuota)
                     .lifecyclePolicy(LifecyclePolicy.defaultForDev())
                     .build();
@@ -68,7 +68,7 @@ class EnvironmentTest {
         void shouldUseDefaultResourceQuotaWhenNull() {
             // Given
             EnvironmentSpec spec = EnvironmentSpec.builder()
-                    .type(EnvironmentType.DEV)
+                    .environmentType(EnvironmentType.DEV)
                     .resourceQuota(null)
                     .lifecyclePolicy(null)
                     .build();
@@ -86,7 +86,7 @@ class EnvironmentTest {
         void shouldHandleNullTargetNodes() {
             // Given
             EnvironmentSpec spec = EnvironmentSpec.builder()
-                    .type(EnvironmentType.DEV)
+                    .environmentType(EnvironmentType.DEV)
                     .targetNodes(null)  // 显式传入 null
                     .build();
 
@@ -274,7 +274,7 @@ class EnvironmentTest {
 
     private EnvironmentSpec createDefaultSpec() {
         return EnvironmentSpec.builder()
-                .type(EnvironmentType.DEV)
+                .environmentType(EnvironmentType.DEV)
                 .resourceQuota(ResourceQuota.development())
                 .lifecyclePolicy(LifecyclePolicy.defaultForDev())
                 .build();

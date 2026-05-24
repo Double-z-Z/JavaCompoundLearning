@@ -18,28 +18,28 @@ import java.util.Map;
  * <table border="1">
  *   <tr><th>字段</th><th>类型</th><th>说明</th><th>默认值</th></tr>
  *   <tr><td>{@code hostId}</td><td>{@code String}</td><td>目标主机标识符</td><td>{@code null}（本地部署）</td></tr>
- *   <tr><td>{@code runtime}</td><td>{@link RuntimeType}</td><td>运行时类型</td><td>{@link RuntimeType#DOCKER}</td></tr>
+ *   <tr><td>{@code isolationType}</td><td>{@link IsolationType}</td><td>隔离类型</td><td>{@link IsolationType#DOCKER}</td></tr>
  * </table>
  *
  * <h3>使用示例</h3>
  * <pre>{@code
  * EnvironmentSpec spec = EnvironmentSpec.builder()
- *     .type(EnvironmentType.EXPERIMENT)
+ *     .environmentType(EnvironmentType.EXPERIMENT)
  *     .hostId("vm-ubuntu-test")
- *     .runtime(RuntimeType.DOCKER)
+ *     .isolationType(IsolationType.DOCKER)
  *     .resourceQuota(ResourceQuota.development())
  *     .build();
  * }</pre>
  *
  * @see Environment 环境聚合根
- * @see RuntimeType 运行时类型枚举
+ * @see IsolationType 隔离类型枚举
  */
 @Getter
 @Builder
 public class EnvironmentSpec {
 
     /** 环境类型（必填） */
-    private final EnvironmentType type;
+    private final EnvironmentType environmentType;
 
     /** 目标节点引用列表，指定环境部署的主机节点 */
     private final List<TargetNodeRef> targetNodes;
@@ -62,16 +62,19 @@ public class EnvironmentSpec {
     private final String hostId;
 
     /**
-     * 运行时类型（V2 Phase 2 新增）。
+     * 隔离类型（V2 Phase 2 新增）。
      *
-     * <p>定义环境的执行载体类型：
+     * <p>定义环境的运行隔离方式：
      * <ul>
-     *   <li>{@link RuntimeType#DOCKER} — Docker 容器运行时（默认）</li>
-     *   <li>{@link RuntimeType#NATIVE} — 原生进程运行时</li>
+     *   <li>{@link IsolationType#DOCKER} — Docker 容器隔离（默认）</li>
+     *   <li>{@link IsolationType#NATIVE} — 原生进程隔离</li>
      * </ul>
      * 选择 {@code DOCKER} 时，目标主机必须具备 {@code docker} 能力。</p>
      */
-    private final RuntimeType runtime;
+    private final IsolationType isolationType;
+
+    /** 运行时版本约束（可选），如 "docker:26.0" */
+    private final String runtimeConstraint;
 
     public static EnvironmentSpecBuilder builder() {
         return new EnvironmentSpecBuilder();

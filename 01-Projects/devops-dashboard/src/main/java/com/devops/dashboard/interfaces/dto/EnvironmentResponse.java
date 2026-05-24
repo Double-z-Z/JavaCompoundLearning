@@ -27,7 +27,7 @@ public class EnvironmentResponse {
     private String name;
 
     @Schema(description = "环境类型")
-    private EnvironmentType type;
+    private EnvironmentType environmentType;
 
     @Schema(description = "环境状态")
     private EnvironmentStatus status;
@@ -51,7 +51,7 @@ public class EnvironmentResponse {
         return EnvironmentResponse.builder()
                 .id(env.getId().getValue())
                 .name(env.getName())
-                .type(env.getType())
+                .environmentType(env.getEnvironmentType())
                 .status(env.getStatus())
                 .createdAt(env.getCreatedAt())
                 .resourceQuota(env.getResourceQuota())

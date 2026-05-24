@@ -114,76 +114,46 @@ public class PipelineHandler extends McpHandler {
 
         return pipeline.execute(executor)
                 .map(result -> {
-                    if (result.error() != null) {
-                        // 返回错误格式的 JSON
-                        return String.format("""
-                            {
-                              "pipelineId": "%s",
-                              "status": "%s",
-                              "stages": %s,
-                              "error": {
-                                "message": "%s",
-                                "forbidden": "禁止本地执行 docker/ssh/curl 替代",
-                                "nextSteps": %s
-                              }
-                            }
-                            """,
-                                result.pipelineId(),
-                                result.status(),
-                                serializeStages(result.stages()),
-                                result.error().message(),
-                                serializeNextSteps(result.error().nextSteps())
-                        );
+                    var json = objectMapper.createObjectNode();
+                    json.put("pipelineId", result.pipelineId());
+                    json.put("status", result.status());
+                    if (result.envId() != null) {
+                        json.put("envId", result.envId());
                     }
-                    return String.format("""
-                        {
-                          "pipelineId": "%s",
-                          "status": "%s",
-                          "envId": "%s",
-                          "stages": %s,
-                          "createdAt": "%s",
-                          "completedAt": "%s"
-                        }
-                        """,
-                            result.pipelineId(),
-                            result.status(),
-                            result.envId(),
-                            serializeStages(result.stages()),
-                            result.createdAt(),
-                            result.completedAt()
-                    );
+                    json.set("stages", serializeStages(result.stages()));
+                    if (result.createdAt() != null) {
+                        json.put("createdAt", result.createdAt().toString());
+                    }
+                    if (result.completedAt() != null) {
+                        json.put("completedAt", result.completedAt().toString());
+                    }
+                    if (result.error() != null) {
+                        var errorNode = objectMapper.createObjectNode();
+                        errorNode.put("message", result.error().message());
+                        errorNode.put("forbidden", "禁止本地执行 docker/ssh/curl 替代");
+                        var nextStepsArray = objectMapper.createArrayNode();
+                        result.error().nextSteps().forEach(nextStepsArray::add);
+                        errorNode.set("nextSteps", nextStepsArray);
+                        json.set("error", errorNode);
+                    }
+                    try {
+                        return objectMapper.writeValueAsString(json);
+                    } catch (Exception e) {
+                        return "{\"error\": \"Serialization failed\"}";
+                    }
                 });
     }
 
-    private String serializeStages(List<PipelineStage> stages) {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < stages.size(); i++) {
-            PipelineStage stage = stages.get(i);
-            if (i > 0) sb.append(", ");
-            sb.append(String.format("""
-                {
-                  "name": "%s",
-                  "status": "%s",
-                  "output": "%s"
-                }
-                """,
-                    stage.name(),
-                    stage.status(),
-                    stage.output() != null ? stage.output().replace("\"", "\\\"") : ""
-            ));
+    private com.fasterxml.jackson.databind.node.ArrayNode serializeStages(List<PipelineStage> stages) {
+        var array = objectMapper.createArrayNode();
+        for (PipelineStage stage : stages) {
+            var obj = objectMapper.createObjectNode();
+            obj.put("name", stage.name());
+            obj.put("status", stage.status().name());
+            obj.put("output", stage.output() != null ? stage.output() : "");
+            array.add(obj);
         }
-        sb.append("]");
-        return sb.toString();
-    }
-
-    private String serializeNextSteps(List<String> nextSteps) {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < nextSteps.size(); i++) {
-            if (i > 0) sb.append(", ");
-            sb.append("\"").append(nextSteps.get(i)).append("\"");
-        }
-        sb.append("]");
-        return sb.toString();
+        return array;
     }
 
     /**
@@ -209,8 +179,9 @@ public class PipelineHandler extends McpHandler {
             EnvCreateRequest request = EnvCreateRequest.builder()
                     .name("pipeline-" + System.currentTimeMillis())
                     .hostId(spec.targetHostId())
-                    .type(spec.envType())
-                    .runtime(spec.runtimeConstraint())
+                    .environmentType("EXPERIMENT")               // 流水线环境统一为实验类型
+                    .isolationType(spec.envType())               // envType = docker/native → 隔离类型
+                    .runtimeConstraint(spec.runtimeConstraint()) // 运行时版本约束
                     .build();
 
             return environmentHandler.envCreate(request)
@@ -226,7 +197,7 @@ public class PipelineHandler extends McpHandler {
         public Mono<EnvironmentId> deployService(EnvironmentId envId, DeploySpec spec) {
             EnvDeployRequest request = EnvDeployRequest.builder()
                     .envId(envId.value())
-                    .templateName(spec.serviceName())
+                    .serviceName(spec.serviceName())
                     .image(spec.version())
                     .build();
 

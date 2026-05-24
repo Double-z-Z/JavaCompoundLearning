@@ -20,7 +20,7 @@ import java.util.Map;
  *   "envName": "nacos-perf-test",
  *   "status": "CREATING",
  *   "hostId": "vm-ubuntu-test",
- *   "runtime": "DOCKER",
+ *   "isolationType": "DOCKER",
  *   "accessEndpoints": {},
  *   "timestamp": "2026-05-22T10:30:00"
  * }</pre>
@@ -49,8 +49,8 @@ public class EnvOperationResponse {
     /** 目标主机 ID */
     private final String hostId;
 
-    /** 运行时类型 */
-    private final String runtime;
+    /** 隔离类型 */
+    private final String isolationType;
 
     /** 访问端点映射（name -> URL） */
     private final Map<String, String> accessEndpoints;
@@ -74,7 +74,7 @@ public class EnvOperationResponse {
     @Builder
     public static class ServiceSummary {
         private final String instanceId;
-        private final String templateName;
+        private final String serviceName;
         private final String status;
     }
 

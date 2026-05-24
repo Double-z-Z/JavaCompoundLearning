@@ -96,3 +96,20 @@ templates:
     description: |
       Prometheus 时序数据库 + Grafana 可视化面板组合。
       用于收集和展示压测指标、系统资源监控数据。
+
+  - id: docker-registry
+    name: Docker Registry
+    category: infrastructure
+    image: registry:2
+    defaultPorts:
+      - "5000:5000"
+    env:
+      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/server.crt
+      REGISTRY_HTTP_TLS_KEY: /certs/server.key
+    healthCheck:
+      path: /v2/_catalog
+      port: 5000
+    description: |
+      私有 Docker Registry，用于存储和分发项目构建的 Docker 镜像。
+      支持 TLS 加密和 HTTP 基础认证。部署后需通过 trust_registry 工具
+      将 CA 证书分发到目标主机。

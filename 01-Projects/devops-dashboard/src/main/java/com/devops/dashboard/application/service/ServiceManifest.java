@@ -13,7 +13,7 @@ import java.util.Map;
 @Builder
 public class ServiceManifest {
     
-    private final String templateName;  // 引用的模板名（如 "nacos-server"）
+    private final String serviceName;  // 服务名（如 "nacos-server"）
     
     private final String image;         // 镜像地址（覆盖默认值）
     
@@ -25,9 +25,9 @@ public class ServiceManifest {
     
     private final ResourceOverride resourceOverride;  // 资源覆盖
     
-    public static ServiceManifest fromTemplate(String templateName) {
+    public static ServiceManifest fromServiceName(String serviceName) {
         return ServiceManifest.builder()
-            .templateName(templateName)
+            .serviceName(serviceName)
             .build();
     }
     

@@ -16,12 +16,14 @@ public class Evidence {
 
     private LocalDateTime collectedAt;
 
-    // JSON 存储指标数据（避免 JPA 嵌套集合限制）
+    // JSON 存储指标数据（TEXT 列兼容 H2/PG）
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
     private List<Metric> metrics = new ArrayList<>();
 
-    // JSON 存储制品数据
+    // JSON 存储制品数据（TEXT 列兼容 H2/PG）
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
     private List<Artifact> artifacts = new ArrayList<>();
 
     @Getter

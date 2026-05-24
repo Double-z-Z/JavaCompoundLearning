@@ -16,8 +16,9 @@ public class Hypothesis {
     private String statement;
     private String background;
 
-    // JSON 存储成功标准列表（避免 JPA 嵌套集合限制）
+    // JSON 存储成功标准列表（TEXT 列兼容 H2/PG）
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
     private List<SuccessCriterion> successCriteria = new ArrayList<>();
 
     @Getter
