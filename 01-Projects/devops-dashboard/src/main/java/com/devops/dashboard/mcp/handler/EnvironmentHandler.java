@@ -3,6 +3,8 @@ package com.devops.dashboard.mcp.handler;
 import com.devops.dashboard.application.host.HostService;
 import com.devops.dashboard.application.mcp.ServiceRegistry;
 import com.devops.dashboard.application.service.EnvironmentService;
+import com.devops.dashboard.infrastructure.host.HostHealthCache;
+import java.util.List;
 import com.devops.dashboard.application.service.ServiceManifest;
 import com.devops.dashboard.domain.environment.*;
 import com.devops.dashboard.domain.exception.mcp.ServiceNotRegisteredException;
@@ -52,15 +54,18 @@ public class EnvironmentHandler extends McpHandler {
     private final EnvironmentService environmentService;
     private final ServiceRegistry serviceRegistry;
     private final HostService hostService;
+    private final HostHealthCache hostHealthCache;
 
     public EnvironmentHandler(McpExceptionTranslator errorTranslator,
                               EnvironmentService environmentService,
                               ServiceRegistry serviceRegistry,
-                              HostService hostService) {
+                              HostService hostService,
+                              HostHealthCache hostHealthCache) {
         super(errorTranslator);
         this.environmentService = environmentService;
         this.serviceRegistry = serviceRegistry;
         this.hostService = hostService;
+        this.hostHealthCache = hostHealthCache;
     }
 
     /**
@@ -178,13 +183,19 @@ public class EnvironmentHandler extends McpHandler {
     /**
      * 列出所有环境（MCP Tool: {@code env_list}）。
      *
+     * @param statusFilter 可选的状态筛选，为空时默认排除 DESTROYED
      * @return JSON 格式的环境列表摘要响应
      */
-    public reactor.core.publisher.Mono<String> envList() {
-        log.debug("MCP Tool [env_list]: listing all environments");
+    public reactor.core.publisher.Mono<String> envList(List<String> statusFilter) {
+        log.debug("MCP Tool [env_list]: statusFilter={}", statusFilter);
 
         return handleAsync(
-                environmentService.listAll()
+                (statusFilter != null && !statusFilter.isEmpty()
+                        ? environmentService.findByStatusIn(
+                                statusFilter.stream()
+                                        .map(EnvironmentStatus::valueOf)
+                                        .toList())
+                        : environmentService.listAll())
                         .collectList()
                         .map(envs -> {
                             // 获取可用宿主机列表（roles 包含 TARGET 的节点）
@@ -194,7 +205,7 @@ public class EnvironmentHandler extends McpHandler {
                                         java.util.Map<String, Object> hostMap = new java.util.LinkedHashMap<>();
                                         hostMap.put("id", host.id());
                                         hostMap.put("label", host.label());
-                                        hostMap.put("status", "AVAILABLE");
+                                        hostMap.put("status", hostHealthCache.get(host.id()).name());
                                         hostMap.put("roles", host.roles());
                                         hostMap.put("capabilities", host.capabilities());
                                         return hostMap;
@@ -214,6 +225,7 @@ public class EnvironmentHandler extends McpHandler {
                                         envMap.put("isolationType", env.getIsolationType() != null ? env.getIsolationType().name() : null);
                                         envMap.put("services", env.getServices().stream()
                                                 .map(s -> s.getServiceTemplate())
+                                                .distinct()
                                                 .toList());
                                         envMap.put("createdAt", env.getCreatedAt() != null ? env.getCreatedAt().toString() : null);
                                         return envMap;

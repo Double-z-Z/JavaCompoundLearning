@@ -12,6 +12,10 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,6 +29,7 @@ public class RegistryHandler extends McpHandler {
     private static final Logger log = LoggerFactory.getLogger(RegistryHandler.class);
 
     private final HostService hostService;
+    private final Map<String, RegistryState> deployedRegistries = new ConcurrentHashMap<>();
 
     public RegistryHandler(McpExceptionTranslator errorTranslator, HostService hostService) {
         super(errorTranslator);
@@ -41,12 +46,31 @@ public class RegistryHandler extends McpHandler {
     public Mono<String> setupRegistry(String hostId, String hostname) {
         log.info("MCP Tool [setup_registry]: hostId={}, hostname={}", hostId, hostname);
 
+        // 幂等：已部署则直接返回
+        RegistryState existing = deployedRegistries.get(hostId);
+        if (existing != null) {
+            log.info("[setup_registry] Registry already deployed on hostId={}, returning cached state", hostId);
+            Map<String, Object> cached = new LinkedHashMap<>();
+            cached.put("registryUrl", existing.registryUrl());
+            cached.put("caCertificate", existing.caCertificate());
+            cached.put("success", true);
+            cached.put("message", "Registry already deployed (cached)");
+            return handleAsync(Mono.just(cached));
+        }
+
         RegistryConfig config = RegistryConfig.of(hostId, hostname);
         DockerRegistryProvisioner provisioner = new DockerRegistryProvisioner();
 
         return handleAsync(
             provisioner.deploy(config)
-                .map(result -> result)
+                .map(result -> {
+                    if (result.success()) {
+                        deployedRegistries.put(hostId, new RegistryState(
+                                hostId, hostname, result.registryUrl(),
+                                result.caCertificate(), Instant.now()));
+                    }
+                    return result;
+                })
         );
     }
 
@@ -83,12 +107,28 @@ public class RegistryHandler extends McpHandler {
             registryHost, registryHost, caCert
         );
 
-        ProcessBuilder pb = new ProcessBuilder(
-            "ssh", "-o", "StrictHostKeyChecking=accept-new",
-            "-p", String.valueOf(hostAccess.getSshPort()),
-            hostAccess.getUser() + "@" + hostAccess.getSshHost(),
-            remoteCmd
-        );
+        var sshArgs = new java.util.ArrayList<String>();
+        sshArgs.add("ssh");
+        sshArgs.add("-o");
+        sshArgs.add("StrictHostKeyChecking=accept-new");
+        sshArgs.add("-o");
+        sshArgs.add("ConnectTimeout=10");
+        sshArgs.add("-p");
+        sshArgs.add(String.valueOf(hostAccess.getSshPort()));
+
+        String keyPath = hostAccess.getKeyPath();
+        if (keyPath != null && !keyPath.isBlank()) {
+            sshArgs.add("-i");
+            sshArgs.add(keyPath);
+            log.debug("[trust_registry] Using SSH key: {}", keyPath);
+        } else {
+            log.warn("[trust_registry] No key_path configured for hostId={}. Falling back to default SSH key.", hostId.value());
+        }
+
+        sshArgs.add(hostAccess.getUser() + "@" + hostAccess.getSshHost());
+        sshArgs.add(remoteCmd);
+
+        ProcessBuilder pb = new ProcessBuilder(sshArgs);
         pb.redirectErrorStream(true);
         Process p = pb.start();
         boolean finished = p.waitFor(30, TimeUnit.SECONDS);
@@ -99,5 +139,39 @@ public class RegistryHandler extends McpHandler {
         log.info("[trust_registry] CA cert installed on {} via SSH", hostId);
     }
 
+    /**
+     * 查询已部署的 Registry 状态（MCP Tool: {@code registry_status}）。
+     *
+     * @param hostIdFilter 可选的主机 ID 筛选
+     * @return JSON 格式的 Registry 列表
+     */
+    public Mono<Map<String, Object>> getRegistryStatus(String hostIdFilter) {
+        log.debug("MCP Tool [registry_status]: hostIdFilter={}", hostIdFilter);
+        return Mono.fromCallable(() -> {
+            var result = new LinkedHashMap<String, Object>();
+            var registries = new java.util.ArrayList<Map<String, Object>>();
+            deployedRegistries.entrySet().stream()
+                    .filter(e -> hostIdFilter == null || hostIdFilter.isBlank() || e.getKey().equals(hostIdFilter))
+                    .forEach(e -> {
+                        Map<String, Object> entry = new LinkedHashMap<>();
+                        entry.put("hostId", e.getValue().hostId());
+                        entry.put("hostname", e.getValue().hostname());
+                        entry.put("registryUrl", e.getValue().registryUrl());
+                        entry.put("deployedAt", e.getValue().deployedAt().toString());
+                        registries.add(entry);
+                    });
+            result.put("registries", registries);
+            result.put("count", registries.size());
+            return result;
+        });
+    }
+
     private record TrustResult(boolean success, String message) {}
+
+    private record RegistryState(
+            String hostId,
+            String hostname,
+            String registryUrl,
+            String caCertificate,
+            Instant deployedAt) {}
 }

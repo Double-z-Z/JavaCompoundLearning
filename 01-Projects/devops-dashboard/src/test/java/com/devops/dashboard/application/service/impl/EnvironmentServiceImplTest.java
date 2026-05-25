@@ -207,8 +207,8 @@ class EnvironmentServiceImplTest {
         }
 
         @Test
-        @DisplayName("NATIVE 运行时不应校验 DOCKER 能力")
-        void shouldNotCheckDockerForNativeRuntime() {
+        @DisplayName("NATIVE 运行时应同时校验 DOCKER 和 NATIVE 能力")
+        void shouldAlwaysCheckDockerAndNativeForNativeRuntime() {
             EnvironmentSpec spec = EnvironmentSpec.builder()
                     .environmentType(EnvironmentType.EXPERIMENT)
                     .hostId("vm-ubuntu-test")
@@ -224,7 +224,8 @@ class EnvironmentServiceImplTest {
             environmentService.createFromSpec("test-native", spec).block();
 
             verify(hostService).validateRole(any(), eq(com.devops.dashboard.domain.host.HostRole.TARGET));
-            verify(hostService, never()).validateCapability(any(), any());
+            verify(hostService).validateCapability(any(), eq(com.devops.dashboard.domain.host.Capability.DOCKER));
+            verify(hostService).validateCapability(any(), eq(com.devops.dashboard.domain.host.Capability.NATIVE));
         }
     }
 

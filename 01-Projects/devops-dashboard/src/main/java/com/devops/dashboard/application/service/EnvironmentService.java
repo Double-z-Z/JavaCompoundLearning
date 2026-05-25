@@ -126,6 +126,14 @@ public interface EnvironmentService {
     Mono<Map<String, String>> getAccessEndpoints(EnvironmentId envId);
 
     /**
+     * 按多个状态筛选环境列表（V3 新增）。
+     *
+     * @param statuses 状态列表
+     * @return 符合条件的环境流
+     */
+    Flux<Environment> findByStatusIn(List<EnvironmentStatus> statuses);
+
+    /**
      * 列出所有环境（V2 Phase 2 新增）。
      *
      * <p>供 MCP Tool 使用，返回环境的摘要信息列表，不含完整服务实例详情。</p>

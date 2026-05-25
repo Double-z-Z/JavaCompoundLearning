@@ -7,12 +7,14 @@ import com.devops.dashboard.domain.exception.host.HostNotFoundException;
 import com.devops.dashboard.domain.exception.host.InvalidHostRoleException;
 import com.devops.dashboard.domain.host.*;
 import com.devops.dashboard.domain.loadgen.LoadgenTool;
+import com.devops.dashboard.infrastructure.host.RuntimeCapabilityStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -58,26 +60,18 @@ public class HostServiceImpl implements HostService {
     private static final Logger log = LoggerFactory.getLogger(HostServiceImpl.class);
 
     private final HostRepository hostRepository;
+    private final RuntimeCapabilityStore runtimeCapabilityStore;
 
     /**
      * MCP 宿主机的确定性 ID，由构造器注入的配置属性决定。
-     *
-     * <p>通过 {@code @Value("${devops.dashboard.mcp-host-id:vm-fedora-dev}")} 注入，
-     * 默认值为 {@code "vm-fedora-dev"}。该字段在 Bean 生命周期内不可变，
-     * 由 {@link #determineMcpHostId()} 方法消费以生成最终的锚点 ID。</p>
      */
     private final String mcpHostId;
 
-    /**
-     * 构造 HostServiceImpl，注入主机仓储和 MCP 主机 ID 配置。
-     *
-     * @param hostRepository 主机数据访问层实现，不允许为 null
-     * @param mcpHostId      MCP 宿主机标识，来自 {@code devops.dashboard.mcp-host-id}
-     *                       配置属性，默认 {@code "vm-fedora-dev"}
-     */
     public HostServiceImpl(HostRepository hostRepository,
+                           RuntimeCapabilityStore runtimeCapabilityStore,
                            @Value("${devops.dashboard.mcp-host-id:vm-fedora-dev}") String mcpHostId) {
         this.hostRepository = hostRepository;
+        this.runtimeCapabilityStore = runtimeCapabilityStore;
         this.mcpHostId = mcpHostId;
     }
 
@@ -120,8 +114,10 @@ public class HostServiceImpl implements HostService {
     @Override
     public void validateCapability(HostId hostId, Capability capability) {
         Host host = findHostOrThrow(hostId);
-        if (!host.getCapabilities().contains(capability)) {
-            throw new HostCapabilityMismatchException(hostId.value(), capability, host.getCapabilities());
+        Set<Capability> effective = new java.util.HashSet<>(host.getCapabilities());
+        effective.addAll(runtimeCapabilityStore.get(hostId.value()));
+        if (!effective.contains(capability)) {
+            throw new HostCapabilityMismatchException(hostId.value(), capability, effective);
         }
         log.debug("Capability validation passed: {} has capability {}", hostId.value(), capability.name());
     }

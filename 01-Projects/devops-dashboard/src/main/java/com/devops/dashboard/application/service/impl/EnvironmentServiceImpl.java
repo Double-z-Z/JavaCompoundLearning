@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -143,7 +144,7 @@ public class EnvironmentServiceImpl implements EnvironmentService {
                         log.error("[deployService] Deployment failed: {}", e.getMessage(), e);
                         instance.markAsFailed(e.getMessage());
                         environmentRepository.save(environment);
-                        return Mono.just(instance);
+                        return Mono.error(new RuntimeException("Service deployment failed: " + e.getMessage(), e));
                     });
         });
     }
@@ -246,6 +247,14 @@ public class EnvironmentServiceImpl implements EnvironmentService {
     }
 
     @Override
+    public Flux<Environment> findByStatusIn(List<EnvironmentStatus> statuses) {
+        if (statuses != null && !statuses.isEmpty()) {
+            return Flux.fromIterable(environmentRepository.findByStatusIn(statuses));
+        }
+        return Flux.fromIterable(environmentRepository.findAll());
+    }
+
+    @Override
     public Mono<Map<String, String>> getAccessEndpoints(EnvironmentId envId) {
         return Mono.fromCallable(() -> {
             Environment environment = environmentRepository.findById(envId)
@@ -268,9 +277,11 @@ public class EnvironmentServiceImpl implements EnvironmentService {
         }
         HostId hostId = HostId.of(hostIdValue);
         hostService.validateRole(hostId, HostRole.TARGET);
+        // 当前 provisioner 仅支持 Docker，所有部署都需要 Docker 能力
+        hostService.validateCapability(hostId, Capability.DOCKER);
         IsolationType isolation = spec.getIsolationType();
-        if (isolation == IsolationType.DOCKER) {
-            hostService.validateCapability(hostId, Capability.DOCKER);
+        if (isolation == IsolationType.NATIVE) {
+            hostService.validateCapability(hostId, Capability.NATIVE);
         }
     }
 

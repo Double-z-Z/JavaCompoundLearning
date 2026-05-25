@@ -1,5 +1,7 @@
 package com.devops.dashboard.mcp.server;
 
+import com.devops.dashboard.application.host.HostService;
+import com.devops.dashboard.domain.host.HostId;
 import com.devops.dashboard.mcp.dto.request.EnvCreateRequest;
 import com.devops.dashboard.mcp.dto.request.EnvDeployRequest;
 import com.devops.dashboard.mcp.dto.request.ExecCommandRequest;
@@ -7,6 +9,7 @@ import com.devops.dashboard.mcp.dto.request.HealthCheckRequest;
 import com.devops.dashboard.mcp.dto.request.LoadTestRequest;
 import com.devops.dashboard.mcp.handler.DiagnosisHandler;
 import com.devops.dashboard.mcp.handler.EnvironmentHandler;
+import com.devops.dashboard.mcp.handler.HostCapabilityHandler;
 import com.devops.dashboard.mcp.handler.LogHandler;
 import com.devops.dashboard.mcp.handler.PipelineHandler;
 import com.devops.dashboard.mcp.handler.RegistryHandler;
@@ -85,7 +88,9 @@ public class DevOpsMcpServer {
             DiagnosisHandler diagnosisHandler,
             PipelineHandler pipelineHandler,
             LogHandler logHandler,
-            RegistryHandler registryHandler) {
+            RegistryHandler registryHandler,
+            HostCapabilityHandler hostCapabilityHandler,
+            HostService hostService) {
 
         log.info("Initializing MCP Server (Streamable HTTP Protocol)");
 
@@ -98,7 +103,9 @@ public class DevOpsMcpServer {
                                 diagnosisHandler,
                                 pipelineHandler,
                                 logHandler,
-                                registryHandler
+                                registryHandler,
+                                hostCapabilityHandler,
+                                hostService
                         ))
         );
     }
@@ -110,7 +117,9 @@ public class DevOpsMcpServer {
             DiagnosisHandler diagnosisHandler,
             PipelineHandler pipelineHandler,
             LogHandler logHandler,
-            RegistryHandler registryHandler) {
+            RegistryHandler registryHandler,
+            HostCapabilityHandler hostCapabilityHandler,
+            HostService hostService) {
 
         try {
             JsonNode rootNode = objectMapper.readTree(rawRequest);
@@ -157,7 +166,7 @@ public class DevOpsMcpServer {
                     JsonNode arguments = params.path("arguments");
                     log.info("MCP Tool called: {}", toolName);
 
-                    yield callToolAsync(toolName, arguments, environmentHandler, testingHandler, diagnosisHandler, pipelineHandler, logHandler, registryHandler)
+                    yield callToolAsync(toolName, arguments, environmentHandler, testingHandler, diagnosisHandler, pipelineHandler, logHandler, registryHandler, hostCapabilityHandler, hostService)
                             .map(result -> {
                                 ObjectNode wrappedResult = objectMapper.createObjectNode();
                                 ArrayNode content = objectMapper.createArrayNode();
@@ -294,6 +303,12 @@ public class DevOpsMcpServer {
         runtimeConstraintProp.put("type", "string");
         runtimeConstraintProp.put("description", "运行时版本约束，如 'openjdk:21-jre-slim' 或 'docker:26.0'");
         deployPipelineProps.set("runtimeConstraint", runtimeConstraintProp);
+
+        ObjectNode keepOnFailureProp = objectMapper.createObjectNode();
+        keepOnFailureProp.put("type", "boolean");
+        keepOnFailureProp.put("default", false);
+        keepOnFailureProp.put("description", "失败时是否保留环境用于排查。默认 false（自动销毁补偿）。设为 true 则跳过补偿，保留环境和日志快照");
+        deployPipelineProps.set("keepOnFailure", keepOnFailureProp);
 
         deployPipelineInput.set("properties", deployPipelineProps);
         ArrayNode required1 = objectMapper.createArrayNode();
@@ -519,10 +534,10 @@ public class DevOpsMcpServer {
         testHealthInput.put("type", "object");
         ObjectNode testHealthProps = objectMapper.createObjectNode();
 
-        ObjectNode envIdProp4 = objectMapper.createObjectNode();
-        envIdProp4.put("type", "string");
-        envIdProp4.put("description", "目标环境 ID，必须来自 env_list 中状态为 RUNNING 的环境");
-        testHealthProps.set("envId", envIdProp4);
+        ObjectNode hostIdProp3 = objectMapper.createObjectNode();
+        hostIdProp3.put("type", "string");
+        hostIdProp3.put("description", "目标宿主机 ID，必须来自 env_list 返回的可用宿主机池");
+        testHealthProps.set("hostId", hostIdProp3);
 
         ObjectNode targetPortProp1 = objectMapper.createObjectNode();
         targetPortProp1.put("type", "integer");
@@ -552,7 +567,7 @@ public class DevOpsMcpServer {
 
         testHealthInput.set("properties", testHealthProps);
         ArrayNode required6 = objectMapper.createArrayNode();
-        required6.add("envId");
+        required6.add("hostId");
         required6.add("targetPort");
         required6.add("checkType");
         testHealthInput.set("required", required6);
@@ -567,10 +582,10 @@ public class DevOpsMcpServer {
         testLoadInput.put("type", "object");
         ObjectNode testLoadProps = objectMapper.createObjectNode();
 
-        ObjectNode envIdProp5 = objectMapper.createObjectNode();
-        envIdProp5.put("type", "string");
-        envIdProp5.put("description", "目标环境 ID，必须来自 env_list 中状态为 RUNNING 的环境");
-        testLoadProps.set("envId", envIdProp5);
+        ObjectNode hostIdProp4 = objectMapper.createObjectNode();
+        hostIdProp4.put("type", "string");
+        hostIdProp4.put("description", "目标宿主机 ID，必须来自 env_list 返回的可用宿主机池");
+        testLoadProps.set("hostId", hostIdProp4);
 
         ObjectNode targetPortProp2 = objectMapper.createObjectNode();
         targetPortProp2.put("type", "integer");
@@ -612,7 +627,7 @@ public class DevOpsMcpServer {
 
         testLoadInput.set("properties", testLoadProps);
         ArrayNode required7 = objectMapper.createArrayNode();
-        required7.add("envId");
+        required7.add("hostId");
         required7.add("targetPort");
         testLoadInput.set("required", required7);
         testLoad.set("inputSchema", testLoadInput);
@@ -750,6 +765,76 @@ public class DevOpsMcpServer {
         trustRegistry.set("inputSchema", trustRegInput);
         tools.add(trustRegistry);
 
+        // registry_status: 查询 Registry 部署状态
+        ObjectNode registryStatus = objectMapper.createObjectNode();
+        registryStatus.put("name", "registry_status");
+        registryStatus.put("description", "查询已部署的 Docker Registry 状态。无参数时返回所有已部署注册表的列表，可选按 hostId 筛选。");
+        ObjectNode regStatusInput = objectMapper.createObjectNode();
+        regStatusInput.put("type", "object");
+        ObjectNode regStatusProps = objectMapper.createObjectNode();
+        ObjectNode regStatusHostIdProp = objectMapper.createObjectNode();
+        regStatusHostIdProp.put("type", "string");
+        regStatusHostIdProp.put("description", "可选：按主机 ID 筛选 Registry");
+        regStatusProps.set("hostId", regStatusHostIdProp);
+        regStatusInput.set("properties", regStatusProps);
+        registryStatus.set("inputSchema", regStatusInput);
+        tools.add(registryStatus);
+
+        // host_install_docker: 远程安装 Docker
+        ObjectNode installDocker = objectMapper.createObjectNode();
+        installDocker.put("name", "host_install_docker");
+        installDocker.put("description", "【唯一入口】在远程宿主机上安装 Docker 引擎。通过 SSH 执行官方安装脚本并启动 docker 服务，安装成功后自动注册 Docker 运行时能力。警告：此操作需要 root 权限且耗时较长（约 2-5 分钟）。");
+        ObjectNode instDockerInput = objectMapper.createObjectNode();
+        instDockerInput.put("type", "object");
+        ObjectNode instDockerProps = objectMapper.createObjectNode();
+        ObjectNode instHostIdProp = objectMapper.createObjectNode();
+        instHostIdProp.put("type", "string");
+        instHostIdProp.put("description", "目标宿主机 ID，必须来自 env_list 返回的 availableHosts");
+        instDockerProps.set("hostId", instHostIdProp);
+        ObjectNode instTimeoutProp = objectMapper.createObjectNode();
+        instTimeoutProp.put("type", "integer");
+        instTimeoutProp.put("description", "安装超时秒数，默认 300");
+        instTimeoutProp.put("default", 300);
+        instDockerProps.set("timeoutSeconds", instTimeoutProp);
+        instDockerInput.set("properties", instDockerProps);
+        ArrayNode instRequired = objectMapper.createArrayNode();
+        instRequired.add("hostId");
+        instDockerInput.set("required", instRequired);
+        installDocker.set("inputSchema", instDockerInput);
+        tools.add(installDocker);
+
+        // host_upgrade: 远程主机升级
+        ObjectNode hostUpgrade = objectMapper.createObjectNode();
+        hostUpgrade.put("name", "host_upgrade");
+        hostUpgrade.put("description", "【唯一入口】远程升级宿主机上的软件（Docker / 系统包）。通过 SSH 执行 dnf upgrade，升级完成后返回版本信息。警告：系统升级可能重启服务，请在维护窗口执行。");
+        ObjectNode upgradeInput = objectMapper.createObjectNode();
+        upgradeInput.put("type", "object");
+        ObjectNode upgradeProps = objectMapper.createObjectNode();
+        ObjectNode upgHostIdProp = objectMapper.createObjectNode();
+        upgHostIdProp.put("type", "string");
+        upgHostIdProp.put("description", "目标宿主机 ID");
+        upgradeProps.set("hostId", upgHostIdProp);
+        ObjectNode targetProp = objectMapper.createObjectNode();
+        targetProp.put("type", "string");
+        ArrayNode targetEnum = objectMapper.createArrayNode();
+        targetEnum.add("docker");
+        targetEnum.add("system");
+        targetProp.set("enum", targetEnum);
+        targetProp.put("description", "升级目标: docker | system");
+        upgradeProps.set("target", targetProp);
+        ObjectNode upgTimeoutProp = objectMapper.createObjectNode();
+        upgTimeoutProp.put("type", "integer");
+        upgTimeoutProp.put("description", "升级超时秒数，默认 600");
+        upgTimeoutProp.put("default", 600);
+        upgradeProps.set("timeoutSeconds", upgTimeoutProp);
+        upgradeInput.set("properties", upgradeProps);
+        ArrayNode upgRequired = objectMapper.createArrayNode();
+        upgRequired.add("hostId");
+        upgRequired.add("target");
+        upgradeInput.set("required", upgRequired);
+        hostUpgrade.set("inputSchema", upgradeInput);
+        tools.add(hostUpgrade);
+
         result.set("tools", tools);
         return result;
     }
@@ -807,7 +892,9 @@ public class DevOpsMcpServer {
                                           DiagnosisHandler diagHandler,
                                           PipelineHandler pipelineHandler,
                                           LogHandler logHandler,
-                                          RegistryHandler registryHandler) {
+                                          RegistryHandler registryHandler,
+                                          HostCapabilityHandler hostCapHandler,
+                                          HostService hostService) {
 
         log.info("MCP Tool [{}] called with args: {}", toolName, arguments);
 
@@ -922,14 +1009,38 @@ public class DevOpsMcpServer {
                     });
             }
 
-            case "env_list" ->
-                envHandler.envList().map(json -> {
+            case "registry_status" -> {
+                String filterHostId = arguments.path("hostId").asText();
+                yield registryHandler.getRegistryStatus(filterHostId)
+                    .map(map -> {
+                        try {
+                            return objectMapper.valueToTree(map);
+                        } catch (Exception e) {
+                            return objectMapper.createObjectNode().put("error", e.getMessage());
+                        }
+                    });
+            }
+
+            case "env_list" -> {
+                JsonNode statusFilterNode = arguments.path("statusFilter");
+                List<String> statusFilter = new java.util.ArrayList<>();
+                if (statusFilterNode.isArray()) {
+                    for (JsonNode item : statusFilterNode) {
+                        statusFilter.add(item.asText());
+                    }
+                }
+                // 默认排除 DESTROYED 终态环境
+                if (statusFilter.isEmpty()) {
+                    statusFilter = List.of("CREATING", "READY", "DEPLOYING", "RUNNING", "ERROR");
+                }
+                yield envHandler.envList(statusFilter).map(json -> {
                     try {
                         return objectMapper.readTree(json);
                     } catch (Exception e) {
                         return objectMapper.createObjectNode().put("error", e.getMessage());
                     }
                 });
+            }
 
             case "env_destroy" -> {
                 String envId = arguments.path("envId").asText();
@@ -943,14 +1054,16 @@ public class DevOpsMcpServer {
             }
 
             case "test_health_check" -> {
-                String targetHostId = arguments.path("targetHostId").asText();
+                String hostId = arguments.path("hostId").asText();
                 int targetPort = arguments.path("targetPort").asInt(80);
                 String checkType = arguments.path("checkType").asText("http");
                 int timeout = arguments.path("timeout").asInt(5000);
+                String path = arguments.has("path") ? arguments.path("path").asText() : "/";
 
-                String targetUrl = String.format("%s://%s:%d",
+                String host = resolveHostIp(hostService, hostId);
+                String targetUrl = String.format("%s://%s:%d%s",
                         "tcp".equalsIgnoreCase(checkType) ? "tcp" : "http",
-                        targetHostId, targetPort);
+                        host, targetPort, path);
 
                 HealthCheckRequest request = HealthCheckRequest.builder()
                         .targetUrl(targetUrl)
@@ -966,12 +1079,13 @@ public class DevOpsMcpServer {
             }
 
             case "test_load" -> {
-                String targetHostId = arguments.path("targetHostId").asText();
-                int port = arguments.path("port").asInt(8080);
+                String hostId = arguments.path("hostId").asText();
+                int port = arguments.path("targetPort").asInt(8080);
                 int duration = arguments.path("duration").asInt(30);
                 int threads = arguments.path("threads").asInt(2);
 
-                String targetUrl = String.format("http://%s:%d", targetHostId, port);
+                String host = resolveHostIp(hostService, hostId);
+                String targetUrl = String.format("http://%s:%d", host, port);
                 LoadTestRequest request = LoadTestRequest.builder()
                         .targetUrl(targetUrl)
                         .durationSeconds(duration)
@@ -987,11 +1101,11 @@ public class DevOpsMcpServer {
             }
 
             case "test_exec_command" -> {
-                String targetHostId = arguments.path("targetHostId").asText();
+                String hostId = arguments.path("hostId").asText();
                 String command = arguments.path("command").asText();
 
                 ExecCommandRequest request = ExecCommandRequest.builder()
-                        .hostId(targetHostId)
+                        .hostId(hostId)
                         .command(command)
                         .build();
                 yield testHandler.testExecCommand(request).map(json -> {
@@ -1013,6 +1127,27 @@ public class DevOpsMcpServer {
                 );
             }
 
+            case "host_install_docker" -> {
+                String hostId = arguments.path("hostId").asText();
+                int timeout = arguments.path("timeoutSeconds").asInt(300);
+                yield hostCapHandler.installDocker(hostId, timeout)
+                    .map(map -> {
+                        try { return objectMapper.valueToTree(map); }
+                        catch (Exception e) { return objectMapper.createObjectNode().put("error", e.getMessage()); }
+                    });
+            }
+
+            case "host_upgrade" -> {
+                String hostId = arguments.path("hostId").asText();
+                String target = arguments.path("target").asText("docker");
+                int timeout = arguments.path("timeoutSeconds").asInt(600);
+                yield hostCapHandler.upgrade(hostId, target, timeout)
+                    .map(map -> {
+                        try { return objectMapper.valueToTree(map); }
+                        catch (Exception e) { return objectMapper.createObjectNode().put("error", e.getMessage()); }
+                    });
+            }
+
             default -> {
                 ObjectNode result = objectMapper.createObjectNode();
                 result.put("tool", toolName);
@@ -1022,6 +1157,16 @@ public class DevOpsMcpServer {
                 yield Mono.just(result);
             }
         };
+    }
+
+    private String resolveHostIp(HostService hostService, String hostId) {
+        try {
+            var access = hostService.getHostAccess(HostId.of(hostId));
+            return access.getSshHost();
+        } catch (Exception e) {
+            log.warn("Failed to resolve hostId={}, using as-is: {}", hostId, e.getMessage());
+            return hostId;
+        }
     }
 
     private Mono<ServerResponse> buildJsonResponse(ObjectNode response) {

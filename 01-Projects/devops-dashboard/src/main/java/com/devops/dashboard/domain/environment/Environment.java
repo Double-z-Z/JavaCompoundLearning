@@ -224,8 +224,13 @@ public class Environment {
         if (this.services == null) {
             this.services = new ArrayList<>();
         }
-        this.services.add(service);
-        service.setEnvironment(this);
+        boolean exists = this.services.stream()
+                .anyMatch(s -> s.getServiceTemplate().equals(service.getServiceTemplate())
+                        && s.getInstanceId().equals(service.getInstanceId()));
+        if (!exists) {
+            this.services.add(service);
+            service.setEnvironment(this);
+        }
     }
 
     public Optional<ServiceInstance> findServiceByInstanceId(String instanceId) {

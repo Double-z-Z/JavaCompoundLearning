@@ -4,6 +4,8 @@ import com.devops.dashboard.application.host.HostService;
 import com.devops.dashboard.application.host.dto.HostTopology;
 import com.devops.dashboard.application.mcp.ServiceRegistry;
 import com.devops.dashboard.application.service.EnvironmentService;
+import com.devops.dashboard.domain.host.HostHealthStatus;
+import com.devops.dashboard.infrastructure.host.HostHealthCache;
 import com.devops.dashboard.application.service.ServiceManifest;
 import com.devops.dashboard.domain.environment.*;
 import com.devops.dashboard.domain.exception.environment.EnvironmentNotFoundException;
@@ -46,6 +48,9 @@ class EnvironmentHandlerTest {
     @Mock
     private HostService hostService;
 
+    @Mock
+    private HostHealthCache hostHealthCache;
+
     private EnvironmentHandler environmentHandler;
 
     @BeforeEach
@@ -58,8 +63,9 @@ class EnvironmentHandlerTest {
 
         // Mock HostService for availableHosts in envList
         given(hostService.getTopology()).willReturn(new HostTopology("vm-fedora-dev-101", List.of()));
+        given(hostHealthCache.get(anyString())).willReturn(HostHealthStatus.UNKNOWN);
 
-        environmentHandler = new EnvironmentHandler(errorTranslator, environmentService, serviceRegistry, hostService);
+        environmentHandler = new EnvironmentHandler(errorTranslator, environmentService, serviceRegistry, hostService, hostHealthCache);
     }
 
     @Nested
@@ -214,7 +220,7 @@ class EnvironmentHandlerTest {
             given(environmentService.listAll())
                     .willReturn(reactor.core.publisher.Flux.fromIterable(java.util.List.of()));
 
-            String result = environmentHandler.envList().block();
+            String result = environmentHandler.envList(null).block();
 
             assertThat(result).contains("success");
             assertThat(result).contains("0 environment(s)");

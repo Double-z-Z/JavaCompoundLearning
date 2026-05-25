@@ -57,13 +57,15 @@ public class LogHandler extends McpHandler {
                 spec
         );
 
-        // 执行日志查询（使用模拟的日志提供者）
+        // 执行日志查询
+        // TODO: 接入真实日志源（docker logs / journald / file tail / Loki）
         LogAggregate.LogProvider provider = (eId, svc, qSpec) -> {
-            // 模拟日志数据 - 实际实现应从容器/主机获取
+            log.warn("[env_get_logs] Using placeholder log provider for envId={}, serviceName={}. No real log infrastructure configured.", eId.value(), svc);
             return Flux.just(
-                    LogLine.of(Instant.now().minusSeconds(10), LogLevel.INFO, svc != null ? svc : "app", "Application started"),
-                    LogLine.of(Instant.now().minusSeconds(5), LogLevel.WARN, svc != null ? svc : "app", "Connection pool size is *** (sensitive data hidden)"),
-                    LogLine.of(Instant.now(), LogLevel.ERROR, svc != null ? svc : "app", "Failed to connect to database: connection timeout")
+                    LogLine.of(Instant.now(), LogLevel.INFO, svc != null ? svc : "app",
+                            "[PLACEHOLDER] No log provider configured. Real logs will appear once log infrastructure is set up."),
+                    LogLine.of(Instant.now(), LogLevel.INFO, svc != null ? svc : "app",
+                            "[PLACEHOLDER] To set up: configure docker logs / journald / file tail in LogHandler.")
             );
         };
 
@@ -111,9 +113,10 @@ public class LogHandler extends McpHandler {
         );
 
         LogAggregate.LogProvider provider = (eId, svc, qSpec) -> {
+            log.warn("[env_get_logs:stream] Using placeholder log provider. No real log infrastructure configured.");
             return Flux.just(
-                    LogLine.of(Instant.now(), LogLevel.INFO, svc != null ? svc : "app", "Streaming log line 1"),
-                    LogLine.of(Instant.now(), LogLevel.INFO, svc != null ? svc : "app", "Streaming log line 2")
+                    LogLine.of(Instant.now(), LogLevel.INFO, svc != null ? svc : "app",
+                            "[PLACEHOLDER] No log provider configured for streaming.")
             );
         };
 

@@ -125,6 +125,8 @@ public class SshCommandExecutor {
         cmd.add("StrictHostKeyChecking=no");
         cmd.add("-o");
         cmd.add("ConnectTimeout=10");
+        cmd.add("-o");
+        cmd.add("BatchMode=yes");
         cmd.add("-p");
         cmd.add(String.valueOf(access.getSshPort()));
 

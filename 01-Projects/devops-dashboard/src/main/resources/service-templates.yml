@@ -111,5 +111,18 @@ templates:
       port: 5000
     description: |
       私有 Docker Registry，用于存储和分发项目构建的 Docker 镜像。
+
+  - id: redis-counter-service
+    name: Redis 计数器服务
+    category: application
+    image: redis-counter-service:1.0-SNAPSHOT
+    defaultPorts:
+      - "8080:8080"
+    healthCheck:
+      path: /stock/ping
+      port: 8080
+    description: |
+      Spring Boot 计数器与库存扣减服务。
+      提供原子化库存扣减（Lua 脚本防超卖）和通用 Redis 计数器功能。
       支持 TLS 加密和 HTTP 基础认证。部署后需通过 trust_registry 工具
       将 CA 证书分发到目标主机。

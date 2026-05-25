@@ -181,6 +181,19 @@ public record McpError(
      * @param reason     禁止原因
      * @param nextSteps  建议的下一步
      */
+    public static McpError forPreconditionFailed(String reason, List<String> nextSteps) {
+        return new McpError(
+                "PRECONDITION_FAILED",
+                reason,
+                422,
+                Map.of(
+                    "suggestion", "部署前置条件不满足，请按建议修复后重试",
+                    "forbidden", "禁止在条件不满足时强制执行",
+                    "nextSteps", nextSteps
+                )
+        );
+    }
+
     public static McpError forForbidden(String action, String reason, List<String> nextSteps) {
         return new McpError(
                 "FORBIDDEN",

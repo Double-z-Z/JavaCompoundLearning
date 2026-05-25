@@ -1,5 +1,6 @@
 package com.devops.dashboard.mcp.error;
 
+import com.devops.dashboard.domain.exception.mcp.PreconditionFailedException;
 import com.devops.dashboard.domain.exception.mcp.ServiceNotRegisteredException;
 import com.devops.dashboard.domain.exception.shared.SharedException;
 import org.slf4j.Logger;
@@ -37,6 +38,9 @@ public class McpExceptionTranslator {
     public McpError translate(Exception ex) {
         if (ex instanceof ServiceNotRegisteredException snre) {
             return McpError.forServiceNotRegistered(snre.getServiceName(), snre.getAvailableServices());
+        }
+        if (ex instanceof PreconditionFailedException pfe) {
+            return McpError.forPreconditionFailed(pfe.getReason(), pfe.getNextSteps());
         }
         if (ex instanceof SharedException domainEx) {
             return McpError.fromDomainException(domainEx);

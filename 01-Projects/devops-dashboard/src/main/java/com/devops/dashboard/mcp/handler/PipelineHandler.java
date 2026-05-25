@@ -1,9 +1,17 @@
 package com.devops.dashboard.mcp.handler;
 
+import com.devops.dashboard.application.host.HostService;
 import com.devops.dashboard.application.mcp.ServiceRegistry;
+import com.devops.dashboard.application.service.ServiceTemplatesConfig;
 import com.devops.dashboard.domain.environment.EnvironmentId;
+import com.devops.dashboard.domain.exception.mcp.PreconditionFailedException;
 import com.devops.dashboard.domain.exception.mcp.ServiceNotRegisteredException;
+import com.devops.dashboard.domain.host.Capability;
+import com.devops.dashboard.domain.host.HostAccess;
+import com.devops.dashboard.domain.host.HostId;
 import com.devops.dashboard.domain.mcp.*;
+import com.devops.dashboard.infrastructure.host.HostHealthCache;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.devops.dashboard.mcp.dto.request.EnvCreateRequest;
 import com.devops.dashboard.mcp.dto.request.EnvDeployRequest;
 import com.devops.dashboard.mcp.dto.request.HealthCheckRequest;
@@ -46,18 +54,27 @@ public class PipelineHandler extends McpHandler {
     private final TestingHandler testingHandler;
     private final DiagnosisHandler diagnosisHandler;
     private final ServiceRegistry serviceRegistry;
+    private final HostService hostService;
+    private final HostHealthCache hostHealthCache;
+    private final ServiceTemplatesConfig serviceTemplates;
 
     public PipelineHandler(
             McpExceptionTranslator errorTranslator,
             EnvironmentHandler environmentHandler,
             TestingHandler testingHandler,
             DiagnosisHandler diagnosisHandler,
-            ServiceRegistry serviceRegistry) {
+            ServiceRegistry serviceRegistry,
+            HostService hostService,
+            HostHealthCache hostHealthCache,
+            ServiceTemplatesConfig serviceTemplates) {
         super(errorTranslator);
         this.environmentHandler = environmentHandler;
         this.testingHandler = testingHandler;
         this.diagnosisHandler = diagnosisHandler;
         this.serviceRegistry = serviceRegistry;
+        this.hostService = hostService;
+        this.hostHealthCache = hostHealthCache;
+        this.serviceTemplates = serviceTemplates;
     }
 
     /**
@@ -94,6 +111,13 @@ public class PipelineHandler extends McpHandler {
             ));
         }
 
+        // V3: fail-fast 前置校验（host 可达性、能力、SSH 连通性）
+        try {
+            runPrechecks(targetHostId, envType);
+        } catch (PreconditionFailedException e) {
+            return handleAsync(Mono.error(e));
+        }
+
         DeploySpec spec = new DeploySpec(
                 serviceName,
                 targetHostId,
@@ -109,7 +133,9 @@ public class PipelineHandler extends McpHandler {
         DeployPipeline.PipelineExecutor executor = new PipelineExecutorImpl(
                 environmentHandler,
                 testingHandler,
-                diagnosisHandler
+                diagnosisHandler,
+                hostService,
+                serviceTemplates
         );
 
         return pipeline.execute(executor)
@@ -144,6 +170,48 @@ public class PipelineHandler extends McpHandler {
                 });
     }
 
+    private void runPrechecks(String targetHostId, String envType) {
+        // 1. 主机是否存在且为 TARGET 角色
+        try {
+            hostService.validateRole(HostId.of(targetHostId), com.devops.dashboard.domain.host.HostRole.TARGET);
+        } catch (RuntimeException e) {
+            throw new PreconditionFailedException(
+                    e.getMessage(),
+                    java.util.List.of("env_list")
+            );
+        }
+
+        // 2. 能力检查：按 envType 校验对应 capability
+        Capability requiredCap = "native".equalsIgnoreCase(envType)
+                ? Capability.NATIVE
+                : Capability.DOCKER;
+        try {
+            hostService.validateCapability(HostId.of(targetHostId), requiredCap);
+        } catch (RuntimeException e) {
+            String hostLabel = hostService.getHostLabel(HostId.of(targetHostId));
+            String capName = requiredCap == Capability.DOCKER ? "Docker" : "Native";
+            var nextSteps = requiredCap == Capability.DOCKER
+                    ? java.util.List.of("env_list", "host_install_docker")
+                    : java.util.List.of("env_list");
+            throw new PreconditionFailedException(
+                    "主机 " + hostLabel + " 缺少 " + capName + " 运行时能力。"
+                            + (requiredCap == Capability.DOCKER
+                                ? "建议：① 使用 host_install_docker 安装 Docker；② 或使用已具备 docker 能力的主机"
+                                : "建议：选择具备 native 能力的主机"),
+                    nextSteps
+            );
+        }
+
+        // 3. SSH 连通性快速探测（非阻塞，仅告警）
+        var healthStatus = hostHealthCache.get(targetHostId);
+        if (healthStatus == com.devops.dashboard.domain.host.HostHealthStatus.UNHEALTHY) {
+            throw new PreconditionFailedException(
+                    "主机 " + targetHostId + " SSH 不可达，请检查主机是否开机且 SSH 服务正常",
+                    java.util.List.of("env_list", "env_get_logs")
+            );
+        }
+    }
+
     private com.fasterxml.jackson.databind.node.ArrayNode serializeStages(List<PipelineStage> stages) {
         var array = objectMapper.createArrayNode();
         for (PipelineStage stage : stages) {
@@ -161,17 +229,25 @@ public class PipelineHandler extends McpHandler {
      */
     private static class PipelineExecutorImpl implements DeployPipeline.PipelineExecutor {
 
+        private static final ObjectMapper healthMapper = new ObjectMapper();
+
         private final EnvironmentHandler environmentHandler;
         private final TestingHandler testingHandler;
         private final DiagnosisHandler diagnosisHandler;
+        private final HostService hostService;
+        private final ServiceTemplatesConfig serviceTemplates;
 
         PipelineExecutorImpl(
                 EnvironmentHandler environmentHandler,
                 TestingHandler testingHandler,
-                DiagnosisHandler diagnosisHandler) {
+                DiagnosisHandler diagnosisHandler,
+                HostService hostService,
+                ServiceTemplatesConfig serviceTemplates) {
             this.environmentHandler = environmentHandler;
             this.testingHandler = testingHandler;
             this.diagnosisHandler = diagnosisHandler;
+            this.hostService = hostService;
+            this.serviceTemplates = serviceTemplates;
         }
 
         @Override
@@ -202,24 +278,59 @@ public class PipelineHandler extends McpHandler {
                     .build();
 
             return environmentHandler.envDeployService(request)
-                    .map(json -> envId);
+                    .flatMap(json -> {
+                        // 防御性检查：如果响应中 services[0].status 为 FAILED，则传播错误
+                        try {
+                            var root = healthMapper.readTree(json);
+                            var services = root.path("services");
+                            if (services.isArray() && services.size() > 0) {
+                                String status = services.get(0).path("status").asText();
+                                if ("FAILED".equals(status)) {
+                                    return Mono.error(new RuntimeException("Service deployment failed: " + json));
+                                }
+                            }
+                        } catch (Exception ignored) {
+                            // 解析失败不影响主流程
+                        }
+                        return Mono.just(envId);
+                    });
         }
 
         @Override
         public Mono<String> healthCheck(EnvironmentId envId, DeploySpec spec) {
-            // 使用 verifyEndpoints 中的第一个端点进行健康检查
             if (spec.verifyEndpoints() == null || spec.verifyEndpoints().isEmpty()) {
                 return Mono.just("No verify endpoints configured, skipping health check");
             }
 
             String path = spec.verifyEndpoints().get(0);
+            HostAccess access = hostService.getHostAccess(HostId.of(spec.targetHostId()));
+            String targetIp = access.getSshHost();
+
+            // 从服务模板查找健康检查端口，未配置则默认 8080
+            int port = serviceTemplates.get(spec.serviceName())
+                    .map(ServiceTemplatesConfig.TemplateEntry::port)
+                    .orElse(8080);
+
             HealthCheckRequest request = HealthCheckRequest.builder()
-                    .targetUrl("http://localhost:8080" + path)
+                    .targetUrl("http://" + targetIp + ":" + port + path)
                     .timeoutSeconds(10)
                     .build();
 
             return testingHandler.testHealthCheck(request)
-                    .map(json -> "Health check: " + json);
+                    .flatMap(json -> {
+                        try {
+                            var root = healthMapper.readTree(json);
+                            if (root.has("healthy") && root.get("healthy").asBoolean()) {
+                                return Mono.just("Health check passed: " + json);
+                            }
+                            String errorMsg = root.has("errorMessage")
+                                    ? root.get("errorMessage").asText()
+                                    : "statusCode=" + root.path("statusCode").asInt();
+                            return Mono.error(new RuntimeException("Health check failed: " + errorMsg));
+                        } catch (Exception e) {
+                            return Mono.error(new RuntimeException("Failed to parse health check result: " + e.getMessage(), e));
+                        }
+                    });
         }
 
         @Override
