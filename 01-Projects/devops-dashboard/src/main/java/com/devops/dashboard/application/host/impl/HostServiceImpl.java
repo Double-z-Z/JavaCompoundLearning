@@ -85,7 +85,8 @@ public class HostServiceImpl implements HostService {
     public HostTopology getTopology() {
         List<Host> allHosts = hostRepository.findAll();
         log.debug("Generating topology with {} hosts", allHosts.size());
-        return new HostTopology(determineMcpHostId(), allHosts);
+        return new HostTopology(determineMcpHostId(), allHosts,
+                runtimeCapabilityStore.snapshot());
     }
 
     /**

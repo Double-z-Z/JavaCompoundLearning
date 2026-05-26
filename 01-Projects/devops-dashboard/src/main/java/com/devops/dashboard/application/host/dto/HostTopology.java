@@ -4,7 +4,10 @@ import com.devops.dashboard.domain.host.Capability;
 import com.devops.dashboard.domain.host.Host;
 import com.devops.dashboard.domain.host.HostRole;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 主机拓扑数据传输对象，承载全量主机信息的序列化视图。
@@ -71,10 +74,12 @@ public class HostTopology {
      * @param mcpHostId MCP 宿主机 ID 锚点，不允许为 null
      * @param hosts     全部主机领域对象列表，将逐个转换为 {@link HostDto}
      */
-    public HostTopology(String mcpHostId, List<Host> hosts) {
+    public HostTopology(String mcpHostId, List<Host> hosts,
+                         Map<String, Set<Capability>> runtimeCapabilities) {
         this.mcpHostId = mcpHostId;
         this.hosts = hosts.stream()
-                .map(HostDto::fromDomain)
+                .map(host -> HostDto.fromDomain(host,
+                        runtimeCapabilities.getOrDefault(host.getId().value(), Set.of())))
                 .toList();
     }
 
@@ -147,13 +152,26 @@ public class HostTopology {
          * @return 填充完成的 HostDto 实例
          */
         public static HostDto fromDomain(Host host) {
+            return fromDomain(host, Set.of());
+        }
+
+        /**
+         * 将领域对象 {@link Host} 转换为传输用 DTO，合并运行时能力。
+         *
+         * @param host 源领域对象
+         * @param runtimeCapabilities 运行时动态新增的能力集合
+         * @return 填充完成的 HostDto 实例
+         */
+        public static HostDto fromDomain(Host host, Set<Capability> runtimeCapabilities) {
+            Set<Capability> mergedCapabilities = new HashSet<>(host.getCapabilities());
+            mergedCapabilities.addAll(runtimeCapabilities);
             return new HostDto(
                     host.getId().value(),
                     host.getType().getCode(),
                     host.getParentId() != null ? host.getParentId().value() : null,
                     host.getLabel(),
                     host.getNetworkZone(),
-                    host.getCapabilities().stream().map(Capability::getCode).toList(),
+                    mergedCapabilities.stream().map(Capability::getCode).toList(),
                     host.getRoles().stream().map(HostRole::getCode).toList(),
                     host.getResources() != null ?
                             ResourceDto.fromDomain(host.getResources()) : null,

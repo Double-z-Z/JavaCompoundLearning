@@ -1,0 +1,2 @@
+- [Non-MCP Deployment Cleanup](no-mcp-deployment-cleanup.md) — Manual Docker cleanup when no MCP environment record exists
+- [MCP Unreachable: Halt Immediately](mcp-unreachable-halt.md) — When localhost:8081/mcp connection refused, stop and report; never attempt workarounds

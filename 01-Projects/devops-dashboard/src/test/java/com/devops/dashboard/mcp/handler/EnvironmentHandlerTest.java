@@ -62,7 +62,7 @@ class EnvironmentHandlerTest {
                 "nacos-server", "mysql", "redis", "nginx"));
 
         // Mock HostService for availableHosts in envList
-        given(hostService.getTopology()).willReturn(new HostTopology("vm-fedora-dev-101", List.of()));
+        given(hostService.getTopology()).willReturn(new HostTopology("vm-fedora-dev-101", List.of(), java.util.Map.of()));
         given(hostHealthCache.get(anyString())).willReturn(HostHealthStatus.UNKNOWN);
 
         environmentHandler = new EnvironmentHandler(errorTranslator, environmentService, serviceRegistry, hostService, hostHealthCache);
