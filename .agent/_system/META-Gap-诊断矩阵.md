@@ -2,7 +2,7 @@
 type: meta_gap
 description: Gap诊断矩阵 - GOAL与EMRG对比分析
 created: 2026-05-06
-updated: 2026-05-16
+updated: 2026-05-28
 ---
 
 # META-Gap-诊断矩阵
@@ -46,18 +46,20 @@ Gap  = 差距分析
 | 缺口 ID | 目标能力 | 当前 EMRG 证据 | 差距 | 建议策略 | 你的决策 |
 |---------|---------|---------------|------|---------|---------|
 | G-RED-01 | 数据结构底层实现 | [[EMRG-Redis]] 数据类型与编码有笔记，SDS/Ziplist/QuickList源码级不足 | 🟡 进行中 | 源码阅读，2周专项 | ✅ 执行 |
-| G-RED-02 | 持久化机制 | [[EMRG-Redis]] 持久化笔记 mastery=70 | 🟢 已达标 | 巩固，关闭缺口 | ✅ 执行 |
-| G-RED-03 | 高可用架构 | [[EMRG-Redis]] Cluster=85/主从复制/哨兵均有笔记，[[EMRG-Sentinel-核心机制]] 已verified | 🟢 已达标 | 巩固，关注Sentinel高级特性 | ✅ 执行 |
-| G-RED-04 | 缓存策略最佳实践 | [[EMRG-Redis]] 数据倾斜/多级缓存/Caffeine有笔记，redis-counter-service-webflux 项目已实战验证 | 🟢 已达标 | 巩固，关闭缺口 | ✅ 执行 |
+| G-RED-02 | 持久化机制 | [[EMRG-Redis]] 持久化笔记 mastery=70 | 🟢 已达标 | 巩固，关闭缺口 | ✅ 已关闭 |
+| G-RED-03 | 高可用架构 | [[EMRG-Redis]] Cluster=85/主从复制/哨兵均有笔记，[[EMRG-Sentinel-核心机制]] 已verified | 🟢 已达标 | 巩固，关注Sentinel高级特性 | ✅ 已关闭 |
+| G-RED-04 | 缓存策略最佳实践 | [[EMRG-Redis]] 数据倾斜/多级缓存/Caffeine有笔记，redis-counter-service-webflux 项目已实战验证 | 🟢 已达标 | 巩固，关闭缺口 | ✅ 已关闭 |
+| G-RED-05 | 分布式事务与一致性 | [[EMRG-Redis]] 新增 6 篇分布式策略笔记（互斥/原子性/锁/Saga/2PC/最终一致） | 🟡 进行中 | 继续深化决策树应用 | ✅ 执行 |
+| G-SPR-05 | 微服务一致性设计 | [[EMRG-Redis]] 分布式策略可迁移至 SpringCloud | 🟡 进行中 | 将决策树应用到微服务场景 | ✅ 执行 |
 
 ### GOAL-SpringCloud微服务（deadline: 2026-08-06 | priority: high）
 
 | 缺口 ID | 目标能力 | 当前 EMRG 证据 | 差距 | 建议策略 | 你的决策 |
 |---------|---------|---------------|------|---------|---------|
-| G-SPR-01 | Spring Boot自动配置原理 | 无 EMRG 证据，有 2026-05-15 对话反思（自动配置与Starter） | 🟡 进行中 | 项目+源码，2周专项 | ⏳ 待定 |
-| G-SPR-02 | Spring Cloud核心组件 | 无 EMRG 证据 | 🔴 高 | 组件逐一攻克 | ⏳ 待定 |
-| G-SPR-03 | 服务注册/发现/熔断/网关 | [[EMRG-Sentinel-核心机制]] 熔断限流已verified，[[EMRG-Sentinel-高级特性与生态]] 待探索，缺网关/注册发现 | 🟡 进行中 | 补齐网关与注册发现原理 | ⏳ 待定 |
-| G-SPR-04 | 微服务架构设计 | 无 EMRG 证据，有项目使用经验但原理空白 | 🔴 高 | 从秒杀系统切入微服务拆分 | ⏳ 待定 |
+| G-SPR-01 | Spring Boot自动配置原理 | 无 EMRG 证据，有 2026-05-15 对话反思（自动配置与Starter） | 🟡 进行中 | 项目+源码，2周专项 | ✅ 执行 |
+| G-SPR-02 | Spring Cloud核心组件 | 无 EMRG 证据 | 🔴 高 | 组件逐一攻克 | ✅ 执行 |
+| G-SPR-03 | 服务注册/发现/熔断/网关 | [[EMRG-Sentinel-核心机制]] 熔断限流已verified，[[EMRG-Sentinel-高级特性与生态]] 待探索，缺网关/注册发现 | 🟡 进行中 | 补齐网关与注册发现原理 | ✅ 执行 |
+| G-SPR-04 | 微服务架构设计 | 无 EMRG 证据，有项目使用经验但原理空白 | 🔴 高 | 从秒杀系统切入微服务拆分 | ✅ 执行 |
 
 ### GOAL-ORM与缓存（deadline: 2026-09-06 | priority: medium）
 

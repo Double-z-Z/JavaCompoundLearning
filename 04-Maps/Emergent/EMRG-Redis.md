@@ -4,7 +4,7 @@ id: EMRG-Redis
 title: Redis知识网络
 maturity: emerging
 created: 2026-04-28
-updated: 2026-05-17
+updated: 2026-05-19
 related_goals: [GOAL-Redis深入,GOAL-Java核心深化]
 subtopics:
   - 数据结构底层
@@ -52,6 +52,17 @@ Redis 核心认知
       ├─ [[Redis-性能压测-分层排除法]]
       └─ [[Redis Pipeline在秒杀中的应用]]
           └─ 关联 [[EMRG-Sentinel-核心机制]]
+  └─ 分布式策略
+      └─ [[互斥与原子性]]
+          ├─ 关联 [[系统边界分类]]
+          │   └─ 关联 [[分布式锁]]
+          │       ├─ 关联 [[最终一致性]]
+          │       └─ 关联 [[幂等性]]
+          ├─ 关联 [[Saga模式]]
+          │   └─ 关联 [[2PC与3PC]]
+          ├─ 关联 [[秒杀超卖与库存一致性]]
+          │   └─ 关联 [[一致性强度评估]]
+          └─ 关联 [[技术选择决策树]]
 
 
 ## 关键缺口（待补充）

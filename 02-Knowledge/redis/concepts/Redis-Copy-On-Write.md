@@ -109,6 +109,7 @@ Java 的 `CopyOnWriteArrayList` 名字里有 COW，但机制不同：
 - [[Redis-渐进式rehash]] - 关联原因：Redis 在 BGSAVE 期间提高 rehash 阈值（从 1 到 5），避免 COW 期间不必要的内存页复制
 - [[CopyOnWriteArrayList]] - 关联原因：Java 的 COW 是全量复制数组，与操作系统页级 COW 的增量复制形成对比
 - [[Git版本控制]] - 关联原因：Git commit 是独立快照可单独删除，文件系统快照是链式依赖删除中间节点需合并
+- [[Docker镜像分层]] - 关联原因：Docker 的 CoW 和 Redis RDB 的 CoW 是同一机制在不同场景的应用——都是"修改时才复制"，但粒度不同（Docker 是文件级，Redis/OS 是页级）
 
 
 ## 我的误区与疑问
