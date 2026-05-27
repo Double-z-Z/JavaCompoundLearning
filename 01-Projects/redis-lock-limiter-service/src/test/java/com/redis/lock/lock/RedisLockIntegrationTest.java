@@ -18,7 +18,6 @@ class RedisLockIntegrationTest {
 
     @BeforeAll
     static void setUp() {
-        // 从 RedisConfig 获取连接
         com.redis.lock.config.RedisConfig config = new com.redis.lock.config.RedisConfig();
         redisTemplate = config.stringRedisTemplate();
         luaScripts = new LuaScripts();
@@ -28,15 +27,13 @@ class RedisLockIntegrationTest {
 
     @AfterAll
     static void tearDown() {
-        if (redisTemplate != null) {
-            redisTemplate.delete("test:lock:1");
-            redisTemplate.delete("test:lock:2");
-            redisTemplate.delete("test:lock:3");
-            redisTemplate.delete("test:lock:4");
-            redisTemplate.delete("test:lock:5");
-            redisTemplate.delete("test:lock:try1");
-            redisTemplate.delete("test:lock:try2");
-            redisTemplate.delete("test:lock:try3");
+        String[] keys = {
+            "test:lock:1", "test:lock:2", "test:lock:3", "test:lock:4", "test:lock:5",
+            "test:lock:try1", "test:lock:try2", "test:lock:try3",
+            "test:lock:wd1", "test:lock:wd2", "test:lock:wd3"
+        };
+        for (String key : keys) {
+            redisTemplate.delete(key);
         }
     }
 
@@ -49,7 +46,6 @@ class RedisLockIntegrationTest {
         @Order(1)
         @DisplayName("lock() 应该返回 true 当锁可用时")
         void lock_ShouldReturnTrue_WhenLockAvailable() {
-            // 先确保锁不存在
             redisTemplate.delete("test:lock:1");
 
             boolean result = redisLock.lock("test:lock:1", 30);
@@ -57,7 +53,6 @@ class RedisLockIntegrationTest {
             assertTrue(result);
             assertTrue(redisLock.isLocked("test:lock:1"));
 
-            // 清理
             redisLock.unlock("test:lock:1");
         }
 
@@ -66,12 +61,9 @@ class RedisLockIntegrationTest {
         @DisplayName("lock() 应该返回 false 当锁已被持有时")
         void lock_ShouldReturnFalse_WhenLockHeld() {
             String key = "test:lock:2";
-
-            // 先获取锁
             redisTemplate.delete(key);
             assertTrue(redisLock.lock(key, 30));
 
-            // 另一个实例尝试获取
             LuaScripts luaScripts2 = new LuaScripts();
             luaScripts2.init();
             RedisLock redisLock2 = new RedisLock(redisTemplate, luaScripts2);
@@ -80,7 +72,6 @@ class RedisLockIntegrationTest {
 
             assertFalse(result);
 
-            // 清理
             redisLock.unlock(key);
         }
 
@@ -103,42 +94,30 @@ class RedisLockIntegrationTest {
             String key = "test:lock:4";
             redisTemplate.delete(key);
 
-            // 创建另一个锁实例
             LuaScripts luaScripts2 = new LuaScripts();
             luaScripts2.init();
             RedisLock redisLock2 = new RedisLock(redisTemplate, luaScripts2);
 
-            // 第一个实例获取锁
             assertTrue(redisLock.lock(key, 30));
 
-            // 第二个实例尝试释放
             boolean result = redisLock2.unlock(key);
 
-            assertFalse(result); // 不应该释放成功
-            assertTrue(redisLock.isLocked(key)); // 锁仍然存在
+            assertFalse(result);
+            assertTrue(redisLock.isLocked(key));
 
-            // 清理
             redisLock.unlock(key);
         }
 
         @Test
         @Order(5)
-        @DisplayName("TTL 应该正确过期")
-        void lock_ShouldExpireAfterTTL() throws InterruptedException {
+        @DisplayName("unlock 后锁立即释放，其他实例可获取")
+        void unlock_ShouldReleaseImmediately_ForOtherInstance() {
             String key = "test:lock:5";
             redisTemplate.delete(key);
 
-            // 获取锁，TTL 为 2 秒
-            assertTrue(redisLock.lock(key, 2));
-            assertTrue(redisLock.isLocked(key));
+            assertTrue(redisLock.lock(key, 30));
+            redisLock.unlock(key);
 
-            // 等待 TTL 过期
-            Thread.sleep(3000);
-
-            // 锁应该已自动释放
-            assertFalse(redisLock.isLocked(key));
-
-            // 另一个实例应该能获取锁
             LuaScripts luaScripts2 = new LuaScripts();
             luaScripts2.init();
             RedisLock redisLock2 = new RedisLock(redisTemplate, luaScripts2);
@@ -177,29 +156,21 @@ class RedisLockIntegrationTest {
             String key = "test:lock:try2";
             redisTemplate.delete(key);
 
-            // 第一个实例获取锁
             assertTrue(redisLock.lock(key, 30));
 
-            // 创建第二个实例
             LuaScripts luaScripts2 = new LuaScripts();
             luaScripts2.init();
             RedisLock redisLock2 = new RedisLock(redisTemplate, luaScripts2);
 
-            // 第二个实例尝试获取，应该等待
             long start = System.currentTimeMillis();
             boolean result = redisLock2.tryLock(key, 30, 3000);
             long elapsed = System.currentTimeMillis() - start;
 
-            // 由于锁已被持有，应该等待一段时间
             assertTrue(elapsed >= 50);
 
-            // 释放第一个实例的锁
             redisLock.unlock(key);
-
-            // 再等一下让续期完成（实际上这个测试可能不完美）
             Thread.sleep(100);
 
-            // 重新尝试获取锁
             result = redisLock2.tryLock(key, 30, 1000);
             assertTrue(result);
 
@@ -213,10 +184,8 @@ class RedisLockIntegrationTest {
             String key = "test:lock:try3";
             redisTemplate.delete(key);
 
-            // 第一个实例获取锁并一直持有
             assertTrue(redisLock.lock(key, 30));
 
-            // 创建第二个实例
             LuaScripts luaScripts2 = new LuaScripts();
             luaScripts2.init();
             RedisLock redisLock2 = new RedisLock(redisTemplate, luaScripts2);
@@ -227,6 +196,72 @@ class RedisLockIntegrationTest {
 
             assertFalse(result);
             assertTrue(elapsed >= 500);
+
+            redisLock.unlock(key);
+        }
+    }
+
+    @Nested
+    @DisplayName("看门狗测试")
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+    class WatchdogTests {
+
+        @Test
+        @Order(1)
+        @DisplayName("看门狗应该在 TTL 过后保持锁存活")
+        void watchdog_ShouldKeepLockAlive_PastInitialTTL() throws InterruptedException {
+            String key = "test:lock:wd1";
+            redisTemplate.delete(key);
+
+            // 获取锁，TTL=3 秒。看门狗每 1 秒续期
+            assertTrue(redisLock.lock(key, 3));
+
+            // 等待 5 秒（超过 TTL 但看门狗应该续期了）
+            Thread.sleep(5000);
+
+            // 锁应该仍然有效
+            assertTrue(redisLock.isLocked(key));
+
+            redisLock.unlock(key);
+            assertFalse(redisLock.isLocked(key));
+        }
+
+        @Test
+        @Order(2)
+        @DisplayName("unlock 后看门狗应停止，锁应正常过期")
+        void watchdog_ShouldStopAfterUnlock() throws InterruptedException {
+            String key = "test:lock:wd2";
+            redisTemplate.delete(key);
+
+            assertTrue(redisLock.lock(key, 2));
+            redisLock.unlock(key);
+
+            // 等待超过 TTL，锁不应该存在
+            Thread.sleep(3000);
+
+            LuaScripts luaScripts2 = new LuaScripts();
+            luaScripts2.init();
+            RedisLock redisLock2 = new RedisLock(redisTemplate, luaScripts2);
+            assertTrue(redisLock2.lock(key, 5));
+            redisLock2.unlock(key);
+        }
+
+        @Test
+        @Order(3)
+        @DisplayName("renew() 应返回 false 当锁不归属当前实例")
+        void renew_ShouldReturnFalse_WhenLockNotOwned() {
+            String key = "test:lock:wd3";
+            redisTemplate.delete(key);
+
+            LuaScripts luaScripts2 = new LuaScripts();
+            luaScripts2.init();
+            RedisLock redisLock2 = new RedisLock(redisTemplate, luaScripts2);
+
+            assertTrue(redisLock.lock(key, 30));
+
+            // redisLock2 尝试续期 redisLock 持有的锁
+            boolean result = redisLock2.renew(key, 30);
+            assertFalse(result);
 
             redisLock.unlock(key);
         }

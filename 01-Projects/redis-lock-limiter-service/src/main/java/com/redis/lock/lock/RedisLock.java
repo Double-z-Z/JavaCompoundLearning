@@ -1,10 +1,7 @@
 package com.redis.lock.lock;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
-import java.util.Collections;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Redis 分布式锁实现
@@ -14,11 +11,13 @@ public class RedisLock implements DistributedLock {
     private final StringRedisTemplate redisTemplate;
     private final LuaScripts luaScripts;
     private final String uniqueId;
+    private final Watchdog watchdog;
 
     public RedisLock(StringRedisTemplate redisTemplate, LuaScripts luaScripts) {
         this.redisTemplate = redisTemplate;
         this.luaScripts = luaScripts;
         this.uniqueId = UUID.randomUUID().toString();
+        this.watchdog = new Watchdog();
     }
 
     @Override
@@ -29,7 +28,11 @@ public class RedisLock implements DistributedLock {
             uniqueId,
             String.valueOf(ttl)
         );
-        return result != null && result == 1;
+        boolean acquired = result != null && result == 1;
+        if (acquired) {
+            watchdog.start(key, ttl, this);
+        }
+        return acquired;
     }
 
     @Override
@@ -52,6 +55,7 @@ public class RedisLock implements DistributedLock {
 
     @Override
     public boolean unlock(String key) {
+        watchdog.stop(key);
         Long result = redisTemplate.execute(
             luaScripts.getReleaseLockScript(),
             luaScripts.getReleaseKeys(key),
@@ -63,6 +67,20 @@ public class RedisLock implements DistributedLock {
     @Override
     public boolean isLocked(String key) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+    }
+
+    /**
+     * 续期锁（package-private，供 Watchdog 调用）
+     * @return true 续期成功，false 锁已不属于当前实例（应停止看门狗）
+     */
+    boolean renew(String key, long ttl) {
+        Long result = redisTemplate.execute(
+            luaScripts.getRenewLockScript(),
+            luaScripts.getRenewKeys(key),
+            uniqueId,
+            String.valueOf(ttl)
+        );
+        return result != null && result == 1;
     }
 
     /**

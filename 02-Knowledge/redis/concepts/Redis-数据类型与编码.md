@@ -64,6 +64,8 @@ entry: <prevlen><encoding><content>
 - [[内存管理]] - 关联原因：编码切换的内存权衡
 - [[Redis-SDS设计]] - 关联原因：String 类型的 int/embstr/raw 编码底层都是 SDS 实现，embstr 的 44 字节阈值是对 jemalloc 的精确适配
 - [[Redis-渐进式rehash]] - 关联原因：Hash 类型从 ziplist 切换为 hashtable 后，数据量继续增长会触发渐进式 rehash 扩容
+- [[Redis-Ziplist设计]] - 关联原因：Ziplist 深层分析，含连锁更新机制与适用边界
+- [[Redis-QuickList设计]] - 关联原因：List 3.2+ 唯一编码，Ziplist + 链表 + LZF 压缩
 
 
 ## 我的误区与疑问
