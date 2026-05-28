@@ -30,7 +30,7 @@ public class RedisLock implements DistributedLock {
         );
         boolean acquired = result != null && result == 1;
         if (acquired) {
-            watchdog.start(key, ttl, this);
+            watchdog.start(key, ttl, () -> isLocked(key), this::renew);
         }
         return acquired;
     }
@@ -61,7 +61,11 @@ public class RedisLock implements DistributedLock {
             luaScripts.getReleaseKeys(key),
             uniqueId
         );
-        return result != null && result == 1;
+        boolean released = result != null && result == 1;
+        if (released) {
+            redisTemplate.convertAndSend("lock:notify:" + key, "released");
+        }
+        return released;
     }
 
     @Override

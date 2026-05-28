@@ -6,8 +6,9 @@ import java.util.concurrent.*;
 /**
  * 看门狗 — 后台续期调度器
  *
- * 职责：lock 成功后启动定时续期，unlock 或锁丢失时停止。
- * 续期间隔 = TTL / 3，保证在 GC 停顿不超过 2/3 TTL 时锁不丢失。
+ * 与具体锁实现解耦：通过函数式接口接收续期逻辑。
+ * lock 成功后调用 start()，unlock 时调用 stop()。
+ * 续期间隔 = TTL / 3（最小 1 秒）。
  */
 class Watchdog {
 
@@ -20,14 +21,22 @@ class Watchdog {
 
     private final Map<String, ScheduledFuture<?>> tasks = new ConcurrentHashMap<>();
 
-    void start(String key, long ttlSeconds, RedisLock owner) {
+    /**
+     * 启动续期任务。
+     * @param key 锁 key
+     * @param ttlSeconds 锁 TTL
+     * @param isLocked 检查锁是否仍被持有
+     * @param renew 执行续期
+     */
+    void start(String key, long ttlSeconds, java.util.function.BooleanSupplier isLocked,
+               java.util.function.BiFunction<String, Long, Boolean> renew) {
         long intervalSeconds = Math.max(1, ttlSeconds / 3);
         ScheduledFuture<?> task = scheduler.scheduleAtFixedRate(() -> {
-            if (!owner.isLocked(key)) {
+            if (!isLocked.getAsBoolean()) {
                 stop(key);
                 return;
             }
-            boolean renewed = owner.renew(key, ttlSeconds);
+            boolean renewed = renew.apply(key, ttlSeconds);
             if (!renewed) {
                 stop(key);
             }
