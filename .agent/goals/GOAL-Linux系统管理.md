@@ -3,8 +3,8 @@ type: goal
 status: active
 driver: promotion
 urgency: low
-deadline: 2026-12-06
-review_date: 2026-09-01
+deadline: 2026-06-05
+review_date: 2026-05-29
 incident_ref: [[goal-java简历]]
 exit_conditions:
   - 熟练使用Linux日常命令
@@ -16,7 +16,7 @@ gap_analysis:
   - 缺口: 系统监控待加强
 related_emrg: []
 created: 2026-05-06
-updated: 2026-05-06
+updated: 2026-05-29
 ---
 
 # GOAL: Linux系统管理

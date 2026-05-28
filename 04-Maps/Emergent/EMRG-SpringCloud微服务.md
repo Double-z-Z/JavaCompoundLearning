@@ -40,7 +40,8 @@ Spring Cloud 微服务体系的核心认知模型——从服务注册发现到�
       └─ 关联 [[服务注册与发现]] — 依赖服务实例列表
 
 [已有知识基础]
-  ├─ [[Spring配置管理]] — 自动配置与 Starter 机制
+  ├─ [[SpringBoot自动配置原理]] — 自动配置完整推导（需求→设计→实现）
+  ├─ [[Spring配置管理]] — 配置刷新与热加载机制
   ├─ [[WebFlux响应式编程]] — 响应式编程模型
   ├─ [[函数式路由vs注解式路由]] — 路由设计对比
   └─ [[Spring-MVC性能瓶颈]] — 性能优化经验
@@ -51,6 +52,7 @@ Spring Cloud 微服务体系的核心认知模型——从服务注册发现到�
   └─ [[EMRG-Cache]] — 多级缓存策略
 
 ## 关键缺口（待补充）
+- [x] ~~Spring Boot 自动配置原理~~ → 2026-05-29 [[SpringBoot自动配置原理]](65)
 - [ ] Spring Cloud Gateway 网关层设计与实现
 - [ ] OpenFeign 声明式服务调用
 - [ ] 分布式事务（Seata）
@@ -102,17 +104,19 @@ dv.table(
 
 ### 涌现历史
 - 2026-05-16: 因 Gap 矩阵 G-SPR-02/03 缺口创建（涉及 3 篇新笔记，12 条链接）
+- 2026-05-29: 补齐 G-SPR-01 缺口。新建 [[SpringBoot自动配置原理]](65)，覆盖需求→设计→实现完整推导链。修复 [[2026-05-15-SpringBoot自动配置与Starter-dialogue]] 孤儿引用。
 
 ### 成熟度说明
 **当前状态：theoretical（理论阶段）**
-- 已建立：服务注册发现、Nacos 架构、客户端负载均衡的完整概念框架
+- 已建立：服务注册发现、Nacos 架构、客户端负载均衡、Spring Boot 自动配置的完整概念框架
 - 待验证：实际项目中使用 Nacos + Gateway + OpenFeign 的完整链路
 - 已有实战基础：redis-counter-service-webflux 项目（WebFlux + Sentinel + RabbitMQ）
 - 下一步目标：搭建包含注册中心、网关、多个微服务的 Demo 项目
+- 4 篇 SpringCloud 专项笔记（服务发现55, Nacos50, 客户端LB50, 自动配置65），最高 mastery 65
 
 ### 检查点
 - [x] 子主题数: 7（未超过 7，暂不触发裂变）
-- [x] 最后更新: 2026-05-16（未超过 90 天）
+- [x] 最后更新: 2026-05-29（活跃）
 - [ ] 成熟度升级条件：
   - [ ] 完成 Nacos 注册中心 Demo 项目
   - [ ] 掌握 Spring Cloud Gateway 配置

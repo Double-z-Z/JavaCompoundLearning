@@ -3,8 +3,8 @@ type: goal
 status: active
 driver: promotion
 urgency: high
-deadline: 2026-08-06
-review_date: 2026-05-20
+deadline: 2026-06-29
+review_date: 2026-05-29
 incident_ref: [[goal-java简历]]
 exit_conditions:
   - 理解Spring Boot自动配置原理
@@ -12,12 +12,12 @@ exit_conditions:
   - 掌握服务注册/发现/熔断/网关原理
   - 有完整的微服务项目经验
 gap_analysis:
-  - EMRG现状: 无SpringCloud相关内容
+  - EMRG现状: EMRG-SpringCloud微服务(theoretical)，4篇专项笔记(服务发现55/Nacos50/LB50/自动配置65)，网关分层55/动态路由55
   - GOAL目标: 理解微服务架构原理，能进行技术选型
-  - 缺口: 完全空白，需从零构建
-related_emrg: []
+  - 缺口: 缺项目实战验证（G-SPR-02/04）
+related_emrg: [EMRG-SpringCloud微服务]
 created: 2026-05-06
-updated: 2026-05-06
+updated: 2026-05-29
 ---
 
 # GOAL: Spring Cloud微服务
@@ -28,7 +28,7 @@ updated: 2026-05-06
 |------|-----|
 | driver | promotion（晋升层） |
 | urgency | high |
-| deadline | 2026-08-06 |
+| deadline | 2026-06-29 |
 | incident_ref | [[goal-java简历]] - 简历要求"熟练使用Spring Boot、Spring Cloud进行微服务开发，掌握其核心原理与配置优化" |
 
 ### 驱动来源
@@ -40,7 +40,7 @@ updated: 2026-05-06
 
 ## 退出条件
 
-- [ ] 理解Spring Boot自动配置原理
+- [x] 理解Spring Boot自动配置原理
 - [ ] 理解Spring Cloud核心组件及协作机制
 - [ ] 掌握服务注册/发现/熔断/网关原理
 - [ ] 有完整的微服务项目经验

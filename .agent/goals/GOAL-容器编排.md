@@ -3,8 +3,8 @@ type: goal
 status: active
 driver: promotion
 urgency: medium
-deadline: 2026-10-06
-review_date: 2026-07-15
+deadline: 2026-06-12
+review_date: 2026-05-29
 incident_ref: [[goal-java简历]]
 exit_conditions:
   - 掌握Docker镜像构建、优化、安全加固
@@ -16,7 +16,7 @@ gap_analysis:
   - 缺口: K8s核心概念待深入
 related_emrg: []
 created: 2026-05-06
-updated: 2026-05-06
+updated: 2026-05-29
 ---
 
 # GOAL: 容器编排

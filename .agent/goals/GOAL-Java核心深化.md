@@ -3,8 +3,8 @@ type: goal
 status: active
 driver: promotion
 urgency: high
-deadline: 2026-08-06
-review_date: 2026-05-13
+deadline: 2026-06-29
+review_date: 2026-05-29
 incident_ref: [[goal-java简历]]
 exit_conditions:
   - 能够徒手实现高性能线程池
@@ -19,7 +19,7 @@ related_emrg:
   - EMRG-并发编程
   - EMRG-NIO网络编程
 created: 2026-05-06
-updated: 2026-05-06
+updated: 2026-05-29
 ---
 
 # GOAL: Java核心深化

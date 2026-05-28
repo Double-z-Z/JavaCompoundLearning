@@ -4,8 +4,8 @@ date: 2026-05-15
 id: REFLECTION-2026-05-15-springboot-autoconfig-starter
 topics: [spring-boot, 自动配置, starter, 条件注解]
 dialogue_type: 学习整理
-related_emrg: []
-related_goal: [GOAL-Java核心深化]
+related_emrg: [EMRG-SpringCloud微服务]
+related_goal: [GOAL-SpringCloud微服务]
 insights_extracted: true
 mastery_changed: true
 key_insights:

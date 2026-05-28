@@ -3,8 +3,8 @@ type: goal
 status: active
 driver: promotion
 urgency: medium
-deadline: 2026-10-06
-review_date: 2026-07-01
+deadline: 2026-06-19
+review_date: 2026-05-29
 incident_ref: [[goal-java简历]]
 exit_conditions:
   - 掌握SQL执行计划分析
@@ -16,7 +16,7 @@ gap_analysis:
   - 缺口: 简历要求但无深入经验
 related_emrg: []
 created: 2026-05-06
-updated: 2026-05-06
+updated: 2026-05-29
 ---
 
 # GOAL: 数据库性能优化

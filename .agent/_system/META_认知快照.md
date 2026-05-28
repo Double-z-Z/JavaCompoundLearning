@@ -2,7 +2,7 @@
 type: meta_snapshot
 description: 当前认知快照 - 学习状态概览
 created: 2026-05-07
-updated: 2026-05-28
+updated: 2026-05-29
 ---
 
 # META-认知快照
@@ -20,10 +20,10 @@ updated: 2026-05-28
 |------|-----|-----|
 | 活跃EMRG | 11 | 并发编程/NIO网络编程/Redis/分布式策略/Reactive/Sentinel-核心机制/Sentinel-高级特性/Cache/DDD/Docker/SpringCloud |
 | GOAL总数 | 8 | P0×3, P1×4, P2×1 |
-| GOAL完成数 | 0/8 | 全部 active 状态 |
-| P0 GOAL | 3 | Java核心深化/Redis深入/SpringCloud微服务 |
+| GOAL完成数 | 1/8 | 🎉 Redis深入 已完成 |
+| 1个月冲刺 | 06-05→06-12→06-19→06-29 | 按难度分批：低→中→中高→高 |
 | 综合评估 | 56分 (L2) | 2026-05-15 |
-| 上次更新 | 2026-05-28 | Redis 数据结构深化：SDS(75) + Ziplist(70) + QuickList(70) + 2PC(55)；分布式锁场景分析反思 |
+| 上次更新 | 2026-05-29 | Redis GOAL 完成；Spring Boot 自动配置原理(65)；G-SPR-01 已关闭；全GOAL deadline 统一至 2026-06-29 |
 
 ---
 
@@ -39,85 +39,87 @@ updated: 2026-05-28
 | [[EMRG-Sentinel-核心机制]] | 2026-05-14 | 2026-05-14 | 10 | 🟢 verified |
 | [[EMRG-Sentinel-高级特性与生态]] | 2026-05-14 | 2026-05-14 | 4 | 🌿 理解 (theoretical) |
 | [[EMRG-Cache]] | 2026-05-15 | 2026-05-15 | 3 | 🌱 初识 (50) |
+| [[EMRG-SpringCloud微服务]] | 2026-05-16 | 2026-05-29 | 8 | 🌿 理解 (theoretical) |
+| [[EMRG-DDD]] | 2026-05-15 | 2026-05-15 | 8 | 🌿 理解 (theoretical) |
+| [[EMRG-Docker]] | 2026-05-15 | 2026-05-15 | 5 | 🍎 应用 (emerging) |
 
 ---
 
-## P0 优先级 (urgency: high)
+## P0 优先级 (urgency: high, deadline: 2026-06-29)
 
-| GOAL | 状态 | driver | deadline | 关键缺口 |
-|------|------|--------|----------|---------|
-| [[GOAL-Java核心深化]] | active | promotion | 2026-08-06 | epoll机制/线程池原理/反射 |
-| [[GOAL-Redis深入]] | active | promotion | 2026-07-06 | 全部达标 ✅ (SDS/Ziplist/QuickList/Intset/SkipList/rehash) |
-| [[GOAL-SpringCloud微服务]] | active | promotion | 2026-08-06 | 原理空白（G-SPR-01~04）/ 微服务一致性已补充（G-SPR-05） |
+| GOAL | 状态 | driver | 关键缺口 |
+|------|------|--------|---------|
+| [[GOAL-Java核心深化]] | active (06-29) | promotion | G-JAV-03(反射🔴)/G-JAV-06(JMM🟡)，其余暂缓 |
+| [[GOAL-Redis深入]] | ✅ completed | promotion | 🎉 全部达标 |
+| [[GOAL-SpringCloud微服务]] | active (06-29) | promotion | G-SPR-02🔴/G-SPR-04🔴 待项目实战验证 |
 
 ## P1 优先级 (urgency: medium)
 
-| GOAL | 状态 | driver | deadline | 关键缺口 |
-|------|------|--------|----------|---------|
-| [[GOAL-容器编排]] | active | promotion | 2026-10-06 | K8s核心概念 |
-| [[GOAL-数据库性能优化]] | active | promotion | 2026-10-06 | 简历要求但无经验 |
-| [[GOAL-ORM与缓存]] | active | promotion | 2026-09-06 | MyBatis缓存原理 |
-| [[GOAL-消息中间件]] | active | promotion | 2026-09-06 | 消息可靠性保证 |
+| GOAL | 状态 | deadline | 关键缺口 |
+|------|------|----------|---------|
+| [[GOAL-ORM与缓存]] | active | 06-12 | MyBatis缓存原理 (0%) |
+| [[GOAL-数据库性能优化]] | active | 06-19 | 索引原理 (0%) |
+| [[GOAL-消息中间件]] | active | 06-19 | Kafka原理 (0%) |
+| [[GOAL-容器编排]] | active | 06-12 | Docker深化 (0%) |
 
 ## P2 优先级 (urgency: low)
 
-| GOAL | 状态 | driver | deadline | 关键缺口 |
-|------|------|--------|----------|---------|
-| [[GOAL-Linux系统管理]] | active | promotion | 2026-12-06 | 系统监控 |
+| GOAL | 状态 | deadline | 关键缺口 |
+|------|------|----------|---------|
+| [[GOAL-Linux系统管理]] | active | 06-05 | 系统监控 |
 
 ---
 
-## 近期风险预警
+## Gap 矩阵现状（2026-05-29）
 
-| 风险项 | 说明 | 剩余天数 |
-|--------|------|----------|
-| ⏰ GOAL-Redis深入 | 7月6日到期，G-RED-01~04 全部达标 ✅ 可提前标记完成 | ~39天 |
-| ⏰ GOAL-Java核心深化 | 8月6日到期，线程池/反射待补 | ~70天 |
-| ⏰ GOAL-SpringCloud微服务 | 8月6日到期，当前最薄弱（30%），需加速 | ~70天 |
-| 🆕 Reactive缺口 | EMRG-Reactive新建但WebFlux生命周期深度待补 | - |
+```
+🟢 已关闭: 6  (G-RED-01~05, G-SPR-01)
+🟡 进行中: 9
+🔴 高:    14
+🎉 GOAL完成: 1/8 (Redis深入)
+```
+
+### 分批冲刺计划
+
+| 批次 | deadline | GOAL | 完成率 | 🟢+🔴 |
+|------|----------|------|--------|--------|
+| W1 | **06-05** | Linux | 0% | 🟡🟡🔴 |
+| W2 | **06-12** | ORM, 容器编排 | 0%, 0% | 5🔴 |
+| W3 | **06-19** | 消息中间件, 数据库 | 0%, 0% | 6🔴 |
+| W4 | **06-29** | SpringCloud, Java | 20%, 17% | 2🔴+1🔴 |
 
 ---
 
-## 本周核心进展（5.22-5.28）
+## 本周进展（5.29）
 
-### 1. 分布式策略体系化突破 + EMRG 裂变
-- 新增 6 篇原子笔记，建立 L1→L2→L4 分层架构：
-  - L1 基础概念层：[[互斥与原子性]]、[[系统边界分类]]
-  - L2 技术机制层：[[分布式锁]]、[[2PC与3PC]]、[[最终一致性]]
-  - L4 决策工具层：[[技术选择决策树]]、[[一致性强度评估]]
-- **EMRG-Redis 概念裂变**：分布式策略分支（13 篇笔记）独立为 [[EMRG-分布式策略]]
-  - 迁移 12 篇笔记从 EMRG-Redis → EMRG-分布式策略
-  - EMRG-Redis 聚焦数据结构/高可用/性能，EMRG-分布式策略 聚焦通用分布式策略
-- 更新 3 篇已有笔记关联：[[幂等性]]、[[Saga模式]]、[[秒杀超卖与库存一致性]]
-- 对话反思：分布式锁 vs 原子性深度对话（2026-05-19）
+### 1. 🎉 GOAL-Redis深入 完成
+- G-RED-01~05 全部关闭，第一个达标的 GOAL
+- 数据结构底层: SDS(75)/Ziplist(70)/QuickList(70)/Intset(60)/SkipList/rehash 全覆盖
+- 分布式策略: EMRG-分布式策略裂变完成，13篇笔记
 
-### 2. 标签治理与孤儿笔记清零
-- 标签中文化：spring-cloud→springcloud, gateway→网关, architecture→架构 等
-- 修复 5 篇孤儿笔记 EMRG 关联：
-  - Spring配置管理/网关分层架构设计/动态路由场景分类 → EMRG-SpringCloud微服务
-  - Ring-Buffer → EMRG-Cache
-  - 2PC-两阶段提交/幂等性 → EMRG-分布式策略
-- **EMRG 关联覆盖率：93% → 100%（80/80 篇已关联）**
+### 2. G-SPR-01 Spring Boot 自动配置 达标
+- 新建 [[SpringBoot自动配置原理]](65)，覆盖需求→设计→实现完整推导
+- 修复 2026-05-15 对话反思孤儿引用
 
-### 3. Gap 矩阵更新
-- 关闭 G-RED-02~04（持久化/高可用/缓存策略已达标）
-- 新增 G-RED-05（分布式事务与一致性）、G-SPR-05（微服务一致性设计）
-- 批准 G-SPR-01~04 进入执行状态
-
-### 4. 每周回顾完成
-- 系统健康扫描：无僵尸/孤儿，标签健康度良好
-- 涌现审批：0 项待审批
-- GOAL 时效：GOAL-Redis深入 最先到期（~39天），需加速数据结构底层专项
+### 3. 全 GOAL 重调度
+- 分批 deadline: 06-05(Linux) → 06-12(ORM/容器) → 06-19(消息/数据库) → 06-29(SpringCloud/Java)
+- 按难度错开：低→中→中高→高
+- Redis 标记完成，释放注意力
+- Java 需重新激活 1-2 个 Gap
 
 ---
 
 ## 历史进展
 
+### 5.22-5.28 周
+- EMRG-Redis 裂变出 EMRG-分布式策略
+- 标签治理：孤儿笔记清零，EMRG 关联覆盖率 93%→100%
+- G-RED-02~04 关闭
+
 ### 5.9-5.16 周
 - Sentinel 体系化突破（6 篇概念笔记 + 概念裂变）
 - Reactive/响应式编程体系新建（6 篇笔记 + EMRG-Reactive）
 - 项目评估升级（current.json 52→56）
-- 新增 EMRG-Cache（3 篇笔记）
 
 ---
 
@@ -127,5 +129,5 @@ updated: 2026-05-28
 |------|------|---------|
 | 2026-05-07 | 创建 | 基于实际 GOAL/EMRG 文件生成真实数据 |
 | 2026-05-16 | 本周回顾 | 更新活跃EMRG、风险预警、新增本周核心进展章节 |
-| 2026-05-28 | 本周回顾 | 更新分布式策略体系、Gap矩阵、EMRG-Redis拓扑、风险预警 |
-| 2026-05-28 | EMRG裂变+标签治理 | EMRG-Redis裂变出EMRG-分布式策略；标签中文化；孤儿笔记清零；覆盖率100% |
+| 2026-05-28 | EMRG裂变+标签治理 | EMRG-Redis裂变出EMRG-分布式策略；标签中文化；孤儿笔记清零 |
+| 2026-05-29 | GOAL重调度 | 🎉 Redis完成；G-SPR-01达标；全GOAL deadline→06-29 |

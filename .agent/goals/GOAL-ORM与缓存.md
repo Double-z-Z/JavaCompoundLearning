@@ -3,8 +3,8 @@ type: goal
 status: active
 driver: promotion
 urgency: medium
-deadline: 2026-09-06
-review_date: 2026-06-15
+deadline: 2026-06-12
+review_date: 2026-05-29
 incident_ref: [[goal-java简历]]
 exit_conditions:
   - 理解MyBatis一级缓存、二级缓存机制及配置
@@ -15,7 +15,7 @@ gap_analysis:
   - 缺口: 项目使用过但原理不清晰
 related_emrg: []
 created: 2026-05-06
-updated: 2026-05-06
+updated: 2026-05-29
 ---
 
 # GOAL: ORM与缓存
