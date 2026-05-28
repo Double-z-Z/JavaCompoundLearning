@@ -37,6 +37,7 @@ Redis 核心认知
   │   ├─ [[Redis-SDS设计]]
   │   ├─ [[Redis-Ziplist设计]]
   │   ├─ [[Redis-QuickList设计]]
+  │   ├─ [[Redis-Intset设计]]
   │   └─ [[Redis-渐进式rehash]]
   ├─ 通信与协议
   │   └─ [[RESP协议]]
@@ -72,8 +73,7 @@ Redis 核心认知
 ## 关键缺口（待补充）
 
 - [ ] Redis 单线程事件循环模型（待实际学习后创建）
-- [x] ~~Ziplist / QuickList / Intset 源码级理解~~ → 2026-05-28 完成 [[Redis-Ziplist设计]](70) + [[Redis-QuickList设计]](70)
-- [ ] Intset 源码级理解
+- [x] ~~Ziplist / QuickList / Intset 源码级理解~~ → 2026-05-28 完成全部
 - [ ] 系统化的缓存策略文档（淘汰策略、预热、穿透/击穿/雪崩）
 
 ## 项目实战
@@ -125,7 +125,7 @@ dv.table(
 - **2026-05-14**: 纳入所有已学习笔记（12 篇），补充项目实战链接，更新核心成员表格
 - **2026-05-15**: 按 EMRG 模板标准化结构，更新成熟度为 emerging，补充边界声明与知识拓扑
 - **2026-05-17**: 笔记整理：从对话中萃取 [[Redis-SDS设计]]、[[Redis-渐进式rehash]]、[[Redis-Copy-On-Write]]，纳入知识拓扑，关键缺口 SDS 已补齐
-- **2026-05-28**: 苏格拉底式学习：新建 [[Redis-Ziplist设计]](70) + [[Redis-QuickList设计]](70)，[[Redis-SDS设计]] mastery 60→75。G-RED-01 仅剩 Intset 未覆盖
+- **2026-05-28**: 苏格拉底式学习：新建 [[Redis-Ziplist设计]](70) + [[Redis-QuickList设计]](70) + [[Redis-Intset设计]](60)，[[Redis-SDS设计]] mastery 60→75。G-RED-01 数据结构底层全部覆盖 ✅
 
 ### 成熟度说明
 

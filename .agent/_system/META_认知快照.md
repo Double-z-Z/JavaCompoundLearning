@@ -46,7 +46,7 @@ updated: 2026-05-28
 | GOAL | 状态 | driver | deadline | 关键缺口 |
 |------|------|--------|----------|---------|
 | [[GOAL-Java核心深化]] | active | promotion | 2026-08-06 | epoll机制/线程池原理/反射 |
-| [[GOAL-Redis深入]] | active | promotion | 2026-07-06 | 数据结构底层（G-RED-01）/ 分布式事务已补充（G-RED-05） |
+| [[GOAL-Redis深入]] | active | promotion | 2026-07-06 | 全部达标 ✅ (SDS/Ziplist/QuickList/Intset/SkipList/rehash) |
 | [[GOAL-SpringCloud微服务]] | active | promotion | 2026-08-06 | 原理空白（G-SPR-01~04）/ 微服务一致性已补充（G-SPR-05） |
 
 ## P1 优先级 (urgency: medium)
@@ -70,7 +70,7 @@ updated: 2026-05-28
 
 | 风险项 | 说明 | 剩余天数 |
 |--------|------|----------|
-| ⏰ GOAL-Redis深入 | 7月6日到期，G-RED-02~04已关闭，仅剩数据结构底层（G-RED-01） | ~39天 |
+| ⏰ GOAL-Redis深入 | 7月6日到期，G-RED-01~04 全部达标 ✅ 可提前标记完成 | ~39天 |
 | ⏰ GOAL-Java核心深化 | 8月6日到期，线程池/反射待补 | ~70天 |
 | ⏰ GOAL-SpringCloud微服务 | 8月6日到期，当前最薄弱（30%），需加速 | ~70天 |
 | 🆕 Reactive缺口 | EMRG-Reactive新建但WebFlux生命周期深度待补 | - |
