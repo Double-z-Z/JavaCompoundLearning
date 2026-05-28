@@ -3,7 +3,7 @@ type: atomic-note
 id: CONCEPT-spring-config-management
 created: 2026-05-07
 tags: [spring, 配置刷新, 配置中心, 热加载]
-related_emrg: []
+related_emrg: [EMRG-SpringCloud微服务]
 related_goal: [GOAL-Java核心深化]
 mastery: 35
 ---

@@ -3,7 +3,7 @@ type: atomic-note
 id: CONCEPT-Nacos架构与Distro协议
 created: 2026-05-16
 updated: 2026-05-16
-tags: [spring-cloud, nacos, distributed-system]
+tags: [springcloud, nacos, distributed-system]
 status: 🌿
 mastery: 50
 related_emrg: [EMRG-SpringCloud微服务]

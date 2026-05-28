@@ -6,7 +6,7 @@ updated: 2026-05-28
 tags: [分布式事务, 分布式, 一致性]
 status: 🌿
 mastery: 55
-related_emrg: []
+related_emrg: [EMRG-分布式策略]
 related_goal: [GOAL-SpringCloud微服务]
 ---
 

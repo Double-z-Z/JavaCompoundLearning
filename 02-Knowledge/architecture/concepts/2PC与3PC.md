@@ -6,7 +6,7 @@ updated: 2026-05-19
 tags: [分布式, 一致性, 事务, 架构]
 status: 🌱
 mastery: 40
-related_emrg: [EMRG-Redis]
+related_emrg: [EMRG-分布式策略]
 related_goal: [GOAL-Java核心深化]
 ---
 
