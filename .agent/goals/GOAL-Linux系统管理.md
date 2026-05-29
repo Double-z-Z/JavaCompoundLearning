@@ -14,7 +14,7 @@ gap_analysis:
   - EMRG现状: Shell基础知识有储备
   - GOAL目标: 熟练使用Linux和Shell
   - 缺口: 系统监控待加强
-related_emrg: []
+related_emrg: [EMRG-Linux]
 created: 2026-05-06
 updated: 2026-05-29
 ---
@@ -40,8 +40,8 @@ updated: 2026-05-29
 
 | 技能 | 当前水平 | 目标水平 |
 |------|---------|---------|
-| Linux命令 | 🌿 50 | 🍎 75 |
-| Shell脚本 | 🌿 40 | 🍎 70 |
+| Linux命令 | 🌿 60 | 🍎 75 |
+| Shell脚本 | 🌿 55 | 🍎 70 |
 
 ## 关联项目
 

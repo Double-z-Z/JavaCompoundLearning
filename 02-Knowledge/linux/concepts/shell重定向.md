@@ -1,9 +1,11 @@
 ---
 created: 2026-05-04
 updated: 2026-05-04
-tags: [shell, linux]
-status: 🌿 理解
+tags: [Linux, Shell]
+status: 🌿
 mastery: 45
+related_emrg: [EMRG-Linux]
+related_goal: [GOAL-Linux系统管理]
 ---
 
 # Shell 重定向与管道

@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-05-29
+
+- **用户选择**: 选项1 - 启动 W1 冲刺：Linux 系统管理（进程/内存/IO 监控）
+- **AI推荐**: 选项1（匹配分批冲刺计划 W1，deadline 06-05，仅剩7天）
+- **Gap关联**: G-LIN-01(Linux命令🟡) / G-LIN-02(Shell脚本🟡) / G-LIN-03(系统监控🔴)
+- **关联知识点**: [[EMRG-Docker]]、[[ansible-redis-cluster]]、[[shell重定向]]
+- **批次**: W1 低难度热身，建立冲刺节奏
+
 ## 2026-05-27
 
 - **用户选择**: 选项1 - Redis 数据结构底层实现（SDS深入 → Ziplist → QuickList）

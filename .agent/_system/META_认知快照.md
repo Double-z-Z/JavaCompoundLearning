@@ -18,7 +18,7 @@ updated: 2026-05-29
 
 | 指标 | 值 | 说明 |
 |------|-----|-----|
-| 活跃EMRG | 11 | 并发编程/NIO网络编程/Redis/分布式策略/Reactive/Sentinel-核心机制/Sentinel-高级特性/Cache/DDD/Docker/SpringCloud |
+| 活跃EMRG | 12 | 并发编程/NIO网络编程/Redis/分布式策略/Reactive/Sentinel-核心机制/Sentinel-高级特性/Cache/DDD/Docker/SpringCloud/Linux |
 | GOAL总数 | 8 | P0×3, P1×4, P2×1 |
 | GOAL完成数 | 1/8 | 🎉 Redis深入 已完成 |
 | 1个月冲刺 | 06-05→06-12→06-19→06-29 | 按难度分批：低→中→中高→高 |
@@ -83,7 +83,7 @@ updated: 2026-05-29
 
 | 批次 | deadline | GOAL | 完成率 | 🟢+🔴 |
 |------|----------|------|--------|--------|
-| W1 | **06-05** | Linux | 0% | 🟡🟡🔴 |
+| W1 | **06-05** | Linux | 67% | 🟡🟡🟡 |
 | W2 | **06-12** | ORM, 容器编排 | 0%, 0% | 5🔴 |
 | W3 | **06-19** | 消息中间件, 数据库 | 0%, 0% | 6🔴 |
 | W4 | **06-29** | SpringCloud, Java | 20%, 17% | 2🔴+1🔴 |
@@ -92,7 +92,14 @@ updated: 2026-05-29
 
 ## 本周进展（5.29）
 
-### 1. 🎉 GOAL-Redis深入 完成
+### 1. 🚀 W1 冲刺启动 — Linux系统管理
+- G-LIN-03 系统监控: 🔴→🟡，top/ps/free/vmstat//proc 全面实操
+- G-LIN-02 Shell脚本: jps-monitor.sh V1→V4，管道思维确立（bash 不超过 10 行）；find/xargs/grep/sed/awk 工具链覆盖
+- 新建笔记: [[Linux进程监控]](45)、[[Shell管道与工具链]](50)、[[虚拟内存与物理内存]](55)、[[TLB与CPU缓存层级]](45)
+- 核心认知: bash 的最优形态是零分支管道；出现 getopts/条件分支 → 换 Python
+- Linux Gap 全部 🟡: 0🔴 → 0🔴（Linux 成为第一个消除 ❌ 的 GOAL）
+
+### 2. 🎉 GOAL-Redis深入 完成
 - G-RED-01~05 全部关闭，第一个达标的 GOAL
 - 数据结构底层: SDS(75)/Ziplist(70)/QuickList(70)/Intset(60)/SkipList/rehash 全覆盖
 - 分布式策略: EMRG-分布式策略裂变完成，13篇笔记
