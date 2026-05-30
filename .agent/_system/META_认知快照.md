@@ -18,12 +18,12 @@ updated: 2026-05-29
 
 | 指标 | 值 | 说明 |
 |------|-----|-----|
-| 活跃EMRG | 12 | 并发编程/NIO网络编程/Redis/分布式策略/Reactive/Sentinel-核心机制/Sentinel-高级特性/Cache/DDD/Docker/SpringCloud/Linux |
+| 活跃EMRG | 13 | 并发编程/NIO网络编程/Redis/分布式策略/Reactive/Sentinel-核心机制/Sentinel-高级特性/Cache/DDD/Docker/SpringCloud/Linux/ORM与持久层 |
 | GOAL总数 | 8 | P0×3, P1×4, P2×1 |
 | GOAL完成数 | 1/8 | 🎉 Redis深入 已完成 |
 | 1个月冲刺 | 06-05→06-12→06-19→06-29 | 按难度分批：低→中→中高→高 |
 | 综合评估 | 56分 (L2) | 2026-05-15 |
-| 上次更新 | 2026-05-29 | Redis GOAL 完成；Spring Boot 自动配置原理(65)；G-SPR-01 已关闭；全GOAL deadline 统一至 2026-06-29 |
+| 上次更新 | 2026-05-30 | 创建 EMRG-ORM与持久层，统一归并7篇ORM笔记；GOAL-ORM与缓存关联更新 |
 
 ---
 
@@ -42,6 +42,7 @@ updated: 2026-05-29
 | [[EMRG-SpringCloud微服务]] | 2026-05-16 | 2026-05-29 | 8 | 🌿 理解 (theoretical) |
 | [[EMRG-DDD]] | 2026-05-15 | 2026-05-15 | 8 | 🌿 理解 (theoretical) |
 | [[EMRG-Docker]] | 2026-05-15 | 2026-05-15 | 5 | 🍎 应用 (emerging) |
+| [[EMRG-ORM与持久层]] | 2026-05-30 | 2026-05-30 | 7 | 🌿 理解 (theoretical) |
 
 ---
 
@@ -84,35 +85,32 @@ updated: 2026-05-29
 | 批次 | deadline | GOAL | 完成率 | 🟢+🔴 |
 |------|----------|------|--------|--------|
 | W1 | **06-05** | Linux | 67% | 🟡🟡🟡 |
-| W2 | **06-12** | ORM, 容器编排 | 0%, 0% | 5🔴 |
+| W2 | **06-12** | ORM, 容器编排 | 90%, 0% | 5🔴→1🔴 |
 | W3 | **06-19** | 消息中间件, 数据库 | 0%, 0% | 6🔴 |
 | W4 | **06-29** | SpringCloud, Java | 20%, 17% | 2🔴+1🔴 |
 
 ---
 
-## 本周进展（5.29）
+## 本周进展（5.31）
 
-### 1. 🚀 W1 冲刺启动 — Linux系统管理
-- G-LIN-03 系统监控: 🔴→🟡，top/ps/free/vmstat//proc 全面实操
-- G-LIN-02 Shell脚本: jps-monitor.sh V1→V4，管道思维确立（bash 不超过 10 行）；find/xargs/grep/sed/awk 工具链覆盖
-- 新建笔记: [[Linux进程监控]](45)、[[Shell管道与工具链]](50)、[[虚拟内存与物理内存]](55)、[[TLB与CPU缓存层级]](45)
-- 核心认知: bash 的最优形态是零分支管道；出现 getopts/条件分支 → 换 Python
-- Linux Gap 全部 🟡: 0🔴 → 0🔴（Linux 成为第一个消除 ❌ 的 GOAL）
+### 1. 🎉 GOAL-ORM与缓存 接近完成
+- mybatis-sql-lab 项目: 68 测试，0 失败，6 Phase 全部完成
+- 原生 MyBatis: Phase 1(CRUD)→Phase 2(动态SQL)→Phase 3(ResultMap+存储过程)
+- MyBatis Plus: Phase 4(功能层)→Phase 5(原理层)→Phase 6(对比实践)
+- 新建笔记: [[MyBatis一级缓存]](65)、[[MyBatis二级缓存]](55)
+- EMRG-ORM: emerging → verified
+- 核心认知: MyBatis 是 SQL 优先的工具；MP 的 QueryWrapper 覆盖 WHERE 但不碰 ResultMap；非 Spring 项目用 MP 需拆依赖
 
-### 2. 🎉 GOAL-Redis深入 完成
-- G-RED-01~05 全部关闭，第一个达标的 GOAL
-- 数据结构底层: SDS(75)/Ziplist(70)/QuickList(70)/Intset(60)/SkipList/rehash 全覆盖
-- 分布式策略: EMRG-分布式策略裂变完成，13篇笔记
+### 2. GOAL-ORM与缓存 剩余
+- MyBatis SQL 映射高级用法（discriminator、延迟加载、自动映射配置）可作为后续方向
+- W2 剩余: GOAL-容器编排（Docker深化 + K8s核心概念）
 
-### 2. G-SPR-01 Spring Boot 自动配置 达标
-- 新建 [[SpringBoot自动配置原理]](65)，覆盖需求→设计→实现完整推导
-- 修复 2026-05-15 对话反思孤儿引用
+---
 
-### 3. 全 GOAL 重调度
-- 分批 deadline: 06-05(Linux) → 06-12(ORM/容器) → 06-19(消息/数据库) → 06-29(SpringCloud/Java)
-- 按难度错开：低→中→中高→高
-- Redis 标记完成，释放注意力
-- Java 需重新激活 1-2 个 Gap
+## 历史进展
+
+### 5.29 周
+- 🎉 Redis完成；G-SPR-01达标；全GOAL deadline→06-29；W1 Linux冲刺启动
 
 ---
 
@@ -138,3 +136,4 @@ updated: 2026-05-29
 | 2026-05-16 | 本周回顾 | 更新活跃EMRG、风险预警、新增本周核心进展章节 |
 | 2026-05-28 | EMRG裂变+标签治理 | EMRG-Redis裂变出EMRG-分布式策略；标签中文化；孤儿笔记清零 |
 | 2026-05-29 | GOAL重调度 | 🎉 Redis完成；G-SPR-01达标；全GOAL deadline→06-29 |
+| 2026-05-31 | ORM GOAL 冲刺 | mybatis-sql-lab 68 测试完成；EMRG-ORM verified；W2 ORM 90% |
