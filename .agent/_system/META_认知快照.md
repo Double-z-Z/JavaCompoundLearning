@@ -23,7 +23,7 @@ updated: 2026-05-29
 | GOAL完成数 | 1/8 | 🎉 Redis深入 已完成 |
 | 1个月冲刺 | 06-05→06-12→06-19→06-29 | 按难度分批：低→中→中高→高 |
 | 综合评估 | 56分 (L2) | 2026-05-15 |
-| 上次更新 | 2026-05-30 | 创建 EMRG-ORM与持久层，统一归并7篇ORM笔记；GOAL-ORM与缓存关联更新 |
+| 上次更新 | 2026-06-01 | EMRG-ORM知识拓扑重构：MP三篇合并为使用层总览，新增事务与并发控制分支，笔记数10→9，强调概念收束 |
 
 ---
 
@@ -42,7 +42,7 @@ updated: 2026-05-29
 | [[EMRG-SpringCloud微服务]] | 2026-05-16 | 2026-05-29 | 8 | 🌿 理解 (theoretical) |
 | [[EMRG-DDD]] | 2026-05-15 | 2026-05-15 | 8 | 🌿 理解 (theoretical) |
 | [[EMRG-Docker]] | 2026-05-15 | 2026-05-15 | 5 | 🍎 应用 (emerging) |
-| [[EMRG-ORM与持久层]] | 2026-05-30 | 2026-05-30 | 7 | 🌿 理解 (theoretical) |
+| [[EMRG-ORM与持久层]] | 2026-05-30 | 2026-06-01 | 9 | 🌿 理解 (theoretical) |
 
 ---
 
@@ -101,7 +101,13 @@ updated: 2026-05-29
 - EMRG-ORM: emerging → verified
 - 核心认知: MyBatis 是 SQL 优先的工具；MP 的 QueryWrapper 覆盖 WHERE 但不碰 ResultMap；非 Spring 项目用 MP 需拆依赖
 
-### 2. GOAL-ORM与缓存 剩余
+### 2. EMRG-ORM知识拓扑重构（2026-06-01）
+- **合并MP三篇为使用层总览**：[[MyBatis-Plus使用层总览]] 整合 BaseMapper/Wrapper/IService/注解增强，避免碎片
+- **新增事务与并发控制分支**：[[JDBC隔离级别与并发写冲突]] + [[Spring事务传播行为与JDBC实现]]
+- **拓扑按能力层重组**：持久层选型 → SQL映射与执行 → MyBatis-Plus使用层 → 会话与缓存 → 事务与并发控制 → 数据安全与架构演进
+- **笔记数10→9**：强调概念收束，新知归入已有章节而非新增文件
+
+### 3. GOAL-ORM与缓存 剩余
 - MyBatis SQL 映射高级用法（discriminator、延迟加载、自动映射配置）可作为后续方向
 - W2 剩余: GOAL-容器编排（Docker深化 + K8s核心概念）
 
@@ -136,4 +142,5 @@ updated: 2026-05-29
 | 2026-05-16 | 本周回顾 | 更新活跃EMRG、风险预警、新增本周核心进展章节 |
 | 2026-05-28 | EMRG裂变+标签治理 | EMRG-Redis裂变出EMRG-分布式策略；标签中文化；孤儿笔记清零 |
 | 2026-05-29 | GOAL重调度 | 🎉 Redis完成；G-SPR-01达标；全GOAL deadline→06-29 |
-| 2026-05-31 | ORM GOAL 冲刺 | mybatis-sql-lab 68 测试完成；EMRG-ORM verified；W2 ORM 90% |
+| 2026-05-31 | ORM 概念笔记扩展 | 新增4篇ORM相关笔记（多租户/数据权限/多数据源）；EMRG-ORM笔记数7→11；知识拓扑更新 |
+| 2026-06-01 | ORM 知识拓扑重构 | MP三篇合并为使用层总览；新增事务与并发控制分支；拓扑按能力层重组；EMRG-ORM笔记数10→9 |

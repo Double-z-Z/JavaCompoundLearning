@@ -8,11 +8,12 @@ updated: 2026-05-30
 related_goals:
   - GOAL-ORM与缓存
 subtopics:
-  - 框架选型与市场格局
-  - MyBatis核心机制
-  - MyBatis-Plus增强
-  - 缓存策略与生产实践
-  - SQL映射与设计哲学
+  - 持久层选型
+  - SQL映射与执行
+  - MyBatis-Plus使用层
+  - 会话与缓存
+  - 事务与并发控制
+  - 数据安全与架构演进
   - mybatis-sql-lab实战
 ---
 
@@ -27,21 +28,33 @@ ORM与持久层是在Java应用与关系型数据库之间，通过SQL映射、�
 ## 知识拓扑
 
 [ORM与持久层核心认知]
-  ├─ 框架选型与市场格局
+  ├─ 持久层选型
   │   └─ [[Java持久层框架市场格局与选型]]
-  ├─ MyBatis核心机制
+  ├─ SQL映射与执行
+  │   ├─ [[MyBatis关联映射设计哲学]]
+  │   ├─ [[MyBatis动态SQL架构与运行时拼接]]
+  │   └─ [[MyBatis-Plus使用层总览]]
+  ├─ 会话与缓存
   │   ├─ [[MyBatis一级缓存]]
   │   ├─ [[MyBatis二级缓存]]
-  │   ├─ [[MyBatis动态SQL架构与运行时拼接]]
-  │   ├─ [[MyBatis关联映射设计哲学]]
   │   └─ [[MyBatis缓存机制与生产实践]]
-  └─ MyBatis-Plus增强
-      └─ [[MyBatis与MyBatis-Plus核心差异]]
+  ├─ 事务与并发控制
+  │   ├─ [[JDBC隔离级别与并发写冲突]]
+  │   └─ [[Spring事务传播行为与JDBC实现]]
+  └─ 数据安全与架构演进
+      ├─ [[MyBatis-Plus多租户与数据权限区分]]
+      ├─ [[生产环境数据权限实现方案]]
+      └─ [[多数据源管理系统行业实践]]
 
 ## 关键缺口（待补充）
 
 - [ ] MyBatis源码级理解：SqlSession生命周期、Executor体系、插件机制拦截器链
 - [ ] MyBatis-Plus拦截器链深度分析：分页、多租户、动态表名的实现原理
+- [x] MyBatis-Plus多租户与数据权限区分（已完成）
+- [x] 生产环境数据权限实现方案（已完成）
+- [ ] 数据权限实践项目：基于 DataPermissionInterceptor 实现部门/角色/个人三级数据权限（可参考 RuoYi-Vue-Pro）
+- [x] 多数据源管理系统行业实践（已完成）
+- [ ] 分库分表实践项目：基于 ShardingSphere-JDBC 实现读写分离 + 水平分片（可参考电商订单场景）
 - [ ] Spring Data JPA/Hibernate核心机制（与MyBatis形成对比认知）
 - [ ] 连接池（HikariCP）原理与调优
 - [ ] 分库分表下的持久层策略（ShardingSphere等）
@@ -52,7 +65,7 @@ ORM与持久层是在Java应用与关系型数据库之间，通过SQL映射、�
 | ------------------- | ------ | ---------------------------- |
 | [[mybatis-sql-lab]] | ✅ 完成   | 68 测试，6 个 Phase 全部完成         |
 | 大数据分析平台（MyBatis）    | 🟡 进行中 | [[MyBatis缓存机制与生产实践]]         |
-| 新冠核酸检测系统（MyBatis）   | 🟡 进行中 | [[MyBatis与MyBatis-Plus核心差异]] |
+| 新冠核酸检测系统（MyBatis）   | 🟡 进行中 | [[MyBatis-Plus使用层总览]] |
 
 ### mybatis-sql-lab 实战成果
 
