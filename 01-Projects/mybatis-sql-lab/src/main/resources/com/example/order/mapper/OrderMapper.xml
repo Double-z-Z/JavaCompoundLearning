@@ -336,4 +336,12 @@
                                      #{newStatus, mode=IN, jdbcType=VARCHAR})
     </update>
 
+    <!-- ===== FOR UPDATE: 悲观锁，读取时锁行 ===== -->
+    <select id="selectForUpdate" resultType="com.example.order.model.Order">
+        SELECT <include refid="orderColumns"/>
+        FROM orders o
+        WHERE o.id = #{id}
+        FOR UPDATE
+    </select>
+
 </mapper>

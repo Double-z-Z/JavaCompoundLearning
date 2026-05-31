@@ -1,8 +1,6 @@
 package com.example.order.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +12,20 @@ public class User {
     private String email;
     private String phone;
     private LocalDateTime createdAt;
+
+    @Version
+    private Integer version;
+
+    private Long tenantId;
+
+    @TableLogic
+    private Integer deleted;
+
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
 
     // 无参构造函数（MyBatis 需要）
     public User() {}
@@ -34,9 +46,20 @@ public class User {
     public void setPhone(String phone) { this.phone = phone; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Integer getVersion() { return version; }
+    public void setVersion(Integer version) { this.version = version; }
+    public Long getTenantId() { return tenantId; }
+    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
+    public Integer getDeleted() { return deleted; }
+    public void setDeleted(Integer deleted) { this.deleted = deleted; }
+    public LocalDateTime getCreateTime() { return createTime; }
+    public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
+    public LocalDateTime getUpdateTime() { return updateTime; }
+    public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
 
     @Override
     public String toString() {
-        return "User{id=" + id + ", username='" + username + "', email='" + email + "'}";
+        return "User{id=" + id + ", username='" + username + "', version=" + version
+            + ", deleted=" + deleted + ", createTime=" + createTime + "}";
     }
 }

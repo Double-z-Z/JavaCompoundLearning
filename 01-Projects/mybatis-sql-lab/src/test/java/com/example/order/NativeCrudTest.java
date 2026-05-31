@@ -2,9 +2,9 @@ package com.example.order;
 
 import com.example.order.mapper.UserMapper;
 import com.example.order.model.User;
-import com.example.order.util.SqlSessionUtil;
-import org.apache.ibatis.session.SqlSession;
 import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,23 +12,15 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class UserMapperTest {
+class NativeCrudTest {
 
-    private static SqlSession sqlSession;
-    private static UserMapper mapper;
-    private static Long testUserId;
+    @Autowired
+    private UserMapper mapper;
 
-    @BeforeAll
-    static void setUp() {
-        sqlSession = SqlSessionUtil.getFactory().openSession();
-        mapper = sqlSession.getMapper(UserMapper.class);
-    }
-
-    @AfterAll
-    static void tearDown() {
-        if (sqlSession != null) sqlSession.close();
-    }
+    private Long testUserId;
 
     @Test
     @org.junit.jupiter.api.Order(1)
@@ -90,10 +82,11 @@ class UserMapperTest {
         user.setUsername("测试用户-已更新");
         int rows = mapper.update(user);
         assertEquals(1, rows);
-        // 一级缓存验证：两次查同一个 id，只发一次 SQL
+        // Spring SqlSessionTemplate 每次调用独立 session，无一级缓存共享
         User u1 = mapper.selectById(testUserId);
         User u2 = mapper.selectById(testUserId);
-        assertSame(u1, u2); // 一级缓存返回同一个对象
+        assertEquals(u1.getId(), u2.getId());
+        assertEquals(u1.getUsername(), u2.getUsername());
         System.out.println("更新后: " + u1.getUsername());
     }
 

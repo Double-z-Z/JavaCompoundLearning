@@ -67,4 +67,7 @@ public interface OrderMapper {
     // ===== Phase 3: 存储过程 =====
     void callUpdateOrderStatus(@Param("orderId") Long orderId,
                                 @Param("newStatus") String newStatus);
+
+    // ===== 悲观锁: SELECT ... FOR UPDATE =====
+    Order selectForUpdate(@Param("id") Long id);
 }

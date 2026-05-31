@@ -1,0 +1,18 @@
+spring:
+  main:
+    web-application-type: none
+  datasource:
+    url: jdbc:postgresql://localhost:5432/order_db
+    driver-class-name: org.postgresql.Driver
+    username: order_user
+    password: order_pass
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      id-type: auto
+  mapper-locations:
+    - classpath:com/example/order/mapper/*.xml

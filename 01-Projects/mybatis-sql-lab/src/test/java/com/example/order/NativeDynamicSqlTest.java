@@ -4,10 +4,12 @@ import com.example.order.mapper.OrderMapper;
 import com.example.order.mapper.ProductMapper;
 import com.example.order.model.Order;
 import com.example.order.model.Product;
-import com.example.order.util.SqlSessionUtil;
 import org.apache.ibatis.session.ExecutorType;
-import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -16,24 +18,17 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
+@Transactional
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class OrderMapperTest {
+class NativeDynamicSqlTest {
 
-    private static SqlSession session;
-    private static OrderMapper orderMapper;
-    private static ProductMapper productMapper;
-
-    @BeforeAll
-    static void setUp() {
-        session = SqlSessionUtil.getFactory().openSession();
-        orderMapper = session.getMapper(OrderMapper.class);
-        productMapper = session.getMapper(ProductMapper.class);
-    }
-
-    @AfterAll
-    static void tearDown() {
-        if (session != null) session.close();
-    }
+    @Autowired
+    private OrderMapper orderMapper;
+    @Autowired
+    private ProductMapper productMapper;
+    @Autowired
+    private SqlSessionFactory sqlSessionFactory;
 
     // ===== <sql> + <include> =====
 
@@ -255,7 +250,7 @@ class OrderMapperTest {
     @org.junit.jupiter.api.Order(18)
     @Disabled("演示用，单独运行以观察 BATCH 效果")
     void testBatchExecutor() {
-        try (SqlSession batchSession = SqlSessionUtil.getFactory().openSession(ExecutorType.BATCH)) {
+        try (org.apache.ibatis.session.SqlSession batchSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
             OrderMapper batchMapper = batchSession.getMapper(OrderMapper.class);
             for (int i = 0; i < 100; i++) {
                 batchMapper.insertBatch(List.of(

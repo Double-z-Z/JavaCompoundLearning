@@ -4,28 +4,20 @@ import com.example.order.mapper.OrderMapper;
 import com.example.order.model.Order;
 import com.example.order.model.OrderItem;
 import com.example.order.model.User;
-import com.example.order.util.SqlSessionUtil;
-import org.apache.ibatis.session.SqlSession;
 import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
+@Transactional
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class OrderResultMapTest {
+class NativeResultMapTest {
 
-    private static SqlSession session;
-    private static OrderMapper mapper;
-
-    @BeforeAll
-    static void setUp() {
-        session = SqlSessionUtil.getFactory().openSession();
-        mapper = session.getMapper(OrderMapper.class);
-    }
-
-    @AfterAll
-    static void tearDown() {
-        if (session != null) session.close();
-    }
+    @Autowired
+    private OrderMapper mapper;
 
     // ===== 一对一：<association> 嵌套结果映射 =====
 
