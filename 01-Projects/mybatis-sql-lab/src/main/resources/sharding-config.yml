@@ -1,0 +1,100 @@
+# =============================================================================
+# ShardingSphere 分片配置 — 2 个独立 MySQL 作为 2 个分片
+# =============================================================================
+#
+# 拓扑: ds0 (3307) 和 ds1 (3308) 是独立的 MySQL 实例, 各自读写
+# 两者之间没有主从复制关系 — 每个分片独立存储自己的数据
+#
+# 如何扩分片:
+#   1. 先在 MySQL 上建好新的分片表 (orders_0 ~ orders_N, order_items_0 ~ order_items_N)
+#   2. 修改下面的 actualDataNodes 和 shardingAlgorithms 中的表达式
+#   3. 重启应用
+#   4. 如果是迁移场景，先设置 migration.active=true，完成迁移后再切为 false
+# =============================================================================
+
+dataSources:
+  ds0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://localhost:3307/order_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: root123
+    maxPoolSize: 10
+    minIdle: 5
+  ds1:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://localhost:3308/order_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: root123
+    maxPoolSize: 10
+    minIdle: 5
+
+rules:
+  - !SHARDING
+    tables:
+      orders:
+        # 扩分片: 改 ${0..1} 为 ${0..3}（对应新的分片表数量）
+        actualDataNodes: ds${0..1}.orders_${0..1}
+        databaseStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: db-inline
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: tbl-inline
+        keyGenerateStrategy:
+          column: id
+          keyGeneratorName: snowflake
+
+      order_items:
+        # 绑定表: 同分片键同规则, 和 orders 落在同一分片
+        actualDataNodes: ds${0..1}.order_items_${0..1}
+        databaseStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: db-inline
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: item-tbl-inline
+        keyGenerateStrategy:
+          column: id
+          keyGeneratorName: snowflake
+
+      t_user:
+        # 广播表: 每分片全量复制
+        actualDataNodes: ds${0..1}.t_user
+
+    bindingTables:
+      - orders,order_items
+
+    # broadcastTables: t_user is auto-recognized (no sharding strategy → broadcast)
+    # ShardingSphere 5.5+ 不需要显式声明 broadcastTables
+
+    shardingAlgorithms:
+      db-inline:
+        type: INLINE
+        props:
+          # 扩分片: 改 % 后面的数字
+          # 2 库 → user_id % 2;  4 库 → user_id % 4
+          algorithm-expression: ds${user_id % 2}
+      tbl-inline:
+        type: INLINE
+        props:
+          # 扩分片: 改表达式中的数字
+          # 2库×2表 → user_id % 4;  4库×4表 → user_id % 16
+          # .intdiv(N): N = 每库表数
+          algorithm-expression: orders_${(user_id % 4).intdiv(2)}
+      item-tbl-inline:
+        type: INLINE
+        props:
+          algorithm-expression: order_items_${(user_id % 4).intdiv(2)}
+
+    keyGenerators:
+      snowflake:
+        type: SNOWFLAKE
+
+props:
+  sql-show: true

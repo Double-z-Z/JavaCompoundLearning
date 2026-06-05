@@ -4,7 +4,7 @@ id: EMRG-ORM与持久层
 title: ORM与持久层网络
 maturity: verified
 created: 2026-05-30
-updated: 2026-05-30
+updated: 2026-06-04
 related_goals:
   - GOAL-ORM与缓存
 subtopics:
@@ -14,6 +14,9 @@ subtopics:
   - 会话与缓存
   - 事务与并发控制
   - 数据安全与架构演进
+  - 分布式事务与主键策略
+  - 分库分表策略
+  - 连接池与调优
   - mybatis-sql-lab实战
 ---
 
@@ -46,18 +49,25 @@ ORM与持久层是在Java应用与关系型数据库之间，通过SQL映射、�
       ├─ [[生产环境数据权限实现方案]]
       └─ [[多数据源管理系统行业实践]]
 
-## 关键缺口（待补充）
+## 关键缺口
 
-- [ ] MyBatis源码级理解：SqlSession生命周期、Executor体系、插件机制拦截器链
-- [ ] MyBatis-Plus拦截器链深度分析：分页、多租户、动态表名的实现原理
-- [x] MyBatis-Plus多租户与数据权限区分（已完成）
-- [x] 生产环境数据权限实现方案（已完成）
-- [ ] 数据权限实践项目：基于 DataPermissionInterceptor 实现部门/角色/个人三级数据权限（可参考 RuoYi-Vue-Pro）
-- [x] 多数据源管理系统行业实践（已完成）
-- [ ] 分库分表实践项目：基于 ShardingSphere-JDBC 实现读写分离 + 水平分片（可参考电商订单场景）
-- [ ] Spring Data JPA/Hibernate核心机制（与MyBatis形成对比认知）
-- [ ] 连接池（HikariCP）原理与调优
-- [ ] 分库分表下的持久层策略（ShardingSphere等）
+### 已完成（2026-06-02 收束）
+- [x] MyBatis源码级理解：SqlSession生命周期、Executor体系、插件机制拦截器链
+- [x] MyBatis-Plus拦截器链深度分析：分页、多租户、动态表名的实现原理
+- [x] Spring Data JPA/Hibernate核心机制 — 实体模型/脏检查/延迟加载对比
+- [x] 连接池（HikariCP）原理与调优 — ConcurrentBag/ProxyConnection/后台任务
+- [x] 分库分表下的持久层策略 — 分片键选择/ShardingSphere归并/异构索引
+- [x] 分布式事务 — XA/Seata AT/TCC/Saga + 业务回避策略
+- [x] 分布式主键 — Snowflake/号段模式/UUID v7 + 覆盖索引
+- [x] MyBatis-Plus多租户与数据权限区分
+- [x] 生产环境数据权限实现方案
+- [x] 多数据源管理系统行业实践
+
+### 子缺口（待补）
+- [x] 分片配置实操 — ShardingSphere YAML/读写分离/docker-compose `2026-06-03`
+- [x] 数据迁移 — 双写灰度切读/Scaling/全量增量 `2026-06-03`
+- [x] 分库分表实践项目 — Phase 7.1-7.6 完成 + DDD重构 + AbstractRoutingDataSource `2026-06-04`
+- [ ] 数据权限实践项目 — DataPermissionInterceptor 三级数据权限
 
 ## 项目实战
 

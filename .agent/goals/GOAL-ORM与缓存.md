@@ -26,7 +26,6 @@ updated: 2026-05-29
 |------|-----|
 | driver | promotion（晋升层） |
 | urgency | medium |
-| deadline | 2026-09-06 |
 | incident_ref | [[goal-java简历]] - 简历要求"熟悉MyBatis缓存机制与SQL映射原理" |
 
 ## 退出条件
