@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Pipeline Control Tower</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", monospace;
+  background: #0d1117;
+  color: #c9d1d9;
+  font-size: 13px;
+}
+
+/* ========== 布局：左 300px / 右 flex:1 ========== */
+#sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  background: #161b22;
+  border-right: 1px solid #30363d;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ========== Sidebar 顶部：启动区 ========== */
+#start-section {
+  padding: 16px;
+  border-bottom: 1px solid #30363d;
+}
+#start-section h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #e6edf3;
+}
+#requirements {
+  width: 100%;
+  height: 70px;
+  background: #0d1117;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  padding: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  resize: vertical;
+}
+#startBtn, #pauseBtn {
+  width: 100%;
+  border: 0;
+  padding: 8px;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  margin-top: 6px;
+}
+#startBtn { background: #238636; }
+#startBtn:hover { background: #2ea043; }
+#startBtn:disabled { background: #21262d; color: #6e7681; cursor: not-allowed; }
+#pauseBtn { background: #9e6a03; }
+#pauseBtn:hover { background: #b78003; }
+#pauseBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ========== Run 列表 ========== */
+#runs-section {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+#runs-section h4 {
+  margin: 8px 8px 4px;
+  font-size: 11px;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.run-card {
+  padding: 8px 10px;
+  margin: 4px 0;
+  background: #21262d;
+  border-radius: 6px;
+  border-left: 3px solid #30363d;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.1s;
+}
+.run-card:hover { background: #2d333b; }
+.run-card.selected {
+  background: #1f2937;
+  border-left-color: #2f81f7;
+}
+.run-card .run-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+.run-card .run-sub {
+  color: #6e7681;
+  font-size: 11px;
+  margin-top: 2px;
+}
+.run-card .run-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.run-card .run-actions button {
+  flex: 1;
+  padding: 3px 6px;
+  font-size: 11px;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.run-card .btn-continue { background: #1f6feb; color: #fff; }
+.run-card .btn-delete { background: #21262d; color: #f85149; border: 1px solid #30363d; }
+.run-card .run-error {
+  color: #f85149;
+  font-size: 10px;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+/* 状态左边框色 */
+.run-card[data-state="running"] { border-left-color: #1f6feb; }
+.run-card[data-state="non_running"] { border-left-color: #d29922; }
+.run-card[data-state="exception"] { border-left-color: #f85149; }
+
+/* 脉冲动画 — 活跃 run */
+.run-card[data-state="running"] {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(31, 111, 235, 0); }
+  50% { box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.3); }
+}
+
+/* ========== Main 顶部：Toolbar ========== */
+#toolbar {
+  padding: 12px 16px;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+#toolbar h2 {
+  margin: 0;
+  font-size: 16px;
+  color: #e6edf3;
+}
+#toolbar .toolbar-info {
+  font-size: 12px;
+  color: #8b949e;
+  margin-top: 2px;
+}
+#toolbar-actions { display: flex; gap: 8px; }
+#toolbar-actions button {
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+}
+#toolbar-actions button:hover { background: #30363d; }
+#toolbar-actions button.danger { color: #f85149; }
+#toolbar-actions button.primary { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+#toolbar-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 状态徽章 */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.badge.running { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; }
+.badge.waiting { background: #9e6a0333; color: #d29922; border: 1px solid #9e6a03; }
+.badge.done { background: #23863633; color: #3fb950; border: 1px solid #238636; }
+.badge.exception { background: #da363333; color: #f85149; border: 1px solid #da3633; }
+.badge.paused { background: #6e768133; color: #8b949e; border: 1px solid #6e7681; }
+
+/* ========== Main 中部：Pipeline + Gate ========== */
+#pipeline-section {
+  padding: 16px;
+  border-bottom: 1px solid #30363d;
+}
+#pipeline-section h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+#pipeline-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+.stage-card {
+  flex-shrink: 0;
+  min-width: 130px;
+  padding: 10px 12px;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  position: relative;
+  font-size: 12px;
+}
+.stage-card .stage-name { font-weight: 600; color: #e6edf3; }
+.stage-card .stage-mode { font-size: 10px; color: #8b949e; margin-top: 2px; }
+.stage-card .stage-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 14px;
+}
+.stage-card[data-state="done"] {
+  border-color: #238636;
+  background: #0d2818;
+}
+.stage-card[data-state="done"] .stage-icon { color: #3fb950; }
+.stage-card[data-state="active"] {
+  border-color: #1f6feb;
+  background: #0d1f3a;
+  animation: pulse-stage 1.5s ease-in-out infinite;
+}
+.stage-card[data-state="active"] .stage-icon { color: #58a6ff; }
+@keyframes pulse-stage {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(31, 111, 235, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(31, 111, 235, 0); }
+}
+.stage-card[data-state="waiting"] {
+  border-color: #d29922;
+  background: #3a2e0a;
+}
+.stage-card[data-state="waiting"] .stage-icon { color: #d29922; }
+.stage-card[data-state="exception"] {
+  border-color: #f85149;
+  background: #3a1a1a;
+}
+.stage-card[data-state="exception"] .stage-icon { color: #f85149; }
+.stage-connector {
+  width: 24px;
+  align-self: center;
+  text-align: center;
+  color: #30363d;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.stage-connector.done { color: #238636; }
+.stage-connector.active { color: #1f6feb; }
+
+/* ========== Gate 审批框（嵌入 pipeline） ========== */
+#gate-action-bar {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #3a2e0a;
+  border: 1px solid #9e6a03;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#gate-action-bar .gate-label { color: #d29922; font-weight: 600; }
+#gate-action-bar button {
+  padding: 5px 14px;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+}
+#gate-action-bar .btn-approve { background: #238636; color: #fff; }
+#gate-action-bar .btn-approve:hover { background: #2ea043; }
+#gate-action-bar .btn-reject { background: #da3633; color: #fff; }
+#gate-action-bar .btn-reject:hover { background: #f85149; }
+
+/* ========== Main 下部：Tab 内容 ========== */
+#content-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+#tab-btns {
+  display: flex;
+  gap: 0;
+  padding: 0 16px;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+}
+.tab-btn {
+  padding: 10px 16px;
+  background: transparent;
+  border: 0;
+  color: #8b949e;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn:hover { color: #c9d1d9; }
+.tab-btn.active {
+  color: #e6edf3;
+  border-bottom-color: #1f6feb;
+}
+#tab-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========== 产物 Tab ========== */
+#artifact-pane {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  overflow: hidden;
+}
+#artifact-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.artifact-btn {
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+}
+.artifact-btn:hover { background: #30363d; }
+.artifact-btn.active { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+.artifact-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+#preview {
+  flex: 1;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 16px;
+  overflow: auto;
+  font-size: 13px;
+  line-height: 1.5;
+}
+#preview.md { padding: 20px 24px; line-height: 1.6; }
+#preview.code { font-family: ui-monospace, monospace; white-space: pre; font-size: 12px; }
+.empty { color: #6e7681; font-style: italic; }
+
+/* ========== 日志 Tab ========== */
+#log-pane {
+  height: 100%;
+  overflow-y: auto;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+}
+.log-line { padding: 3px 4px; border-bottom: 1px solid #161b22; display: flex; gap: 8px; }
+.log-time { color: #6e7681; flex-shrink: 0; }
+.log-msg { flex: 1; word-break: break-word; white-space: pre-wrap; }
+.log-progress .log-msg { color: #58a6ff; }
+.log-progress[data-thinking] { background: #1a2332; animation: thinking-pulse 2s ease-in-out infinite; }
+.log-progress[data-thinking-done] { background: #161b22; font-style: italic; color: #6e7681; }
+.thought-duration { color: #58a6ff; font-weight: bold; margin-left: 6px; }
+@keyframes thinking-pulse { 0%, 100% { background: #1a2332; } 50% { background: #0d1f3a; } }
+.log-action .log-msg { color: #3fb950; }
+.log-error { background: #3a1a1a; }
+.log-error .log-msg { color: #f85149; }
+.log-warning .log-msg { color: #d29922; }
+.log-milestone { background: #0d2818; }
+.log-milestone .log-msg { color: #3fb950; font-weight: bold; }
+.log-gate .log-msg { color: #d29922; }
+.expand-btn {
+  background: #21262d; border: 1px solid #30363d; color: #58a6ff;
+  padding: 0 6px; font-size: 11px; cursor: pointer; border-radius: 3px; margin-left: 6px;
+}
+
+/* ========== 错误条 ========== */
+#error-banner {
+  margin: 12px 16px 0;
+  padding: 10px 14px;
+  background: #3a1a1a;
+  border: 1px solid #f85149;
+  border-radius: 6px;
+  color: #f85149;
+  font-size: 13px;
+  display: none;
+}
+
+/* ========== 滚动条 ========== */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0d1117; }
+::-webkit-scrollbar-thumb { background: #30363d; border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #484f58; }
+* { scrollbar-color: #30363d #0d1117; scrollbar-width: thin; }
+
+/* ========== Markdown 渲染 ========== */
+#preview.md h1, #preview.md h2, #preview.md h3 {
+  margin: 16px 0 8px;
+  border-bottom: 1px solid #21262d;
+  padding-bottom: 4px;
+  color: #e6edf3;
+}
+#preview.md h1 { font-size: 1.6em; }
+#preview.md h2 { font-size: 1.3em; }
+#preview.md h3 { font-size: 1.1em; }
+#preview.md p { margin: 8px 0; }
+#preview.md a { color: #58a6ff; text-decoration: none; }
+#preview.md a:hover { text-decoration: underline; }
+#preview.md ul, #preview.md ol { padding-left: 24px; margin: 8px 0; }
+#preview.md code {
+  background: #161b22; border: 1px solid #30363d;
+  padding: 1px 6px; border-radius: 4px; color: #f0883e; font-size: 0.9em;
+}
+#preview.md pre {
+  background: #161b22; border: 1px solid #30363d;
+  padding: 12px; border-radius: 6px; overflow: auto; margin: 8px 0;
+}
+#preview.md pre code { background: none; border: 0; padding: 0; }
+#preview.md blockquote { border-left: 3px solid #30363d; padding-left: 12px; color: #8b949e; }
+#preview.md table { border-collapse: collapse; margin: 8px 0; width: 100%; }
+#preview.md th, #preview.md td { border: 1px solid #30363d; padding: 6px 10px; }
+#preview.md th { background: #161b22; }
+.tok-kw { color: #ff7b72; }
+.tok-str { color: #a5d6ff; }
+.tok-num { color: #79c0ff; }
+.tok-com { color: #8b949e; font-style: italic; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<!-- ========== 左侧：启动区 + Run 列表 ========== -->
+<div id="sidebar">
+  <div id="start-section">
+    <h3>🚀 启动新工作流</h3>
+    <textarea id="requirements" placeholder="例：设计一个用户认证模块..."></textarea>
+    <button id="startBtn" onclick="startNew()">▶ 启动</button>
+  </div>
+  <div id="runs-section">
+    <h4>所有 Run</h4>
+    <div id="runs-list"></div>
+  </div>
+</div>
+
+<!-- ========== 右侧：详情面板 ========== -->
+<div id="main">
+
+  <!-- 空状态 -->
+  <div id="empty-state" style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#6e7681">
+    <div style="font-size:48px">📋</div>
+    <div style="margin-top:12px">启动一个工作流，或从左侧选择一个 Run</div>
+  </div>
+
+  <!-- 详情区 -->
+  <div id="detail-pane" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+    <div id="toolbar">
+      <div>
+        <h2><span id="tb-stage">-</span></h2>
+        <div class="toolbar-info" id="tb-info">-</div>
+      </div>
+      <div id="toolbar-actions">
+        <span id="tb-badge"></span>
+        <button id="tb-pause" class="primary" onclick="pauseSelected()" style="display:none">⏸ 暂停</button>
+        <button id="tb-continue" onclick="continueSelected()" style="display:none">▶ 继续</button>
+        <button id="tb-delete" class="danger" onclick="deleteSelected()">🗑 删除</button>
+      </div>
+    </div>
+
+    <div id="error-banner"></div>
+
+    <div id="pipeline-section">
+      <h3>工作流进度</h3>
+      <div id="pipeline-flow"></div>
+      <div id="gate-action-bar" style="display:none">
+        <span class="gate-label">🔒 等待审批:</span>
+        <span id="gate-name" style="color:#d29922;font-weight:600"></span>
+        <span style="flex:1"></span>
+        <button class="btn-approve" onclick="gateAction('approve')">✓ 通过</button>
+        <button class="btn-reject" onclick="gateAction('reject')">✗ 驳回</button>
+      </div>
+    </div>
+
+    <div id="content-section">
+      <div id="tab-btns">
+        <button class="tab-btn active" data-tab="artifact" onclick="switchTab('artifact')">📄 产物</button>
+        <button class="tab-btn" data-tab="log" onclick="switchTab('log')">📜 日志</button>
+      </div>
+      <div id="tab-content">
+        <div id="artifact-pane">
+          <div id="artifact-buttons"></div>
+          <div id="preview" class="md empty">选择 Run 后此处显示产物</div>
+        </div>
+        <div id="log-pane" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== 状态 ==========
+let SELECTED_RID = null;       // 选中的 run id（活跃或历史）
+let ACTIVE_RID = null;         // 活跃 run id（有 SSE 连接）
+let EVENT_SOURCE = null;       // 当前 SSE 连接
+let ACTIVE_TASK = null;        // fetch 的 AbortController（用于取消）
+let CURRENT_TAB = 'artifact';  // 当前 tab
+let CURRENT_PREVIEW_PATH = null;
+let CURRENT_PREVIEW_CONTENT = null;
+let SEEN_HISTORY_LEN = 0;      // 客户端已渲染到的 history 位置（用于日志连续性）
+
+// ========== 工具函数 ==========
+const ARTIFACT_LABELS = {
+  design: '📐 设计文档',
+  code: '💻 代码',
+  review: '🔍 审查报告',
+};
+const PY_KEYWORDS = /\b(def|class|import|from|return|if|else|elif|for|while|try|except|finally|with|as|in|not|and|or|is|None|True|False|lambda|pass|break|continue|raise|yield|async|await|self)\b/g;
+const JAVA_KEYWORDS = /\b(public|private|protected|class|interface|extends|implements|new|return|if|else|for|while|try|catch|finally|throw|throws|static|final|void|int|long|double|float|boolean|String|null|true|false|this|super|import|package)\b/g;
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ========== Run 状态 → 徽章/图标 ==========
+function stateBadge(state, status) {
+  if (state === 'running') return { cls: 'running', label: '▶ 运行中' };
+  if (state === 'exception') return { cls: 'exception', label: '✗ 异常' };
+  if (status === 'completed') return { cls: 'done', label: '✓ 已完成' };
+  if (status === 'waiting_gate') return { cls: 'waiting', label: '⏸ 等待审批' };
+  return { cls: 'paused', label: '⏸ 暂停' };
+}
+
+function stateIcon(state, status) {
+  const b = stateBadge(state, status);
+  return { icon: b.label.split(' ')[0], cls: b.cls, label: b.label };
+}
+
+// ========== 启动 ==========
+async function startNew() {
+  const req = document.getElementById('requirements').value.trim();
+  const btn = document.getElementById('startBtn');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/start?requirements=' + encodeURIComponent(req), {method:'POST'});
+    if (!r.ok) { alert('启动失败: ' + await r.text()); return; }
+    const d = await r.json();
+    SELECTED_RID = d.rid;
+    await refreshRuns();     // 立即刷新列表（让新 run 出现）
+    selectRun(d.rid);        // 自动选中新 run → 触发 SSE
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ========== 暂停 ==========
+async function pauseSelected() {
+  if (!SELECTED_RID) return;
+  const btn = document.getElementById('tb-pause');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/pause/' + SELECTED_RID, {method:'POST'});
+    if (!r.ok) { alert('暂停失败: ' + await r.text()); return; }
+    // 关闭 SSE（暂停后 _state !== running，stream 会自然结束）
+    closeSSE();
+    // 短暂延迟后刷新（让服务端 persist 完成）
+    setTimeout(async () => {
+      await refreshRuns();
+      if (SELECTED_RID) await selectRun(SELECTED_RID);
+    }, 300);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ========== 继续 ==========
+async function continueSelected() {
+  if (!SELECTED_RID) return;
+  const btn = document.getElementById('tb-continue');
+  btn.disabled = true;
+  try {
+    // 先取当前 history 长度，连接 SSE 时用 since=续上
+    const cur = await fetch('/api/runs/' + SELECTED_RID).then(r => r.json());
+    const since = cur.history_length || 0;
+    const r = await fetch('/api/continue/' + SELECTED_RID, {method:'POST'});
+    if (!r.ok) { alert('继续失败: ' + await r.text()); return; }
+    // 打开 SSE，从 since 处开始
+    openSSE(SELECTED_RID, since);
+    await refreshRuns();
+    await selectRun(SELECTED_RID);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ========== 删除 ==========
+async function deleteSelected() {
+  if (!SELECTED_RID) return;
+  if (!confirm(`确认删除 ${SELECTED_RID}？`)) return;
+  await fetch('/api/runs/' + SELECTED_RID, {method:'DELETE'});
+  closeSSE();
+  SELECTED_RID = null;
+  ACTIVE_RID = null;
+  showEmpty();
+  await refreshRuns();
+}
+
+// ========== Gate 操作 ==========
+async function gateAction(action) {
+  if (!SELECTED_RID) return;
+  const gid = document.getElementById('gate-name').textContent;
+  const note = prompt('审批备注 (可选):') || '';
+  await fetch(`/api/runs/${SELECTED_RID}/gates/${gid}/action?action=${action}&note=${encodeURIComponent(note)}`, {method:'POST'});
+  // gate 决定后 _state 转回 running，stream 会推 enter 下一阶段
+  // 立即隐藏 gate-bar 避免重复点击
+  document.getElementById('gate-action-bar').style.display = 'none';
+}
+
+// ========== 选中 Run ==========
+async function selectRun(rid) {
+  if (!rid) return;
+  SELECTED_RID = rid;
+  // 标记 selected 卡片
+  document.querySelectorAll('.run-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.rid === rid);
+  });
+  // 显示详情
+  const snap = await fetch('/api/runs/' + rid).then(r => r.json());
+  renderDetail(snap);
+  SEEN_HISTORY_LEN = snap.history_length || 0;
+  // 决定是否连接 SSE
+  if (snap._state === 'running') {
+    openSSE(rid, 0);   // 新选中活跃 run，全量接收
+  } else {
+    closeSSE();        // 历史 run，关闭连接
+  }
+}
+
+// ========== SSE 管理 ==========
+function openSSE(rid, since) {
+  closeSSE();
+  ACTIVE_RID = rid;
+  const url = `/api/runs/${rid}/stream?since=${since}`;
+  EVENT_SOURCE = new EventSource(url);
+  EVENT_SOURCE.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      handleEvent(data, since);
+    } catch (err) { console.error('SSE parse error', err); }
+  };
+  EVENT_SOURCE.onerror = () => {
+    // 服务器主动结束（stream:done）会触发 onmessage 后断流
+    // 这里只处理网络错误
+    if (EVENT_SOURCE && EVENT_SOURCE.readyState === EventSource.CLOSED) {
+      EVENT_SOURCE = null;
+      ACTIVE_RID = null;
+    }
+  };
+}
+
+function closeSSE() {
+  if (EVENT_SOURCE) {
+    EVENT_SOURCE.close();
+    EVENT_SOURCE = null;
+  }
+  ACTIVE_RID = null;
+}
+
+function handleEvent(data, since) {
+  if (!data) return;
+  // stream:resume 标记（since=0 重连时的断点）
+  if (data.e === 'stream:resume') {
+    SEEN_HISTORY_LEN = data.since;
+    return;
+  }
+  // stream:done — 收尾
+  if (data.e === 'stream:done') {
+    closeSSE();
+    refreshRuns().then(() => SELECTED_RID && selectRun(SELECTED_RID));
+    return;
+  }
+  // 正常 history 事件 — 加到 log（如果日志 tab 可见或自动累积）
+  addLog(data);
+  SEEN_HISTORY_LEN++;
+  // 局部刷新 pipeline / artifacts
+  if (SELECTED_RID && ACTIVE_RID === SELECTED_RID) {
+    // 避免频繁刷新：每 3 个事件刷一次详情
+    if (SEEN_HISTORY_LEN % 3 === 0) {
+      selectRun(SELECTED_RID);  // 重新拉取快照
+    }
+  }
+}
+
+// ========== 详情渲染 ==========
+function renderDetail(snap) {
+  // 切换显示
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('detail-pane').style.display = 'flex';
+
+  // 错误横幅
+  const banner = document.getElementById('error-banner');
+  if (snap._state === 'exception' && snap.error) {
+    banner.textContent = '✗ 异常: ' + snap.error;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+
+  // Toolbar
+  document.getElementById('tb-stage').textContent = snap.stage_id || 'done';
+  const total = (window.WORKFLOW_STAGES || []).length;
+  const info = [
+    `idx=${snap.idx}/${total}`,
+    (snap.artifacts || Object.keys(snap.artifacts || {})).length + '个产物',
+    snap.user_requirements ? `需求: ${snap.user_requirements.slice(0, 30)}` : '',
+  ].filter(Boolean).join(' · ');
+  document.getElementById('tb-info').textContent = info;
+  const b = stateBadge(snap._state, snap.status);
+  document.getElementById('tb-badge').innerHTML = `<span class="badge ${b.cls}">${b.label}</span>`;
+
+  // 操作按钮
+  document.getElementById('tb-pause').style.display = (snap._state === 'running') ? 'inline-block' : 'none';
+  document.getElementById('tb-continue').style.display = (snap._state === 'non_running' && snap.status !== 'completed') ? 'inline-block' : 'none';
+  document.getElementById('tb-delete').style.display = 'inline-block';
+
+  // Pipeline 流程
+  renderPipeline(snap);
+
+  // Gate 审批栏
+  const gateBar = document.getElementById('gate-action-bar');
+  if (snap._state === 'non_running' && snap.waiting_gate) {
+    gateBar.style.display = 'flex';
+    document.getElementById('gate-name').textContent = snap.waiting_gate;
+  } else {
+    gateBar.style.display = 'none';
+  }
+
+  // 产物
+  renderArtifacts(snap.artifacts || {});
+}
+
+function renderPipeline(snap) {
+  const stages = window.WORKFLOW_STAGES || [];
+  const flow = document.getElementById('pipeline-flow');
+  flow.innerHTML = '';
+  stages.forEach((s, i) => {
+    const card = document.createElement('div');
+    let state = 'pending';
+    if (i < snap.idx) state = 'done';
+    else if (i === snap.idx) {
+      if (snap._state === 'running') state = 'active';
+      else if (snap._state === 'exception') state = 'exception';
+      else if (snap._state === 'non_running' && snap.status === 'waiting_gate' && s.type === 'gate') state = 'waiting';
+      else if (snap._state === 'non_running') state = 'paused';
+    }
+    const icon = state === 'done' ? '✓' : state === 'active' ? '▶' : state === 'waiting' ? '⏸' : state === 'exception' ? '✗' : '○';
+    card.className = 'stage-card';
+    card.dataset.state = state;
+    card.innerHTML = `
+      <div class="stage-icon">${icon}</div>
+      <div class="stage-name">${escapeHtml(s.id)}</div>
+      <div class="stage-mode">${s.type || 'agent'} · ${s.mode || 'backend'}</div>
+    `;
+    flow.appendChild(card);
+    // 连接器
+    if (i < stages.length - 1) {
+      const conn = document.createElement('div');
+      conn.className = 'stage-connector' + (i < snap.idx ? ' done' : '');
+      conn.textContent = '→';
+      flow.appendChild(conn);
+    }
+  });
+}
+
+function renderArtifacts(artifacts) {
+  const box = document.getElementById('artifact-buttons');
+  const entries = Object.entries(artifacts);
+  if (!entries.length) {
+    box.innerHTML = '<span class="empty">产物将在生成后显示</span>';
+    return;
+  }
+  box.innerHTML = entries.map(([key, path]) => {
+    const label = ARTIFACT_LABELS[key] || key;
+    if (!path) {
+      return `<button class="artifact-btn" disabled>${label} (未生成)</button>`;
+    }
+    const active = (path === CURRENT_PREVIEW_PATH) ? ' active' : '';
+    return `<button class="artifact-btn${active}" onclick="preview('${path}')">${label}</button>`;
+  }).join('');
+}
+
+async function preview(path) {
+  try {
+    const r = await fetch('/api/files?path=' + encodeURIComponent(path));
+    if (!r.ok) {
+      const pv = document.getElementById('preview');
+      pv.className = 'md empty';
+      pv.textContent = '❌ 加载失败: ' + path + ' (' + r.status + ')';
+      return;
+    }
+    const d = await r.json();
+    CURRENT_PREVIEW_PATH = path;
+    CURRENT_PREVIEW_CONTENT = d.content;
+    renderPreview();
+    // 高亮按钮
+    document.querySelectorAll('.artifact-btn').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('onclick')?.includes(path));
+    });
+  } catch (e) { console.error(e); }
+}
+
+function renderPreview() {
+  const pv = document.getElementById('preview');
+  if (!CURRENT_PREVIEW_PATH) {
+    pv.className = 'md empty';
+    pv.textContent = '点击上方按钮预览产物';
+    return;
+  }
+  const path = CURRENT_PREVIEW_PATH;
+  const content = CURRENT_PREVIEW_CONTENT;
+  const lower = path.toLowerCase();
+  const isMd = lower.endsWith('.md');
+  const isCode = lower.endsWith('.py') || lower.endsWith('.java') || lower.endsWith('.js') || lower.endsWith('.ts');
+  if (isMd) {
+    pv.className = 'md';
+    try { pv.innerHTML = marked.parse(content); }
+    catch (e) { pv.textContent = content; }
+  } else if (isCode) {
+    pv.className = 'code';
+    pv.innerHTML = highlightCode(content, lower);
+  } else {
+    pv.className = 'md';
+    pv.textContent = content;
+  }
+}
+
+function highlightCode(code, path) {
+  let s = escapeHtml(code);
+  s = s.replace(/(["'`])(?:(?=(\\?))\2.)*?\1/g, m => `<span class="tok-str">${m}</span>`);
+  s = s.replace(/(#.+)$/gm, '<span class="tok-com">$1</span>');
+  const kwRe = path.endsWith('.java') ? JAVA_KEYWORDS : PY_KEYWORDS;
+  s = s.replace(kwRe, '<span class="tok-kw">$1</span>');
+  s = s.replace(/\b(\d+\.?\d*)\b/g, '<span class="tok-num">$1</span>');
+  return s;
+}
+
+// ========== Run 列表 ==========
+async function refreshRuns() {
+  const d = await fetch('/api/runs').then(r => r.json());
+  const list = document.getElementById('runs-list');
+  const runs = d.runs || [];
+  if (!runs.length) {
+    list.innerHTML = '<div class="empty" style="padding:16px;text-align:center">无 Run</div>';
+    return;
+  }
+  list.innerHTML = runs.map(r => {
+    const isSel = r.rid === SELECTED_RID;
+    const b = stateBadge(r._state, r.status);
+    const artCount = Object.keys(r.artifacts || {}).length;
+    const canContinue = r._state === 'non_running' && r.status !== 'completed';
+    return `
+      <div class="run-card ${isSel ? 'selected' : ''}" data-rid="${r.rid}" data-state="${r._state}" onclick="selectRun('${r.rid}')">
+        <div class="run-header">
+          <span>${b.icon} ${r.rid}</span>
+          <span class="badge ${b.cls}" style="font-size:10px">${b.label}</span>
+        </div>
+        <div class="run-sub">${r.stage_id || 'done'} · ${artCount} 产物</div>
+        ${r._state === 'exception' && r.error ? `<div class="run-error">${escapeHtml(r.error)}</div>` : ''}
+        <div class="run-actions">
+          ${canContinue ? `<button class="btn-continue" onclick="event.stopPropagation();continueFromList('${r.rid}')">▶ 继续</button>` : ''}
+          <button class="btn-delete" onclick="event.stopPropagation();deleteFromList('${r.rid}')">✗ 删除</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function continueFromList(rid) {
+  // 选中并继续
+  await selectRun(rid);
+  await continueSelected();
+}
+
+async function deleteFromList(rid) {
+  if (!confirm('确认删除 ' + rid + '？')) return;
+  await fetch('/api/runs/' + rid, {method:'DELETE'});
+  if (SELECTED_RID === rid) {
+    closeSSE();
+    SELECTED_RID = null;
+    showEmpty();
+  }
+  await refreshRuns();
+}
+
+// ========== Tab 切换 ==========
+function switchTab(tab) {
+  CURRENT_TAB = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.getElementById('artifact-pane').style.display = (tab === 'artifact') ? 'flex' : 'none';
+  document.getElementById('log-pane').style.display = (tab === 'log') ? 'block' : 'none';
+  if (tab === 'log') {
+    // 切换到日志 tab 时，刷新一次历史（避免重连）
+    refreshLog();
+  }
+}
+
+async function refreshLog() {
+  if (!SELECTED_RID) return;
+  const snap = await fetch('/api/runs/' + SELECTED_RID).then(r => r.json());
+  // 清空并从 history 重建（避免重复）
+  const log = document.getElementById('log-pane');
+  log.innerHTML = '';
+  SEEN_HISTORY_LEN = 0;
+  (snap.history || []).forEach(e => addLog(e));
+}
+
+// ========== 日志渲染（实时累积 + 折叠） ==========
+function addLog(event) {
+  const log = document.getElementById('log-pane');
+  const type = event.type || 'msg';
+  const isWaiting = (type === 'progress' && event.action === 'waiting');
+  const isThoughtDone = (type === 'milestone' && event.action === 'thought_done');
+
+  if (isWaiting) {
+    log.querySelectorAll('[data-thinking]').forEach(el => el.remove());
+  } else if (isThoughtDone) {
+    const live = log.querySelector('[data-thinking]');
+    if (live) {
+      if (live._thinkingTimer) clearInterval(live._thinkingTimer);
+      live.removeAttribute('data-thinking');
+      live.setAttribute('data-thinking-done', '1');
+      live.classList.remove('log-progress');
+      const dur = event.duration_s != null ? event.duration_s.toFixed(1) : '?';
+      live.innerHTML = `<span class="log-time">${live._origTime || ''}</span><span class="log-msg">✓ <span class="thought-duration">Thought: ${dur}s</span></span>`;
+      return;
+    }
+  } else if (type === 'action' || type === 'milestone' || type === 'error' || type === 'gate') {
+    log.querySelectorAll('[data-thinking]').forEach(el => {
+      if (el._thinkingTimer) clearInterval(el._thinkingTimer);
+      el.remove();
+    });
+  }
+
+  const div = document.createElement('div');
+  div.className = 'log-line log-' + type;
+  if (isWaiting) div.setAttribute('data-thinking', '1');
+  const time = new Date(event.t || Date.now()).toLocaleTimeString();
+  div._origTime = time;
+  let icon = '·';
+  if (isWaiting) icon = '⏳';
+  else if (isThoughtDone) icon = '✓';
+  else if (type === 'progress') icon = '⚙';
+  else if (type === 'action') icon = '➜';
+  else if (type === 'error') icon = '✗';
+  else if (type === 'warning') icon = '⚠';
+  else if (type === 'milestone') icon = '✓';
+  else if (type === 'gate') icon = '🔒';
+  const detail = event.detail || event.action || event.e || '';
+  const action = event.action ? `<b>[${event.action}]</b> ` : '';
+  const stage = event.stage ? `<span style="color:#a371f7">${event.stage}</span> ` : '';
+  const batched = event.batched ? ` <span class="empty">(×${event.batched})</span>` : '';
+
+  let detailHtml = escapeHtml(detail);
+  let expandBtn = '';
+  if (event.truncated && event.full_detail) {
+    div.setAttribute('data-truncated', '1');
+    div.setAttribute('data-full', event.full_detail);
+    div.setAttribute('data-truncated-detail', detail);
+    div.setAttribute('data-icon', icon);
+    div.setAttribute('data-action-tag', action);
+    div.setAttribute('data-total-lines', event.total_lines || '?');
+    const totalLines = event.total_lines || '?';
+    expandBtn = `<button class="expand-btn" onclick="toggleExpand(this)">... 展开 (${totalLines} 行)</button>`;
+  }
+
+  div.innerHTML = `<span class="log-time">${time}</span><span class="log-msg">${icon} ${stage}${action}${detailHtml}${batched}${expandBtn}</span>`;
+
+  if (isWaiting && event.thinking_since) {
+    const durSpan = document.createElement('span');
+    durSpan.className = 'thought-duration';
+    div.querySelector('.log-msg').appendChild(document.createTextNode(' '));
+    div.querySelector('.log-msg').appendChild(durSpan);
+    const startTs = new Date(event.thinking_since).getTime();
+    const updateDuration = () => {
+      const elapsed = (Date.now() - startTs) / 1000;
+      durSpan.textContent = `已持续 ${elapsed.toFixed(1)}s`;
+    };
+    updateDuration();
+    div._thinkingTimer = setInterval(updateDuration, 500);
+  }
+
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function toggleExpand(btn) {
+  const line = btn.closest('.log-line');
+  if (!line) return;
+  const isExpanded = line.getAttribute('data-expanded') === '1';
+  const full = line.getAttribute('data-full');
+  if (!full) return;
+  const time = line.querySelector('.log-time').outerHTML;
+  const origIcon = line.getAttribute('data-icon') || '·';
+  const origAction = line.getAttribute('data-action-tag') || '';
+  const totalLines = line.getAttribute('data-total-lines') || '?';
+  if (isExpanded) {
+    line.removeAttribute('data-expanded');
+    const detail = line.getAttribute('data-truncated-detail') || '';
+    line.innerHTML = `${time}<span class="log-msg">${origIcon} ${origAction}${escapeHtml(detail)}<button class="expand-btn" onclick="toggleExpand(this)">... 展开 (${totalLines} 行)</button></span>`;
+  } else {
+    line.setAttribute('data-expanded', '1');
+    line.innerHTML = `${time}<span class="log-msg">${origIcon} ${origAction}${escapeHtml(full)}<button class="expand-btn" onclick="toggleExpand(this)">[收起]</button></span>`;
+  }
+}
+
+// ========== 空状态 ==========
+function showEmpty() {
+  document.getElementById('empty-state').style.display = 'flex';
+  document.getElementById('detail-pane').style.display = 'none';
+  document.querySelectorAll('.run-card').forEach(c => c.classList.remove('selected'));
+}
+
+// ========== 启动 ==========
+fetch('/api/workflow').then(r => r.json()).then(d => {
+  window.WORKFLOW_STAGES = d.stages || [];
+  refreshRuns();
+}).catch(() => {
+  window.WORKFLOW_STAGES = [];
+  refreshRuns();
+});
+</script>
+</body>
+</html>

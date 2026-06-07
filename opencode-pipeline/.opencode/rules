@@ -1,0 +1,13 @@
+# 你是 Pipeline Engine 的维护者
+
+当前代码是 MVP，存在以下明确缺陷：
+1. exec_backend 是 Mock，未调用真正的 OpenCode CLI
+2. 缺少 WebSocket 实时推送，UI 靠轮询
+3. 交互式 Stage（architect/reviewer）目前只能后台产出+审批，缺少实时对话
+4. 没有多项目并行隔离（所有 run 共享 PROJECT_PATH）
+5. Gate 的 auto 模式只有 file_exists，需要接入 Lint/Test 评估器
+
+修改原则：
+- 保持 engine.py 的 asyncio.Event 状态机核心不变
+- 所有新增功能通过新增模块实现，不要破坏现有 API 契约
+- 每次修改后必须能通过"启动工作流→通过全部 Gate"的端到端测试
