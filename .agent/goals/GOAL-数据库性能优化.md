@@ -3,8 +3,8 @@ type: goal
 status: active
 driver: promotion
 urgency: medium
-deadline: 2026-06-19
-review_date: 2026-05-29
+deadline: 2026-07-29
+review_date: 2026-07-08
 incident_ref: [[goal-java简历]]
 exit_conditions:
   - 掌握SQL执行计划分析

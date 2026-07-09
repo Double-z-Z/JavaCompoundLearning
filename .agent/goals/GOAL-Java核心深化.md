@@ -3,8 +3,8 @@ type: goal
 status: active
 driver: promotion
 urgency: high
-deadline: 2026-06-29
-review_date: 2026-05-29
+deadline: 2026-08-05
+review_date: 2026-07-08
 incident_ref: [[goal-java简历]]
 exit_conditions:
   - 能够徒手实现高性能线程池

@@ -2,7 +2,7 @@
 type: meta_emergence
 description: 涌现触发器日志 - 记录MOC相变事件
 created: 2026-05-06
-updated: 2026-05-16
+updated: 2026-07-08
 ---
 
 # META-涌现触发器日志

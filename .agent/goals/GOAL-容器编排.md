@@ -3,8 +3,8 @@ type: goal
 status: active
 driver: promotion
 urgency: medium
-deadline: 2026-06-12
-review_date: 2026-05-29
+deadline: 2026-07-22
+review_date: 2026-07-08
 incident_ref: [[goal-java简历]]
 exit_conditions:
   - 掌握Docker镜像构建、优化、安全加固

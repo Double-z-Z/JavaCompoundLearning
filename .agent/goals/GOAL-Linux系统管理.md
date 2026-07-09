@@ -3,8 +3,8 @@ type: goal
 status: active
 driver: promotion
 urgency: low
-deadline: 2026-06-05
-review_date: 2026-05-29
+deadline: 2026-07-15
+review_date: 2026-07-08
 incident_ref: [[goal-java简历]]
 exit_conditions:
   - 熟练使用Linux日常命令
