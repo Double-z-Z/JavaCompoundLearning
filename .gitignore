@@ -67,3 +67,5 @@ logs/
 
 # Redis dump file
 dump.rdb
+
+/01-Projects/learn-mybatis-sharding-migration/

@@ -1,1 +1,0 @@
-- [MySQL 8.0 Replication Auth Plugin](replication-auth-plugin.md) — caching_sha2_password requires SSL, use mysql_native_password for Docker-based replication
